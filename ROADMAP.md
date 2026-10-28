@@ -57,6 +57,10 @@ The installed synth remains available for playing while the work is planned.
 
 ## Broader instrument direction
 
+The next sound experiment is an isolated [per-voice post-filter drive study](native/VOICE-DRIVE-STUDY.md).
+Six matched listening clips compare bypass/+8/+24 dB on a note and chord. The
+experimental stage is not compiled into the plugin; listening feedback is pending.
+
 Development step on 2026-10-29: SAVE/LOAD patch files now preserve all 35 controls
 independently of the host project. File validation and roundtrip tests pass, as
 do the existing wrapper/automation/accessibility and actual-module checks. The

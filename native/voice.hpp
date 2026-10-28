@@ -120,6 +120,9 @@ public:
  double pulse(double phase,double dt,double width)const{return saw(phase-width,dt)-saw(phase,dt);}
 };
 class Synth {
+#if MEMORYLAB_EXPERIMENTAL_VOICE_DRIVE
+ bool studyDriveEnabled=false;double studyDriveGain=1;std::uint64_t studyClipped=0;
+#endif
  double sr=48000;std::uint64_t clock=0;std::array<Voice,8> voices{};MemoryDrive memory;
  Parameters target{},current{};OscillatorBank bank;
  std::array<bool,16> sustain{};
@@ -197,10 +200,22 @@ class Synth {
   const double x=(.42*saw+.28*pulse)*v.env*v.velocity;
   const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
+#if MEMORYLAB_EXPERIMENTAL_VOICE_DRIVE
+  if(studyDriveEnabled){output*=studyDriveGain;if(std::abs(output)>1)++studyClipped;output=std::clamp(output,-1.,1.);}
+#endif
   if(v.transitionLeft>0){const double weight=double(v.transitionLeft--)/int(sr*.005);output=output*(1-weight)+v.transitionValue*weight;}
   v.lastOutput=output;return output;
  }
 public:
+#if MEMORYLAB_EXPERIMENTAL_VOICE_DRIVE
+ // Offline experiment only: not compiled into the plugin or standard native core.
+ // Configure between renders, never concurrently with the audio thread.
+ bool setStudyVoiceDrive(bool enabled,double db){
+  if(!std::isfinite(db)||db<0||db>24)return false;
+  studyDriveEnabled=enabled;studyDriveGain=std::pow(10.,db/20.);studyClipped=0;return true;
+ }
+ std::uint64_t studyClippedVoiceSamples()const{return studyClipped;}
+#endif
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
  void reset(){voices={};clock=0;target=current=Parameters{};memory.prepare(sr);sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}

@@ -145,6 +145,80 @@ independent measurements or assume that phase/gain behavior is established.
 
 ## Next evidence to collect
 
+### Further creator walkthrough: compensated gain staging and external reverb
+
+Holger supplied another transcript describing the first eight-voice prototype;
+URL, date and title remain pending. Features overlap the NAMM 2024 walkthroughs,
+so do not assume this is an independent instrument or recording session.
+
+The new detail is an explicit example of core VCA gain at setting 7 and final-stage
+gain at setting 3: the creator says their gains offset while additional distortion
+remains. This supports separate drive and output-level controls, and motivates
+matched-level comparisons. It does not prove that the complete nonlinear chain
+has identical RMS/peaks, or establish all lower gain settings in dB. Our listening
+study's offline RMS matching is a comparison aid, not that hardware gain circuit.
+
+This transcript explicitly identifies Lexicon reverb on a wet sync patch, with a
+dry comparison described. Therefore the wet sound is not evidence of built-in
+effects. It also describes five oscillator modulation slots; exact destinations,
+source ranges and combinations are not fully specified by this excerpt.
+The continuous filter-profile sweep, bandwidth control, +24 dB top gain setting
+and touch-dependent encoder display repeat earlier stated features.
+
+
+### Sonicstate SynthPlex 2022: fuller transcript and panel screenshots
+
+Source identified by Holger's screenshots as Sonicstate's
+"SynthPlex 22: Shear Relic OB Inspired Polly Is Back!", published 2022-10-31:
+https://www.youtube.com/watch?v=CUqPG2ycv1A . Screenshots show 4:10 and 4:27 of
+24:37. The description explicitly says no audio was ready. This is interface and
+design-intent evidence, not a source for comparing audible timbre.
+
+- Eight voices and bi-timbral operation are described at this stage, before the
+  later four-way multitimbral descriptions. Four envelopes and four LFOs per voice
+  are already present. Do not collapse the generations into one fixed feature set.
+- The transcript explicitly names both a built-in arpeggiator and sequencer.
+  This is stronger evidence than a printed ARP label, though their operating modes
+  remain unspecified and no working demonstration is established here.
+- The creator states 256 encoder steps per revolution. That is an encoder-motion
+  resolution claim, not a bound on the total parameter resolution or proof of
+  uniform spacing in seconds/Hz. Touching a control reveals its value without
+  requiring a value change. Eight mini bars provide simultaneous context.
+- Envelope timing uses a nonlinear scale, described here as reaching 20 seconds;
+  later material describes 100 seconds. The apparent reference to sustain as a
+  time is not adopted: sustain is a level. No precise scale law is established.
+- Separate oscillator coarse/fine tuning, fine range +/-100 cents, saw/pulse/off,
+  key/bend tracking switches, hard sync from VCO2 to VCO1, and disabling VCO2
+  portamento are described. Exact mode interactions and extreme pulse-width
+  behavior still need direct verification.
+- Mixing includes VCO crossfade and white noise. Gain setting 5 is described as
+  nominal 1 Vrms, then 6/+4 dB, 7/+8 dB, 8/+12 dB, 9/+16 dB and 10/+20 dB;
+  setting 11 is the extra range. This fills in the positive-gain mapping more
+  clearly than the later short excerpts. It does not calibrate our digital
+  full scale, clipping voltage or negative-side mapping.
+- Envelope and LFO level modulation can come from other modulation sources.
+  The example uses envelope 3 to fade in LFO2; velocity, wheel, aftertouch and
+  key position are also described as sources. Time modulation can shorten attack
+  with harder playing. The spoken 30-to-4-ms / -2 example is insufficient to
+  derive the exact timing law or source normalization. A velocity-level example
+  has ambiguous depth semantics; do not invent a formula from it.
+- Detune/variation controls are described beyond VCOs, including filters, LFOs,
+  envelopes and VCAs. Distribution, per-voice persistence and update behavior
+  are not established, so this is not evidence for randomizing every sample.
+- The filter discussion describes two dipoles and variable bandwidth. The panel
+  at 4:10 visibly separates CUTOFF, RESONANCE, PROFILE and BANDWIDTH, with four
+  further modulation controls. Scale labels include LP4, LP3, LP2, XF2 (NF2),
+  BP4 (HP2). Later official material uses XF4 for its modern X blend; preserve
+  the early panel label rather than silently rewriting it to match later terms.
+- At 4:27 the selected envelope row visibly includes DELAY/HOLD, ATTACK, DECAY,
+  SUSTAIN, RELEASE, LEVEL MOD and TIME MOD. This supports the interface inventory,
+  not a complete determination of the shared DELAY/HOLD control's semantics.
+
+The creator's broad analog-versus-digital judgments are opinions, not measured
+limits on software synthesis. Our aim remains musical usefulness and explicit
+original modeling choices, with hardware correspondence requiring comparisons.
+
+
 ### Fuller NAMM 2024 transcript supplied subsequently
 
 Holger subsequently provided the fuller interview that appears to contain the
