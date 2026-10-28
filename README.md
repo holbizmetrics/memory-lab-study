@@ -6,6 +6,9 @@ practical DSP question. It does not modify the PCLA engine or the companion's fi
 
 ## Current native and plug-in milestone
 
+Upcoming work is tracked in [the roadmap](ROADMAP.md), including the requested
+DAW knob-automation recording, editing and project-recall milestone.
+
 Installed version 0.3 adds editable amplitude and filter dAHDSR envelopes.
 Holger confirmed playing and enjoying it in FL Studio, including a 130 BPM
 piano-roll pattern. Version 0.4 adds an optional arpeggiator and is installed with
