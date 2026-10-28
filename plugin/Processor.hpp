@@ -21,10 +21,13 @@ public:
  const juce::String getProgramName(int)override{return "Study baseline";}
  void changeProgramName(int,const juce::String&)override{}
  bool hasEditor()const override{return true;}
- juce::AudioProcessorEditor* createEditor()override{return new juce::GenericAudioProcessorEditor(*this);}
+ juce::AudioProcessorEditor* createEditor()override;
  void getStateInformation(juce::MemoryBlock&)override;
  void setStateInformation(const void*,int)override;
  juce::AudioProcessorValueTreeState state;
+ juce::MidiKeyboardState keyboard;
+ std::atomic<float> outputPeak{0};
+ std::atomic<int> voiceCount{0};
 private:
  static juce::AudioProcessorValueTreeState::ParameterLayout layout();
  void midi(const juce::uint8*,int);

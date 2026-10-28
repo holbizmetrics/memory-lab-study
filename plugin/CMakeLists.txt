@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(MemoryLabPlugin VERSION 0.1.0 LANGUAGES C CXX)
+project(MemoryLabPlugin VERSION 0.2.0 LANGUAGES C CXX)
 set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../outputs/deps/JUCE" CACHE PATH "Pinned JUCE source checkout")
 add_subdirectory("${JUCE_PATH}" "${CMAKE_BINARY_DIR}/juce")
 juce_add_plugin(MemoryLab
@@ -9,7 +9,7 @@ juce_add_plugin(MemoryLab
  IS_SYNTH TRUE NEEDS_MIDI_INPUT TRUE NEEDS_MIDI_OUTPUT FALSE
  IS_MIDI_EFFECT FALSE EDITOR_WANTS_KEYBOARD_FOCUS FALSE
  COPY_PLUGIN_AFTER_BUILD FALSE VST3_CATEGORIES Instrument Synth)
-target_sources(MemoryLab PRIVATE Processor.cpp Processor.hpp)
+target_sources(MemoryLab PRIVATE Processor.cpp Processor.hpp Editor.cpp Editor.hpp)
 target_compile_features(MemoryLab PUBLIC cxx_std_17)
 target_compile_definitions(MemoryLab PUBLIC JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0)
 target_link_libraries(MemoryLab PRIVATE juce::juce_audio_utils PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)

@@ -1,4 +1,5 @@
 #include "Processor.hpp"
+#include "Editor.hpp"
 
 namespace {
 struct Spec{const char* id;const char* name;float low,high,step;double initial;float skew;memorylab::Param parameter;};
@@ -36,7 +37,8 @@ MemoryLabProcessor::MemoryLabProcessor():AudioProcessor(BusesProperties().withOu
 bool MemoryLabProcessor::isBusesLayoutSupported(const BusesLayout& b)const{
  return b.getMainInputChannelSet().isDisabled()&&(b.getMainOutputChannelSet()==juce::AudioChannelSet::mono()||b.getMainOutputChannelSet()==juce::AudioChannelSet::stereo());
 }
-void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);previous.fill(std::numeric_limits<float>::quiet_NaN());setLatencySamples(0);}
+void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);keyboard.reset();outputPeak=0;voiceCount=0;previous.fill(std::numeric_limits<float>::quiet_NaN());setLatencySamples(0);}
+juce::AudioProcessorEditor* MemoryLabProcessor::createEditor(){return new MemoryLabEditor(*this);}
 void MemoryLabProcessor::midi(const juce::uint8*data,int length){
  if(length<1)return;const int kind=data[0]&0xf0,channel=data[0]&0xf;using namespace memorylab;
  auto dispatch=[&](EventKind k,int note,double value){synth.dispatch({0,k,note,value,channel});};
@@ -60,12 +62,14 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
   synth.dispatch({0,memorylab::EventKind::Parameter,0,nativeValue,0,specs[i].parameter});previous[i]=value;
  }}
  const int count=audio.getNumSamples();float* mono=audio.getWritePointer(0);int cursor=0;
+ keyboard.processNextMidiBuffer(events,0,count,true);
  for(const auto metadata:events){const int position=juce::jlimit(cursor,count,metadata.samplePosition);
   if(position>cursor)synth.render(mono+cursor,std::size_t(position-cursor));
   midi(metadata.data,metadata.numBytes);cursor=position;
  }
  if(cursor<count)synth.render(mono+cursor,std::size_t(count-cursor));
  for(int channel=1;channel<audio.getNumChannels();++channel)audio.copyFrom(channel,0,audio,0,0,count);
+ outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
 void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",1,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}

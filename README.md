@@ -13,6 +13,10 @@ an actual-module scan/load/audio/state/release/reload check. FL Studio operation
 still needs target-host confirmation. See [the build result](plugin/BUILD-RESULT.md)
 and [wrapper instructions](plugin/README.md).
 
+Version0.2 adds a [custom native editing surface](plugin/EDITOR.md) with Voice/Motion
+pages, eight contextual knobs, parameter/response displays and an on-screen keyboard.
+The prior installed build is backed up under outputs/installed-backup-0.1.0.
+
 Reusable lessons for future hardware-inspired instruments are collected in
 [Developing software instruments from hardware synth documentation](HARDWARE-SYNTH-WORKFLOW.md).
 The project remains an original partial instrument, not a complete Relic emulation.

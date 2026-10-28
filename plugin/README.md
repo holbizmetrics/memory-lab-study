@@ -26,12 +26,12 @@ into system directories automatically. Framework version9.0.4 commit:
 
 ## UI and state
 
-Initial editor is JUCE's plain generic parameter editor. The sixteen controls
-cover drive/memory, detune/width, cutoff/Q/profile, output gain, LFO rate and
-depths, filter envelope amount, pressure routing and phase reset. There is no
-custom artwork, browser embed, factory-preset bank or on-screen keyboard yet.
-The default patch preserves the approved native baseline. Float host defaults
-are mapped to the exact corresponding native default values.
+Version0.2 uses an original custom editor with Voice/Motion pages, eight contextual
+rotary controls, a selected-parameter display, static filter or modulation diagrams,
+an output fader/meter and an on-screen keyboard. The sixteen host parameters retain
+their IDs and meanings. See EDITOR.md for layout, verification and update details.
+There is no browser embed or factory-preset bank. The default patch preserves the
+approved native baseline; float host defaults map to their native default values.
 
 Host state saves/restores parameter values using the APVTS XML/binary format.
 It does not save held notes, oscillator phases, pedal or other transient controller

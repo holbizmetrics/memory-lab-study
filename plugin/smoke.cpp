@@ -4,8 +4,20 @@
 void check(bool ok,const char*why){if(!ok)throw std::runtime_error(why);}
 void set(MemoryLabProcessor&p,const char*id,float value){auto*parameter=p.state.getParameter(id);check(parameter,"missing parameter");parameter->setValueNotifyingHost(parameter->convertTo0to1(value));}
 double power(const juce::AudioBuffer<float>&b){double sum=0;for(int i=0;i<b.getNumSamples();++i){float v=b.getSample(0,i);check(std::isfinite(v)&&std::abs(v)<1,"bad audio");sum+=v*v;}return sum;}
-int main(){try{
+juce::Component* find(juce::Component&root,const juce::String&id){if(root.getComponentID()==id)return &root;for(auto*child:root.getChildren())if(auto*match=find(*child,id))return match;return nullptr;}
+int main(int argc,char**argv){try{
  juce::ScopedJuceInitialiser_GUI gui;
+ if(argc==2){
+  auto processor=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
+  const juce::File folder{juce::String::fromUTF8(argv[1])};folder.createDirectory();check(folder.isDirectory(),"snapshot folder");
+  auto snapshot=[&](const char*name){auto image=editor->createComponentSnapshot(editor->getLocalBounds(),true,1);auto stream=folder.getChildFile(name).createOutputStream();check(bool(stream),"snapshot stream");juce::PNGImageFormat png;check(png.writeImageToStream(image,*stream),"snapshot encoding");};
+  snapshot("voice.png");
+  auto*cutoff=dynamic_cast<juce::Slider*>(find(*editor,"cutoff"));check(cutoff,"cutoff control missing");cutoff->setValue(2000,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("cutoff")->load()-2000)<1,"cutoff attachment");
+  auto*motion=dynamic_cast<juce::Button*>(find(*editor,"motionPage"));check(motion&&bool(motion->onClick),"motion page missing");motion->onClick();snapshot("motion.png");
+  auto*vibrato=dynamic_cast<juce::Slider*>(find(*editor,"vibrato"));check(vibrato,"vibrato control missing");vibrato->setValue(8,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("vibrato")->load()-8)<.01,"vibrato attachment");
+  editor->setSize(832,592);snapshot("compact.png");
+  std::cout<<"PASS: Voice/Motion editor construction, parameter attachments and compact snapshot; previews "<<folder.getFullPathName()<<"\n";return 0;
+ }
  auto p=std::make_unique<MemoryLabProcessor>();p->setPlayConfigDetails(0,2,48000,512);p->prepareToPlay(48000,512);
  juce::AudioBuffer<float>a(2,512);juce::MidiBuffer midi;
  midi.addEvent(juce::MidiMessage::noteOn(1,60,(juce::uint8)100),127);p->processBlock(a,midi);
@@ -44,5 +56,8 @@ int main(){try{
   if(pos<=2000&&2000<pos+n)local.addEvent(juce::MidiMessage::noteOff(1,60),2000-pos);
   split->processBlock(chunk,local);for(int i=0;i<n;++i)check(chunk.getSample(0,i)==large.getSample(0,pos+i),"wrapper block mismatch");
  }
- std::cout<<"PASS: JUCE/native default parity, MIDI sample offsets, stereo, channel CC120 isolation, sustain, bend/pressure mapping, state recall and MIDI block partitioning\n";return 0;
+ auto screen=std::make_unique<MemoryLabProcessor>();screen->prepareToPlay(48000,512);screen->keyboard.noteOn(1,60,.8f);double screenEnergy=0;
+ for(int i=0;i<4;++i){midi.clear();screen->processBlock(a,midi);screenEnergy+=power(a);}check(screenEnergy>1e-6,"on-screen keyboard silent");screen->keyboard.noteOff(1,60,0);
+ for(int i=0;i<140;++i){midi.clear();screen->processBlock(a,midi);}check(power(a)<1e-12,"on-screen keyboard stuck note");
+ std::cout<<"PASS: JUCE/native default parity, MIDI sample offsets, stereo, channel CC120 isolation, sustain, bend/pressure mapping, state recall, MIDI block partitioning and on-screen keyboard audio/release\n";return 0;
  }catch(const std::exception&e){std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}}
