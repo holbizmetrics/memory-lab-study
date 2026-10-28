@@ -12,8 +12,14 @@ Preserve existing patches and the approved sound while adding features.
 Initial work has started: FL Studio recognized Cutoff as last tweaked and played
 an edited automation clip with visible knob/curve movement. Source-side parameter
 and gesture checks passed. Project reload was followed by an unexpected FL exit
-with an unknown faulting module; reliable recall remains unverified. See
+with a UI Automation provider-cleanup failure in the captured dump; provider
+ownership and reliable recall remain unverified. See
 [the detailed status](plugin/AUTOMATION.md).
+
+Decision on 2026-10-29: park active crash investigation and continue instrument
+development. Preserve the dump, analysis and isolated lifecycle regression;
+resume triage if the crash recurs. Passing the isolated test does not establish
+that FL Studio reload or VST3 module unloading is safe.
 
 Requested by Holger on 2026-10-28: automate knob movements in the DAW to create
 evolving sounds and record performances.
@@ -45,6 +51,12 @@ This is a recorded future task, not a claim that these host checks have passed.
 The installed synth remains available for playing while the work is planned.
 
 ## Broader instrument direction
+
+Development step on 2026-10-29: SAVE/LOAD patch files now preserve all 35 controls
+independently of the host project. File validation and roundtrip tests pass, as
+do the existing wrapper/automation/accessibility and actual-module checks. The
+installed plugin is unchanged; native dialogs in FL still need verification.
+See [patch file behavior](plugin/PATCHES.md).
 
 Continue incrementally toward richer oscillator, filter, modulation and allocator
 features using the hardware evidence and explicit modeling limits. Earlier

@@ -35,12 +35,15 @@ legacy presets receive the original envelope defaults. See EDITOR.md for details
 The optional arpeggiator defaults off, follows host or internal tempo and provides
 three note orders, six rates, 1–3 octave layers and gate control. See ARPEGGIATOR.md
 for timing behavior, patch compatibility and first-version limits.
+The development build adds [patch file save/load](PATCHES.md) using the SAVE/LOAD
+buttons. It has not replaced the installed 0.4 build.
 There is no browser embed or factory-preset bank. The default patch preserves the
 approved native baseline; float host defaults map to their native default values.
 
 Host state saves/restores parameter values using the APVTS XML/binary format.
 It does not save held notes, oscillator phases, pedal or other transient controller
-states. One default program is advertised; use host project/preset state for now.
+states. One default program is advertised; host project/preset state remains
+supported alongside the development build's separate patch files.
 Parameter updates reach the core at block boundaries and are smoothed where the
 core contract specifies. Sample-accurate host parameter automation is not claimed.
 

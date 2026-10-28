@@ -1,4 +1,5 @@
 #include "Editor.hpp"
+#include "Patch.hpp"
 #include <string>
 
 namespace {
@@ -77,6 +78,23 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
  struct Knob{juce::Label label;juce::Slider slider;std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>attachment;};
  std::array<Knob,8>knobs;
  juce::Slider output;juce::ToggleButton phase{"RESET OSC PHASE"};
+ juce::TextButton savePatch{"SAVE"},loadPatch{"LOAD"};
+ std::unique_ptr<juce::FileChooser> patchChooser;
+ juce::File patchFile{juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("Memory Lab Study.mlpatch")};
+ void choosePatch(bool saving){
+  if(patchChooser)return;
+  patchChooser=std::make_unique<juce::FileChooser>(saving?"Save Memory Lab patch":"Load Memory Lab patch",patchFile,"*.mlpatch",true,false,this);
+  const auto chooserFlags=saving?(juce::FileBrowserComponent::saveMode|juce::FileBrowserComponent::canSelectFiles|juce::FileBrowserComponent::warnAboutOverwriting):(juce::FileBrowserComponent::openMode|juce::FileBrowserComponent::canSelectFiles);
+  patchChooser->launchAsync(chooserFlags,[safe=juce::Component::SafePointer<Surface>(this),saving](const juce::FileChooser& chooser){
+   if(!safe)return;auto file=chooser.getResult();
+   if(file!=juce::File{}){
+    const auto result=saving?memorylab::patch::save(safe->processor,file):memorylab::patch::load(safe->processor,file);
+    if(result.wasOk())safe->patchFile=file;
+    else juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,"Memory Lab patch",result.getErrorMessage());
+   }
+   safe->patchChooser.reset();
+  });
+ }
  juce::TextButton voicePage{"VOICE"},motionPage{"MOTION"},envelopePage{"ENVELOPES"},arpPage{"ARP"},ampPage{"AMPLITUDE"},filterPage{"FILTER"};
  juce::MidiKeyboardComponent keys;
  std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>outputAttachment;
@@ -136,6 +154,9 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
 public:
  explicit Surface(MemoryLabProcessor&p):processor(p),keys(p.keyboard,juce::MidiKeyboardComponent::horizontalKeyboard){
   setLookAndFeel(&look);setSize(1040,740);
+  addAndMakeVisible(savePatch);addAndMakeVisible(loadPatch);savePatch.setComponentID("savePatch");loadPatch.setComponentID("loadPatch");
+  savePatch.setTooltip("Save all sound and arpeggiator controls as a patch.");loadPatch.setTooltip("Load a patch. Stop playback first; DAW automation can override its controls.");
+  savePatch.onClick=[this]{choosePatch(true);};loadPatch.onClick=[this]{choosePatch(false);};
   for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];addAndMakeVisible(k.label);addAndMakeVisible(k.slider);k.label.setJustificationType(juce::Justification::centred);k.label.setColour(juce::Label::textColourId,muted);k.label.setFont(juce::Font(juce::FontOptions(12.f)));k.slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);k.slider.setTextBoxStyle(juce::Slider::TextBoxBelow,false,92,23);k.slider.onDragStart=[this,i]{select(i);};k.slider.onValueChange=[this,i]{if(!binding)select(i);};}
   addAndMakeVisible(output);output.setSliderStyle(juce::Slider::LinearVertical);output.setTextBoxStyle(juce::Slider::TextBoxBelow,false,85,24);output.setName("OUTPUT GAIN");output.setColour(juce::Slider::thumbColourId,mint);output.setColour(juce::Slider::trackColourId,mint);output.setDoubleClickReturnValue(true,.25);outputAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(p.state,"volume",output);
   addAndMakeVisible(phase);phaseAttachment=std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(p.state,"phaseReset",phase);
@@ -147,6 +168,7 @@ public:
  }
  ~Surface()override{stopTimer();for(auto&k:knobs)k.attachment.reset();outputAttachment.reset();phaseAttachment.reset();setLookAndFeel(nullptr);}
  void resized()override{
+  savePatch.setBounds(912,25,47,32);loadPatch.setBounds(965,25,47,32);
   voicePage.setBounds(484,25,95,32);motionPage.setBounds(589,25,95,32);envelopePage.setBounds(694,25,118,32);arpPage.setBounds(822,25,72,32);ampPage.setBounds(300,526,130,30);filterPage.setBounds(440,526,130,30);
   for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];k.label.setBounds(28+i*108,344,106,22);k.slider.setBounds(32+i*108,372,98,126);}
   output.setBounds(926,144,78,325);phase.setBounds(40,526,210,30);keys.setBounds(30,594,980,94);

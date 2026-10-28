@@ -7,6 +7,7 @@ double power(const juce::AudioBuffer<float>&b){double sum=0;for(int i=0;i<b.getN
 juce::Component* find(juce::Component&root,const juce::String&id){if(root.getComponentID()==id)return &root;for(auto*child:root.getChildren())if(auto*match=find(*child,id))return match;return nullptr;}
 #include "automation-checks.hpp"
 #include "uia-lifecycle-checks.hpp"
+#include "patch-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -42,6 +43,7 @@ int main(int argc,char**argv){try{
  if(argc==2&&std::string(argv[1])=="--uia-lifecycle-test"){uiaLifecycleChecks();return 0;}
 #endif
  if(argc==2&&std::string(argv[1])=="--automation-test"){automationChecks();return 0;}
+ if(argc==2&&std::string(argv[1])=="--patch-test"){patchChecks();return 0;}
  if(argc==2){
   auto processor=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
   const juce::File folder{juce::String::fromUTF8(argv[1])};folder.createDirectory();check(folder.isDirectory(),"snapshot folder");
