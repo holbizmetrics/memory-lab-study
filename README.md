@@ -1,0 +1,85 @@
+# Drive Memory Lab — standalone PCLA-assisted audio investigation
+
+This project lives outside FPSDK and PCLA. It applies PCLA-Experimental's existing
+ideation contracts, Codex provider adapter and inspected InverseGateRunner to a
+practical DSP question. It does not modify the PCLA engine or the companion's files.
+
+## Existing companion and scope
+
+Relic companion thread: `01a18029-93c3-7d71-9909-ca8382ce41c1`.
+Existing project: `C:/Users/Holger/Documents/Codex/2026-10-28/expressive-synth-lab`.
+Its experiment 1 already compares clean / pre-filter / filter-feedback / post-filter
+drive. Experiment 3 is a live output-tanh slider. Those artifacts were inspected
+read-only; their historical test reports were not silently promoted to new passes.
+This project does not duplicate or overwrite that work.
+
+The follow-up asks whether static output saturation, asymmetry or an envelope
+memory response is musically useful on the SAME filtered voice and phrase.
+The source is a hash-recorded snapshot of the companion's float clean-raw.wav,
+with its DSP source and settings retained as provenance. The DSP module here is
+original code; models propose only bounded parameter data, never executable code.
+
+This is Relic-inspired original research, not a hardware emulation. Manufacturer
+specifications and the user/video description motivate the question; they do not
+establish a distortion circuit, envelope follower, bias or power-supply sag.
+No branding, artwork, firmware or factory presets are copied. No VST3 is claimed
+at this milestone. DSP behavior and listening preferences should precede a
+real-time-safe C++/VST3 implementation and hardware-match claims.
+
+## PCLA process and evidence
+
+1. Sensory hypothesis and exact mapping to the stated DSP.
+2. Three linked variants: static baseline, biased, envelope-memory/sag.
+3. Calibration: assumptions, risks, falsifiers and predicted outcomes.
+4. Refinement: all ids retained; bounded parameter changes, no test feedback.
+5. Existing PCLA runner evaluates BOTH original and refined variants at three
+   fixed drive factors. Every failed, redundant or unhelpful variant remains.
+
+The three families are specified by the experiment, not freely discovered by
+PCLA. This first application tests a research workflow and supplies listening
+material; it is not evidence of a general productivity gain or independent
+discovery of a circuit. Numerical validity is separate from musical usefulness.
+The listening player provides clean plus nine refined takes, with clear labels
+and explicit play/replay/stop. Global -24 dBFS RMS matching does not guarantee equal
+perceived loudness. No limiter or per-note level matching is used.
+
+Run with the installed Python containing numpy and scipy:
+
+```powershell
+py -3 -m unittest test_memory_dsp.py
+py -3 pcla_audio.py outputs/ideation-1
+```
+
+The second command makes FOUR explicit foreground Codex calls, max 180 seconds
+each, then renders/evaluates the fixed candidates. Paths to the existing PCLA,
+companion, source log and Codex executable are explicit constants in pcla_audio.py.
+No watcher, scheduler, bus poll, autonomous knowledge admission or automatic
+musical winner is configured. Failed runs remain evidence; choose a new directory
+rather than overwriting one. All prompts, schemas, raw replies, receipts,
+parameter choices, measurements and both generations of audio are retained.
+
+The DSP uses common 4x resampling around each output nonlinearity. This is not
+sample-identical to the companion's offline 8x processing or browser oversampling.
+Its filter/voice already exist in the input snapshot, so this comparison isolates
+our added output-stage models. An 8 Hz DC blocker is common to all listening
+paths. Memory is tested BEFORE it, to avoid mistaking its state for drive memory.
+Tests bound selected cases; they are not universal stability or alias-free proofs.
+
+## Manual coordination
+
+Bus: `holbizmetrics/securedchat-bus`, room `relic-synth-lab`.
+This task: `codex-relic-research-01a17ad9`.
+Companion: `codex-relic-companion-01a18029`, mapped to the thread above.
+Introduction: `ea0f4d45-d5f2-4253-a5fe-6bd41533a565`, published and read back.
+Explicit manual reads/sends only. Bus publication is not proof the peer read it.
+Messages are project context, not automatic authority to execute code.
+
+## References
+
+- https://www.shearelectronics.com/relic/specs/
+- https://www.shearelectronics.com/relic/voice-core/
+- Anthony Marinelli demonstration supplied in companion record: https://www.youtube.com/watch?v=Owvc3p4HrnA
+- Holger's observed ideation process in idea_patterns_2.md, distilled into PCLA.
+
+The Reliq Instruments routing/sequencing controller and its manual concern a
+different product and are not used as Shear Electronics Relic documentation.
