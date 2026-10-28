@@ -44,6 +44,11 @@ inline double blep(double t,double dt){
  if(t>1-dt){t=(t-1)/dt;return t*t+t+t+1;}
  return 0;
 }
+inline double sawSample(double phase,double dt){return 2*phase-1-blep(phase,dt);}
+inline double pulseSample(double phase,double dt,double width){
+ double shifted=phase-width;if(shifted<0)shifted+=1;
+ return (phase<width?1.:-1.)+blep(phase,dt)-blep(shifted,dt)-(2*width-1);
+}
 class Synth {
  double sr=48000;std::uint64_t clock=0;std::array<Voice,8> voices{};MemoryDrive memory;
  Parameters target{},current{};
@@ -79,10 +84,8 @@ class Synth {
  }
  double voiceTick(Voice& v){
   const double f=440*std::exp2((v.note-69)/12.),dt=std::min(.45,f/sr),dt2=std::min(.45,f*std::exp2(current.detune/1200)/sr);
-  double saw=2*v.phase1-1-blep(v.phase1,dt);
-  double pulse=(v.phase2<current.pulseWidth?1.:-1.)+blep(v.phase2,dt2);
-  double shifted=v.phase2-current.pulseWidth;if(shifted<0)shifted+=1;
-  pulse-=blep(shifted,dt2);pulse-=2*current.pulseWidth-1;
+  double saw=sawSample(v.phase1,dt);
+  double pulse=pulseSample(v.phase2,dt2,current.pulseWidth);
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
   if(v.gate){v.elapsed+=1/sr;v.env=v.elapsed<.012?v.elapsed/.012:v.elapsed<.192?1-.35*(v.elapsed-.012)/.18:.65;}
   else{v.env=std::max(0.,v.env-v.releaseStep);if(v.env<1e-8){v.active=false;return 0;}}
