@@ -49,9 +49,37 @@ inline double pulseSample(double phase,double dt,double width){
  double shifted=phase-width;if(shifted<0)shifted+=1;
  return (phase<width?1.:-1.)+blep(phase,dt)-blep(shifted,dt)-(2*width-1);
 }
+// Original Fourier mip bank. Construct during prepare, never on the audio thread.
+class OscillatorBank {
+ static constexpr int size=4096,levels=10;
+ std::array<std::array<float,size>,levels> tables{};
+ bool ready=false;
+ double lookup(int level,double phase)const{
+  phase-=std::floor(phase);const double index=phase*size;const int i=int(index);const double t=index-i;
+  return tables[level][i]*(1-t)+tables[level][(i+1)%size]*t;
+ }
+public:
+ void prepare(){if(ready)return;
+  for(int i=0;i<size;++i){double sum=0;int level=0;
+   for(int h=1;h<=512;++h){sum-=2*std::sin(2*pi*h*i/size)/(pi*h);
+    if(h==(1<<level)){tables[level][i]=float(sum);++level;}
+   }
+  }ready=true;
+ }
+ double saw(double phase,double dt)const{
+  const double allowed=std::max(1.,.45/dt),octave=std::log2(allowed);
+  const int level=std::min(levels-1,int(octave));
+  if(level==0)return lookup(0,phase);
+  const double blend=std::clamp(octave-level,0.,1.);
+  // Both banks used are below the frequency guard. Blend continuously across
+  // harmonic-count boundaries; highest bank stays fixed after its fade-in.
+  return lookup(level-1,phase)*(1-blend)+lookup(level,phase)*blend;
+ }
+ double pulse(double phase,double dt,double width)const{return saw(phase-width,dt)-saw(phase,dt);}
+};
 class Synth {
  double sr=48000;std::uint64_t clock=0;std::array<Voice,8> voices{};MemoryDrive memory;
- Parameters target{},current{};
+ Parameters target{},current{};OscillatorBank bank;
  void release(Voice& v){v.gate=false;v.releaseStep=v.env/(sr*.5);}
  void apply(const Event& e){
   if(e.kind==EventKind::Parameter){
@@ -84,8 +112,8 @@ class Synth {
  }
  double voiceTick(Voice& v){
   const double f=440*std::exp2((v.note-69)/12.),dt=std::min(.45,f/sr),dt2=std::min(.45,f*std::exp2(current.detune/1200)/sr);
-  double saw=sawSample(v.phase1,dt);
-  double pulse=pulseSample(v.phase2,dt2,current.pulseWidth);
+  double saw=bank.saw(v.phase1,dt);
+  double pulse=bank.pulse(v.phase2,dt2,current.pulseWidth);
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
   if(v.gate){v.elapsed+=1/sr;v.env=v.elapsed<.012?v.elapsed/.012:v.elapsed<.192?1-.35*(v.elapsed-.012)/.18:.65;}
   else{v.env=std::max(0.,v.env-v.releaseStep);if(v.env<1e-8){v.active=false;return 0;}}
@@ -96,7 +124,7 @@ class Synth {
   v.ic1=2*bp-v.ic1;v.ic2=2*lp-v.ic2;return lp;
  }
 public:
- bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;reset();return true;}
+ bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
  void reset(){voices={};clock=0;target=current=Parameters{};memory.prepare(sr);}
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
  // Events must be sorted, with offsets in [0,frames). Invalid blocks are silent,

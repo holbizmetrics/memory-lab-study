@@ -55,13 +55,14 @@ void wav(const char* path,const std::vector<float>&audio){
  f.write("data",4);put<std::uint32_t>(f,std::uint32_t(audio.size()*4));f.write(reinterpret_cast<const char*>(audio.data()),audio.size()*4);require(bool(f),"write WAV");
 }
 int main(int argc,char**argv){try{
- if(argc==6&&std::strcmp(argv[1],"--osc-fixture")==0){
+ if(argc==6&&(std::strcmp(argv[1],"--osc-fixture")==0||std::strcmp(argv[1],"--table-fixture")==0)){
   const double sr=std::stod(argv[3]),note=std::stod(argv[4]),width=std::stod(argv[5]);
   require(sr>=44100&&sr<=96000&&note>=24&&note<=108&&width>=.1&&width<=.9,"fixture range");
   double phase1=0,phase2=.17;const double f=440*std::exp2((note-69)/12.),dt=f/sr,dt2=f*std::exp2(7./1200)/sr;
+  const bool table=std::strcmp(argv[1],"--table-fixture")==0;OscillatorBank bank;bank.prepare();
   MemoryDrive drive;drive.prepare(sr);Parameters p;std::ofstream file(argv[2],std::ios::binary);require(bool(file),"osc fixture open");
   for(int i=0;i<int(sr*2);++i){
-   const double a=sawSample(phase1,dt),b=pulseSample(phase2,dt2,width),mix=.42*a+.28*b;
+   const double a=table?bank.saw(phase1,dt):sawSample(phase1,dt),b=table?bank.pulse(phase2,dt2,width):pulseSample(phase2,dt2,width),mix=.42*a+.28*b;
    const float row[]={float(a),float(b),float(mix),float(drive.tick(mix,p))};
    file.write(reinterpret_cast<const char*>(row),sizeof(row));
    phase1+=dt;phase1-=std::floor(phase1);phase2+=dt2;phase2-=std::floor(phase2);

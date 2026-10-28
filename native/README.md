@@ -40,10 +40,12 @@ MPE and multi-part allocation are future work. Stealing is abrupt and still need
 click mitigation before production use. Phase mode currently selects reset versus
 retaining a slot's phase; it is not a fully free-running inactive oscillator.
 
-Original polyBLEP saw/pulse oscillators, detune, pulse-width control, velocity
+Original Fourier wavetable saw/pulse oscillators, detune, pulse-width control, velocity
 envelope and trapezoidal state-variable low-pass feed the shared memory drive.
 This voice/filter differs from both browser and frozen source. No aliasing,
-tuning or perceptual-equivalence claim is made for the oscillators yet. The SVF
+tuning or perceptual-equivalence claim is made beyond the recorded audit cases.
+The older polyBLEP routines remain for comparison. See WAVETABLE-CANDIDATE.md.
+The SVF
 uses the standard implicit integration equations; engineering reference:
 https://cytomic.com/files/dsp/SvfLinearTrapezoidalSin.pdf
 It does not reproduce Relic's undocumented supervariable circuit.

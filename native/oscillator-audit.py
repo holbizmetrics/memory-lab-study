@@ -11,6 +11,8 @@ from scipy.io import wavfile
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'outputs'/(sys.argv[1] if len(sys.argv)>1 else 'oscillator-audit-1')
 EXE=ROOT/'outputs/native-build/memorylab_native.exe'
+MODE=sys.argv[2] if len(sys.argv)>2 else '--osc-fixture'
+if MODE not in ('--osc-fixture','--table-fixture'):raise ValueError('unknown fixture mode')
 
 def pitch(audio,sr,expected):
     # One second, after startup. Search only +/-5 cents around known target;
@@ -35,7 +37,7 @@ def residual(audio,sr,f):
 def main():
     OUT.mkdir(parents=True,exist_ok=False)
     contract={'sample_rates':[44100,48000,96000],'notes':[36,60,84,108],'widths':[.1,.43,.9],
-              'seconds':2,'detune_cents':7,'pitch_target_cents':1,
+              'seconds':2,'detune_cents':7,'pitch_target_cents':1,'mode':MODE,
               'numerical_limits':'finite samples; abs(saw,pulse)<2.1; abs(mix,drive)<2',
               'spectral_diagnostic':'nonharmonic FFT energy with +/-6 Hz harmonic masks; characterize, not pass/fail alias threshold',
               'scope':'Oscillators isolated before filter; same mix before and through drive. No listener or hardware result.',
@@ -48,7 +50,7 @@ def main():
             for width in contract['widths']:
                 name=f'{sr}-{note}-{width}'
                 path=OUT/(name+'.f32')
-                subprocess.run([str(EXE),'--osc-fixture',str(path),str(sr),str(note),str(width)],check=True)
+                subprocess.run([str(EXE),MODE,str(path),str(sr),str(note),str(width)],check=True)
                 x=np.fromfile(path,dtype='<f4').reshape(-1,4)
                 f=440*2**((note-69)/12);f2=f*2**(7/1200)
                 assert len(x)==2*sr and np.isfinite(x).all()
