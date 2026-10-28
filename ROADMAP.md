@@ -9,6 +9,12 @@ Preserve existing patches and the approved sound while adding features.
 
 ## Later milestone: DAW knob automation
 
+Initial work has started: FL Studio recognized Cutoff as last tweaked and played
+an edited automation clip with visible knob/curve movement. Source-side parameter
+and gesture checks passed. Project reload was followed by an unexpected FL exit
+with an unknown faulting module; reliable recall remains unverified. See
+[the detailed status](plugin/AUTOMATION.md).
+
 Requested by Holger on 2026-10-28: automate knob movements in the DAW to create
 evolving sounds and record performances.
 
