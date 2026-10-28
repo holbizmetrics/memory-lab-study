@@ -11,12 +11,14 @@ struct Parameters {
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
+ double pressureDepth=0;
 };
 class MemoryDrive {
  double sr=48000,env=0,previous=0,dcX=0,dcY=0,d=5,dep=.8,rel=250;
 public:
  void prepare(double rate){sr=rate;reset();}
  void reset(){env=previous=dcX=dcY=0;d=5;dep=.8;rel=250;}
+ void clearSignal(){env=previous=dcX=dcY=0;}
  double tick(double input,const Parameters& p){
   const double s=1-std::exp(-1/(sr*.02));
   d+=(p.drive-d)*s;dep+=(p.depth-dep)*s;rel+=(p.recovery-rel)*s;
@@ -33,8 +35,8 @@ public:
   return y;
  }
 };
-enum class EventKind {NoteOn,NoteOff,AllOff,Parameter};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope};
+enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -67,6 +69,7 @@ struct Voice {
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
  ClassicFilter filter;
  FilterEnvelope filterEnv;double lfoPhase=0;
+ bool keyDown=false;double lastOutput=0,transitionValue=0;int transitionLeft=0;
 };
 inline double blep(double t,double dt){
  if(t<dt){t/=dt;return t+t-t*t-1;}
@@ -109,6 +112,8 @@ public:
 class Synth {
  double sr=48000;std::uint64_t clock=0;std::array<Voice,8> voices{};MemoryDrive memory;
  Parameters target{},current{};OscillatorBank bank;
+ std::array<bool,16> sustain{};
+ std::array<double,16> bend{},bendTarget{},pressure{},pressureTarget{};
  void release(Voice& v){v.gate=false;v.releaseStep=v.env/(sr*.5);v.filterEnv.noteOff(sr);}
  void apply(const Event& e){
   if(e.kind==EventKind::Parameter){
@@ -129,40 +134,55 @@ class Synth {
     case Param::PwmLfo:target.pwmLfo=std::clamp(e.value,-.35,.35);break;
     case Param::CutoffLfo:target.cutoffLfo=std::clamp(e.value,-2.,2.);break;
     case Param::FilterEnvelope:target.filterEnvelope=std::clamp(e.value,-4.,4.);break;
+    case Param::PressureDepth:target.pressureDepth=std::clamp(e.value,-2.,2.);break;
    }return;
   }
-  if(e.kind==EventKind::AllOff){for(auto& v:voices)if(v.active)release(v);return;}
+  if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
+  if(e.kind==EventKind::AllSoundOff){voices={};sustain.fill(false);memory.clearSignal();return;}
+  if(e.channel<0||e.channel>15||!std::isfinite(e.value))return;
+  if(e.kind==EventKind::Sustain){const bool down=e.value>=.5;sustain[e.channel]=down;
+   if(!down)for(auto&v:voices)if(v.active&&v.channel==e.channel&&!v.keyDown&&v.gate)release(v);return;}
+  if(e.kind==EventKind::PitchBend){bendTarget[e.channel]=std::clamp(e.value,-1.,1.);return;}
+  if(e.kind==EventKind::ChannelPressure){pressureTarget[e.channel]=std::clamp(e.value,0.,1.);return;}
+  if(e.kind!=EventKind::NoteOn&&e.kind!=EventKind::NoteOff)return;
   if(e.note<0||e.note>127||e.channel<0||e.channel>15||!std::isfinite(e.value))return;
   if(e.kind==EventKind::NoteOff||(e.kind==EventKind::NoteOn&&e.value<=0)){
-   for(auto& v:voices)if(v.active&&v.note==e.note&&v.channel==e.channel)release(v);return;
+   for(auto& v:voices)if(v.active&&v.note==e.note&&v.channel==e.channel&&v.keyDown){v.keyDown=false;if(!sustain[e.channel])release(v);}return;
   }
   Voice* chosen=nullptr;
   for(auto& v:voices)if(v.active&&v.note==e.note&&v.channel==e.channel){chosen=&v;break;}
   if(!chosen)for(auto& v:voices)if(!v.active){chosen=&v;break;}
+  if(!chosen)for(auto&v:voices)if(!v.gate&&(!chosen||v.env<chosen->env))chosen=&v;
   if(!chosen)chosen=&*std::min_element(voices.begin(),voices.end(),[](const Voice&a,const Voice&b){return a.age<b.age;});
   const double phase1=chosen->phase1,phase2=chosen->phase2;
+  const bool replacing=chosen->active;const double oldOutput=chosen->lastOutput;
   *chosen=Voice{};chosen->active=chosen->gate=true;chosen->note=e.note;chosen->channel=e.channel;
   chosen->velocity=std::clamp(e.value,0.,1.);chosen->age=++clock;
   chosen->filterEnv.noteOn();
+  chosen->keyDown=true;if(replacing){chosen->transitionLeft=int(sr*.005);chosen->transitionValue=oldOutput;}
   if(!target.retrigger){chosen->phase1=phase1;chosen->phase2=phase2;}
  }
  double voiceTick(Voice& v){
   const double lfo=std::sin(2*pi*v.lfoPhase),filterEnv=v.filterEnv.tick(sr);
   v.lfoPhase+=current.lfoRate/sr;v.lfoPhase-=std::floor(v.lfoPhase);
-  const double f=440*std::exp2((v.note-69)/12.)*std::exp2(current.pitchLfo*lfo/1200),dt=std::min(.45,f/sr),dt2=std::min(.45,f*std::exp2(current.detune/1200)/sr);
+  const double f=440*std::exp2((v.note-69)/12.)*std::exp2((current.pitchLfo*lfo+200*bend[v.channel])/1200),dt=std::min(.45,f/sr),dt2=std::min(.45,f*std::exp2(current.detune/1200)/sr);
   double saw=bank.saw(v.phase1,dt);
   double pulse=bank.pulse(v.phase2,dt2,std::clamp(current.pulseWidth+current.pwmLfo*lfo,.1,.9));
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
   if(v.gate){v.elapsed+=1/sr;v.env=v.elapsed<.012?v.elapsed/.012:v.elapsed<.192?1-.35*(v.elapsed-.012)/.18:.65;}
   else{v.env=std::max(0.,v.env-v.releaseStep);if(v.env<1e-8){v.active=false;return 0;}}
   const double x=(.42*saw+.28*pulse)*v.env*v.velocity;
-  const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity),30.,std::min(18000.,sr*.4));
-  return v.filter.tick(x,sr,cutoff,current.q,current.profile);
+  const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
+  double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
+  if(v.transitionLeft>0){const double weight=double(v.transitionLeft--)/int(sr*.005);output=output*(1-weight)+v.transitionValue*weight;}
+  v.lastOutput=output;return output;
  }
 public:
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
- void reset(){voices={};clock=0;target=current=Parameters{};memory.prepare(sr);}
+ void reset(){voices={};clock=0;target=current=Parameters{};memory.prepare(sr);sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
+ std::size_t heldVoices(int channel=-1)const{std::size_t n=0;for(const auto&v:voices)if(v.active&&v.keyDown&&(channel<0||v.channel==channel))++n;return n;}
+ bool sounding(int note,int channel)const{for(const auto&v:voices)if(v.active&&v.note==note&&v.channel==channel)return true;return false;}
  // Events must be sorted, with offsets in [0,frames). Invalid blocks are silent,
  // return false and leave state unchanged. Caller retains ownership of buffers.
  bool render(float* output,std::size_t frames,const Event* events=nullptr,std::size_t count=0){
@@ -178,6 +198,8 @@ public:
    current.lfoRate+=(target.lfoRate-current.lfoRate)*smooth;current.pitchLfo+=(target.pitchLfo-current.pitchLfo)*smooth;
    current.pwmLfo+=(target.pwmLfo-current.pwmLfo)*smooth;current.cutoffLfo+=(target.cutoffLfo-current.cutoffLfo)*smooth;
    current.filterEnvelope+=(target.filterEnvelope-current.filterEnvelope)*smooth;
+   current.pressureDepth+=(target.pressureDepth-current.pressureDepth)*smooth;
+   for(int channel=0;channel<16;++channel){bend[channel]+=(bendTarget[channel]-bend[channel])*smooth;pressure[channel]+=(pressureTarget[channel]-pressure[channel])*smooth;}
    double sum=0;for(auto&v:voices)if(v.active)sum+=voiceTick(v);
    output[i]=static_cast<float>(memory.tick(sum,target)*current.volume);
   }return true;

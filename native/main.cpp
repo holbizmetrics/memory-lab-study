@@ -129,6 +129,47 @@ void modulationTests(){
  }
  std::cout<<"PASS modulation: envelope contour/release at three rates, 18 mode/rate cases, 54 partition comparisons, no tested render new allocations\n";
 }
+std::vector<Event> performance(double sr,int mode){
+ std::vector<Event> e;
+ auto add=[&](double t,EventKind kind,int note,double value=0,int channel=0){e.push_back({std::size_t(std::llround(t*sr)),kind,note,value,channel});};
+ if(mode==0){add(0,EventKind::NoteOn,60,.85);add(.25,EventKind::Sustain,0,1);add(.75,EventKind::NoteOff,60);add(2.5,EventKind::Sustain,0,0);}
+ if(mode==1||mode==2){add(0,EventKind::NoteOn,60,.85);add(3.2,EventKind::NoteOff,60);
+  if(mode==2)e.push_back({0,EventKind::Parameter,0,1,0,Param::PressureDepth});
+  const auto kind=mode==1?EventKind::PitchBend:EventKind::ChannelPressure;
+  add(.5,kind,0,1);add(1.5,kind,0,mode==1?-1:0);add(2.5,kind,0,mode==1?0:1);
+ }
+ if(mode==3){const int notes[]={48,52,55,59,60,64,67,71,72};for(int i=0;i<9;++i)add(i*.16,EventKind::NoteOn,notes[i],.75);
+  add(1.6,EventKind::NoteOn,67,.9);add(2,EventKind::NoteOff,67);add(2.1,EventKind::NoteOff,48);add(2.5,EventKind::AllOff,0);
+ }
+ std::stable_sort(e.begin(),e.end(),[](const Event&a,const Event&b){return a.offset<b.offset;});return e;
+}
+void performanceTests(){
+ for(double sr:{44100.,48000.,96000.}){
+  Synth synth;synth.prepare(sr);std::vector<float>a(std::size_t(sr*4)),b(a.size());
+  Event start[]={{0,EventKind::NoteOn,60,.8,0},{0,EventKind::NoteOn,60,.8,1},{0,EventKind::Sustain,0,1,0},
+   {std::size_t(sr*.2),EventKind::NoteOff,60,0,0},{std::size_t(sr*.2),EventKind::NoteOff,60,0,1}};
+  synth.render(a.data(),std::size_t(sr),start,5);require(synth.activeVoices()==1&&synth.heldVoices()==0&&synth.sounding(60,0),"sustain channel ownership");
+  Event up{0,EventKind::Sustain,0,0,0};synth.render(a.data(),std::size_t(sr),&up,1);require(!synth.activeVoices(),"pedal release stuck note");
+  synth.reset();std::array<Event,9>chord{};for(int i=0;i<9;++i)chord[i]={0,EventKind::NoteOn,48+i,.8};
+  synth.render(a.data(),128,chord.data(),chord.size());require(synth.activeVoices()==8&&!synth.sounding(48,0)&&synth.sounding(56,0),"oldest held stealing");
+  Event stale{0,EventKind::NoteOff,48};synth.render(a.data(),128,&stale,1);require(synth.heldVoices()==8,"stale stolen note-off affected voice");
+  Event panic{0,EventKind::AllSoundOff};synth.render(a.data(),128,&panic,1);require(!synth.activeVoices()&&std::all_of(a.begin(),a.begin()+128,[](float v){return v==0;}),"panic not silent");
+  synth.reset();Event single{0,EventKind::NoteOn,60,.8,1};synth.render(a.data(),std::size_t(sr),&single,1);
+  synth.reset();Event isolated[]={{0,EventKind::NoteOn,60,.8,1},{100,EventKind::PitchBend,0,1,0},{100,EventKind::ChannelPressure,0,1,0},{100,EventKind::Sustain,0,1,0}};
+  synth.render(b.data(),std::size_t(sr),isolated,4);require(std::equal(a.begin(),a.begin()+int(sr),b.begin()),"controller leaked across channels");
+  for(int mode=0;mode<4;++mode){auto events=performance(sr,mode);synth.reset();watchAlloc=true;synth.render(a.data(),a.size(),events.data(),events.size());watchAlloc=false;
+   require(allocations==0,"performance allocation");for(float value:a)require(std::isfinite(value)&&std::abs(value)<1,"performance boundedness");
+   require(!synth.activeVoices()&&!synth.heldVoices(),"performance stuck voices");
+   for(std::size_t block:{17u,127u,512u}){synth.reset();std::size_t j=0;
+    for(std::size_t pos=0;pos<a.size();pos+=block){const auto size=std::min(block,a.size()-pos);std::array<Event,24>local{};std::size_t count=0;
+     while(j<events.size()&&events[j].offset<pos+size){local[count]=events[j++];local[count++].offset-=pos;}
+     synth.render(b.data()+pos,size,local.data(),count);
+    }require(a==b,"performance event partition");
+   }
+  }
+ }
+ std::cout<<"PASS performance: sustain/channel ownership, pedal release, stale note-offs, panic silence, channel isolation; 12 mode/rate cases, 36 partition comparisons, no tested render new allocations\n";
+}
 template<class T>void put(std::ofstream& f,T v){f.write(reinterpret_cast<const char*>(&v),sizeof(v));}
 void wav(const char* path,const std::vector<float>&audio){
  std::ofstream f(path,std::ios::binary);require(bool(f),"open WAV");
@@ -137,6 +178,10 @@ void wav(const char* path,const std::vector<float>&audio){
  f.write("data",4);put<std::uint32_t>(f,std::uint32_t(audio.size()*4));f.write(reinterpret_cast<const char*>(audio.data()),audio.size()*4);require(bool(f),"write WAV");
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::strcmp(argv[1],"--performance-test")==0){performanceTests();return 0;}
+ if(argc==4&&std::strcmp(argv[1],"--performance-voice")==0){const int mode=std::stoi(argv[3]);require(mode>=0&&mode<=3,"performance mode");
+  Synth synth;synth.prepare(48000);auto events=performance(48000,mode);std::vector<float>audio(192000);synth.render(audio.data(),audio.size(),events.data(),events.size());
+  std::ofstream f(argv[2],std::ios::binary);require(bool(f),"performance open");f.write(reinterpret_cast<const char*>(audio.data()),audio.size()*sizeof(float));require(bool(f),"performance write");return 0;}
  if(argc==2&&std::strcmp(argv[1],"--mod-test")==0){modulationTests();return 0;}
  if(argc==4&&std::strcmp(argv[1],"--mod-voice")==0){const int mode=std::stoi(argv[3]);require(mode>=0&&mode<=5,"mod mode");
   Synth synth;synth.prepare(48000);auto events=modulation(48000,mode);std::vector<float>audio(331200);synth.render(audio.data(),audio.size(),events.data(),events.size());
