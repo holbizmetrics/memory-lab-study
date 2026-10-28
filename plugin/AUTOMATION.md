@@ -112,6 +112,29 @@ These are JUCE parameter/attachment checks. They do not verify real mouse
 recording, host undo grouping, FL event-data recording, project automation storage,
 audio smoothness under fast ramps or sample-accurate parameter automation.
 
+### Isolated accessibility lifecycle regression (2026-10-29)
+
+On Windows, run MemoryLabSmoke --uia-lifecycle-test, or run CTest from the
+build directory. The test creates its own editor window and a UI Automation
+client on a separate COM MTA thread, while the editor thread pumps messages.
+It holds the root, slider array and range-pattern references across editor
+destruction, alternating page changes over eight cycles. It first verifies
+that a control accepts a value write and reports the new value while open,
+then requires a write after editor destruction to fail before releasing the
+retained references.
+
+All eight cycles passed without a crash. Retained reads returned S_OK with
+value zero; subsequent writes failed with HRESULT 0x80131509. A successful
+read alone is therefore not used as evidence that a destroyed control remains
+live. The full CTest run passed wrapper_smoke, automation_foundation and
+uia_editor_lifecycle (3/3).
+
+This harness links the processor/editor directly. It does not unload the
+VST3 DLL, exercise FL Studio, or establish which component owned the original
+invalid provider. Actual VST3 module teardown with outstanding UIA references
+remains a separate reproduction target. No synth runtime changes were made
+on the strength of these results.
+
 ## FL Studio clip workflow
 
 1. Turn a Memory Lab knob using the mouse.

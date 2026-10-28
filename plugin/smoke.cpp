@@ -6,6 +6,7 @@ void set(MemoryLabProcessor&p,const char*id,float value){auto*parameter=p.state.
 double power(const juce::AudioBuffer<float>&b){double sum=0;for(int i=0;i<b.getNumSamples();++i){float v=b.getSample(0,i);check(std::isfinite(v)&&std::abs(v)<1,"bad audio");sum+=v*v;}return sum;}
 juce::Component* find(juce::Component&root,const juce::String&id){if(root.getComponentID()==id)return &root;for(auto*child:root.getChildren())if(auto*match=find(*child,id))return match;return nullptr;}
 #include "automation-checks.hpp"
+#include "uia-lifecycle-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -37,6 +38,9 @@ void arpWrapperTests(){
 }
 int main(int argc,char**argv){try{
  juce::ScopedJuceInitialiser_GUI gui;
+#if JUCE_WINDOWS
+ if(argc==2&&std::string(argv[1])=="--uia-lifecycle-test"){uiaLifecycleChecks();return 0;}
+#endif
  if(argc==2&&std::string(argv[1])=="--automation-test"){automationChecks();return 0;}
  if(argc==2){
   auto processor=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());

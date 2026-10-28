@@ -232,6 +232,13 @@ debugger through the shell terminated the attached FL process in this session;
 that was an agent-caused termination, not another spontaneous crash. Detach
 deliberately and verify that the host survives before ending a live session.
 
+Turn a suspected lifecycle failure into an isolated regression before changing
+the instrument. Our Windows UIA harness retains accessibility references across
+editor destruction and checks that writes work before closure and fail afterward.
+Eight cycles passed, but the directly linked test does not unload a VST3 DLL or
+reproduce the host's reload path. State that boundary explicitly: passing one
+lifecycle test narrows a hypothesis; it does not clear the whole host/plugin stack.
+
 C# scripting in WinDbg can make native triage reusable: the user's WinDbgAotExt
 hosted CoreCLR, queried typed module data with LINQ and produced a snapshot report.
 The debuggee itself need not have a managed heap. Keep raw logs, symbol limits,
