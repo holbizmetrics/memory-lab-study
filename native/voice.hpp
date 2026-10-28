@@ -8,7 +8,7 @@
 namespace memorylab {
 constexpr double pi=3.14159265358979323846;
 struct Parameters {
- double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25;
+ double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
 };
 class MemoryDrive {
@@ -33,11 +33,27 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
+class ClassicFilter {
+ double ic1=0,ic2=0;
+public:
+ void reset(){ic1=ic2=0;}
+ double tick(double x,double sr,double cutoff,double q,double profile){
+  const double g=std::tan(pi*cutoff/sr),k=1/q;
+  const double hp=(x-ic2-(k+g)*ic1)/(1+g*(g+k));
+  const double bp=g*hp+ic1,lp=g*bp+ic2;
+  ic1=2*bp-ic1;ic2=2*lp-ic2;
+  // Linear HP -> (HP+LP) notch -> LP blend. Shared state, no path restart.
+  const double highWeight=profile<=.5?1:2-2*profile;
+  const double lowWeight=profile<=.5?2*profile:1;
+  return highWeight*hp+lowWeight*lp;
+ }
+};
 struct Voice {
  bool active=false,gate=false;int note=0,channel=0;std::uint64_t age=0;
- double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0,ic1=0,ic2=0;
+ double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
+ ClassicFilter filter;
 };
 inline double blep(double t,double dt){
  if(t<dt){t/=dt;return t+t-t*t-1;}
@@ -94,6 +110,7 @@ class Synth {
     case Param::Q:target.q=std::clamp(e.value,.5,8.);break;
     case Param::Volume:target.volume=std::clamp(e.value,0.,.8);break;
     case Param::Retrigger:target.retrigger=e.value>=.5;break;
+    case Param::Profile:target.profile=std::clamp(e.value,0.,1.);break;
    }return;
   }
   if(e.kind==EventKind::AllOff){for(auto& v:voices)if(v.active)release(v);return;}
@@ -118,10 +135,7 @@ class Synth {
   if(v.gate){v.elapsed+=1/sr;v.env=v.elapsed<.012?v.elapsed/.012:v.elapsed<.192?1-.35*(v.elapsed-.012)/.18:.65;}
   else{v.env=std::max(0.,v.env-v.releaseStep);if(v.env<1e-8){v.active=false;return 0;}}
   const double x=(.42*saw+.28*pulse)*v.env*v.velocity;
-  const double g=std::tan(pi*current.cutoff/sr),k=1/current.q;
-  const double hp=(x-v.ic2-(k+g)*v.ic1)/(1+g*(g+k));
-  const double bp=g*hp+v.ic1,lp=g*bp+v.ic2;
-  v.ic1=2*bp-v.ic1;v.ic2=2*lp-v.ic2;return lp;
+  return v.filter.tick(x,sr,current.cutoff,current.q,current.profile);
  }
 public:
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
@@ -138,6 +152,7 @@ public:
    while(j<count&&events[j].offset==i)apply(events[j++]);
    current.detune+=(target.detune-current.detune)*smooth;current.pulseWidth+=(target.pulseWidth-current.pulseWidth)*smooth;
    current.cutoff+=(target.cutoff-current.cutoff)*smooth;current.q+=(target.q-current.q)*smooth;current.volume+=(target.volume-current.volume)*smooth;
+   current.profile+=(target.profile-current.profile)*smooth;
    double sum=0;for(auto&v:voices)if(v.active)sum+=voiceTick(v);
    output[i]=static_cast<float>(memory.tick(sum,target)*current.volume);
   }return true;

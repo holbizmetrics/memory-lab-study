@@ -80,6 +80,28 @@ void motionTests(){
  }
  std::cout<<"PASS motion: 9 rate/scenario cases, 27 partition comparisons, no render new allocations; bank boundary "<<worstBoundary<<", width continuity "<<worstWidth<<"\n";
 }
+void profileTests(){
+ double peak=0;
+ for(double sr:{44100.,48000.,96000.}){
+  ClassicFilter filter;double cutoff=1450,q=2.4,profile=1;const double smooth=1-std::exp(-1/(sr*.02));
+  for(int i=0;i<int(sr*3);++i){const int step=int(i/(sr*.1))%2;
+   cutoff+=((step?sr*.4:30)-cutoff)*smooth;q+=((step?8.:.5)-q)*smooth;profile+=((step?1.:0)-profile)*smooth;
+   const double input=.15*std::sin(2*pi*215*i/sr)+.05*std::sin(2*pi*4317*i/sr);
+   const double y=filter.tick(input,sr,cutoff,q,profile);require(std::isfinite(y)&&std::abs(y)<30,"filter automation bound");peak=std::max(peak,std::abs(y));
+  }
+  std::vector<Event> events{{0,EventKind::NoteOn,60,.85},{std::size_t(sr*.5),EventKind::Parameter,0,0,0,Param::Profile},
+   {std::size_t(sr),EventKind::Parameter,0,.5,0,Param::Profile},{std::size_t(sr*1.5),EventKind::Parameter,0,1,0,Param::Profile},{std::size_t(sr*2),EventKind::NoteOff,60}};
+  const std::size_t n=std::size_t(sr*3);Synth synth;synth.prepare(sr);std::vector<float>a(n),b(n);
+  watchAlloc=true;synth.render(a.data(),n,events.data(),events.size());watchAlloc=false;require(allocations==0,"profile render allocation");
+  for(std::size_t block:{17u,127u,512u}){synth.reset();std::size_t j=0;
+   for(std::size_t pos=0;pos<n;pos+=block){auto size=std::min(block,n-pos);std::array<Event,8>local{};std::size_t count=0;
+    while(j<events.size()&&events[j].offset<pos+size){local[count]=events[j++];local[count++].offset-=pos;}
+    synth.render(b.data()+pos,size,local.data(),count);
+   }require(a==b,"profile event partition");
+  }require(!synth.activeVoices(),"profile stuck note");
+ }
+ std::cout<<"PASS profile: three 3-second cutoff/Q/profile stress traces, nine event partition comparisons, no tested render new allocations; peak "<<peak<<"\n";
+}
 template<class T>void put(std::ofstream& f,T v){f.write(reinterpret_cast<const char*>(&v),sizeof(v));}
 void wav(const char* path,const std::vector<float>&audio){
  std::ofstream f(path,std::ios::binary);require(bool(f),"open WAV");
@@ -88,6 +110,25 @@ void wav(const char* path,const std::vector<float>&audio){
  f.write("data",4);put<std::uint32_t>(f,std::uint32_t(audio.size()*4));f.write(reinterpret_cast<const char*>(audio.data()),audio.size()*4);require(bool(f),"write WAV");
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::strcmp(argv[1],"--profile-test")==0){profileTests();return 0;}
+ if(argc==7&&std::strcmp(argv[1],"--filter-impulse")==0){
+  const double sr=std::stod(argv[3]),cutoff=std::stod(argv[4]),q=std::stod(argv[5]),profile=std::stod(argv[6]);
+  require(sr>=44100&&sr<=96000&&cutoff>=30&&cutoff<=sr*.4&&q>=.5&&q<=8&&profile>=0&&profile<=1,"filter range");
+  ClassicFilter filter;std::ofstream file(argv[2],std::ios::binary);require(bool(file),"filter open");
+  for(int i=0;i<int(sr*2);++i){const double y=filter.tick(i==0?1.:0.,sr,cutoff,q,profile);file.write(reinterpret_cast<const char*>(&y),sizeof(y));}
+  require(bool(file),"filter write");return 0;
+ }
+ if(argc==4&&std::strcmp(argv[1],"--profile-voice")==0){
+  const int mode=std::stoi(argv[3]);require(mode>=0&&mode<=3,"profile mode");const double sr=48000;
+  auto events=phrase(sr);const double profile=mode==0||mode==3?0:mode==1?.5:1;
+  // Pre-roll lets the shared 20ms control smoother settle before identical notes.
+  for(auto&e:events)e.offset+=4800;
+  events.insert(events.begin(),{0,EventKind::Parameter,0,profile,0,Param::Profile});
+  if(mode==3)for(int i=0;i<=200;++i)events.push_back({std::size_t(4800+i*48000*.03),EventKind::Parameter,0,i/200.,0,Param::Profile});
+  std::stable_sort(events.begin(),events.end(),[](const Event&a,const Event&b){return a.offset<b.offset;});
+  Synth synth;synth.prepare(sr);std::vector<float>audio(331200);synth.render(audio.data(),audio.size(),events.data(),events.size());
+  std::ofstream f(argv[2],std::ios::binary);require(bool(f),"profile voice open");f.write(reinterpret_cast<const char*>(audio.data()+4800),326400*sizeof(float));require(bool(f),"profile voice write");return 0;
+ }
  if(argc==2&&std::strcmp(argv[1],"--motion-test")==0){motionTests();return 0;}
  if(argc==5&&std::strcmp(argv[1],"--motion-voice")==0){const double sr=std::stod(argv[3]);const int scenario=std::stoi(argv[4]);
   require(sr==44100||sr==48000||sr==96000,"motion rate");require(scenario>=0&&scenario<=2,"motion scenario");Synth synth;synth.prepare(sr);
