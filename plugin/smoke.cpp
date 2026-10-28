@@ -5,18 +5,60 @@ void check(bool ok,const char*why){if(!ok)throw std::runtime_error(why);}
 void set(MemoryLabProcessor&p,const char*id,float value){auto*parameter=p.state.getParameter(id);check(parameter,"missing parameter");parameter->setValueNotifyingHost(parameter->convertTo0to1(value));}
 double power(const juce::AudioBuffer<float>&b){double sum=0;for(int i=0;i<b.getNumSamples();++i){float v=b.getSample(0,i);check(std::isfinite(v)&&std::abs(v)<1,"bad audio");sum+=v*v;}return sum;}
 juce::Component* find(juce::Component&root,const juce::String&id){if(root.getComponentID()==id)return &root;for(auto*child:root.getChildren())if(auto*match=find(*child,id))return match;return nullptr;}
+struct TestPlayHead:juce::AudioPlayHead{
+ double bpm=137.3;bool playing=true,tempo=true;
+ juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
+};
+void arpWrapperTests(){
+ TestPlayHead host;
+ auto full=std::make_unique<MemoryLabProcessor>(),split=std::make_unique<MemoryLabProcessor>();
+ full->setPlayHead(&host);split->setPlayHead(&host);
+ for(auto*p:{full.get(),split.get()}){set(*p,"arpOn",1);set(*p,"arpOctaves",2);set(*p,"arpOrder",2);set(*p,"arpGate",37);p->prepareToPlay(48000,512);}
+ constexpr int length=48000;juce::AudioBuffer<float>whole(2,length),part(2,127);juce::MidiBuffer events;
+ for(int n:{60,64,67})events.addEvent(juce::MidiMessage::noteOn(1,n,(juce::uint8)100),50);
+ for(int n:{60,64,67})events.addEvent(juce::MidiMessage::noteOff(1,n),30000);
+ full->processBlock(whole,events);check(power(whole)>1e-6,"arp wrapper silent");
+ for(int pos=0;pos<length;pos+=127){const int count=std::min(127,length-pos);part.setSize(2,count,false,false,true);juce::MidiBuffer local;
+  for(int n:{60,64,67}){if(pos<=50&&50<pos+count)local.addEvent(juce::MidiMessage::noteOn(1,n,(juce::uint8)100),50-pos);if(pos<=30000&&30000<pos+count)local.addEvent(juce::MidiMessage::noteOff(1,n),30000-pos);}
+  split->processBlock(part,local);for(int i=0;i<count;++i)check(part.getSample(0,i)==whole.getSample(0,pos+i),"arp wrapper block mismatch");
+ }
+ check(std::abs(full->arpTempo.load()-137.3f)<.01&&full->arpHasHostTempo.load(),"arp host BPM");
+ host.tempo=false;set(*full,"arpBpm",140);events.clear();full->processBlock(part,events);check(full->arpTempo.load()==140&&!full->arpHasHostTempo.load(),"arp tempo fallback");
+ host.tempo=true;set(*full,"arpSync",0);full->processBlock(part,events);check(full->arpTempo.load()==140,"arp internal clock ignored");
+ set(*full,"arpSync",1);events.addEvent(juce::MidiMessage::noteOn(1,60,(juce::uint8)100),0);full->processBlock(part,events);
+ host.playing=false;full->processBlock(part,events);for(int i=0;i<500;++i)full->processBlock(part,events);check(power(part)<1e-12,"arp transport stop stuck");
+ host.playing=true;events.addEvent(juce::MidiMessage::noteOn(1,60,(juce::uint8)100),0);full->processBlock(part,events);set(*full,"arpOn",0);full->processBlock(part,events);check(power(part)==0,"arp disable stuck");
+ juce::MemoryBlock data;set(*split,"arpGate",31);split->getStateInformation(data);full->setStateInformation(data.getData(),int(data.getSize()));check(full->state.getRawParameterValue("arpGate")->load()==31,"arp state restore");
+ auto legacy=split->state.copyState();for(int i=legacy.getNumChildren()-1;i>=0;--i)if(legacy.getChild(i).getProperty("id").toString().startsWith("arp"))legacy.removeChild(i,nullptr);
+ auto xml=legacy.createXml();juce::AudioProcessor::copyXmlToBinary(*xml,data);full->setStateInformation(data.getData(),int(data.getSize()));check(full->state.getRawParameterValue("arpOn")->load()==0,"legacy preset enabled arp");
+ full->setPlayHead(nullptr);split->setPlayHead(nullptr);
+ std::cout<<"PASS arp wrapper: audio block parity, host BPM/internal/fallback, stop/disable cleanup, state recall and legacy bypass\n";
+}
 int main(int argc,char**argv){try{
  juce::ScopedJuceInitialiser_GUI gui;
  if(argc==2){
   auto processor=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
   const juce::File folder{juce::String::fromUTF8(argv[1])};folder.createDirectory();check(folder.isDirectory(),"snapshot folder");
-  auto snapshot=[&](const char*name){auto image=editor->createComponentSnapshot(editor->getLocalBounds(),true,1);auto stream=folder.getChildFile(name).createOutputStream();check(bool(stream),"snapshot stream");juce::PNGImageFormat png;check(png.writeImageToStream(image,*stream),"snapshot encoding");};
+  auto snapshot=[&](const char*name){auto image=editor->createComponentSnapshot(editor->getLocalBounds(),true,1);auto stream=folder.getChildFile(name).createOutputStream();check(bool(stream),"snapshot stream");stream->setPosition(0);stream->truncate();juce::PNGImageFormat png;check(png.writeImageToStream(image,*stream),"snapshot encoding");};
   snapshot("voice.png");
   auto*cutoff=dynamic_cast<juce::Slider*>(find(*editor,"cutoff"));check(cutoff,"cutoff control missing");cutoff->setValue(2000,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("cutoff")->load()-2000)<1,"cutoff attachment");
   auto*motion=dynamic_cast<juce::Button*>(find(*editor,"motionPage"));check(motion&&bool(motion->onClick),"motion page missing");motion->onClick();snapshot("motion.png");
   auto*vibrato=dynamic_cast<juce::Slider*>(find(*editor,"vibrato"));check(vibrato,"vibrato control missing");vibrato->setValue(8,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("vibrato")->load()-8)<.01,"vibrato attachment");
+  auto*envelopes=dynamic_cast<juce::Button*>(find(*editor,"envelopePage"));check(envelopes&&bool(envelopes->onClick),"envelope page missing");envelopes->onClick();snapshot("amplitude.png");
+  auto*attack=dynamic_cast<juce::Slider*>(find(*editor,"ampAttack"));check(attack,"amplitude attack control missing");attack->setValue(500,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("ampAttack")->load()-500)<1,"amplitude attack attachment");snapshot("amplitude-edited.png");
+  auto*filter=dynamic_cast<juce::Button*>(find(*editor,"filterEnvelopePage"));check(filter&&bool(filter->onClick),"filter envelope page missing");filter->onClick();snapshot("filter-envelope.png");
+  auto*hold=dynamic_cast<juce::Slider*>(find(*editor,"fltHold"));check(hold,"filter hold control missing");hold->setValue(250,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("fltHold")->load()-250)<1,"filter hold attachment");
   editor->setSize(832,592);snapshot("compact.png");
-  std::cout<<"PASS: Voice/Motion editor construction, parameter attachments and compact snapshot; previews "<<folder.getFullPathName()<<"\n";return 0;
+  auto*arpPage=dynamic_cast<juce::Button*>(find(*editor,"arpPage"));check(arpPage&&bool(arpPage->onClick),"arp page missing");arpPage->onClick();snapshot("arp-compact.png");
+  auto*gate=dynamic_cast<juce::Slider*>(find(*editor,"arpGate"));check(gate,"arp gate missing");gate->setValue(30,juce::sendNotificationSync);check(processor->state.getRawParameterValue("arpGate")->load()==30,"arp gate attachment");
+  auto*on=dynamic_cast<juce::Slider*>(find(*editor,"arpOn"));check(on,"arp on missing");on->setValue(1,juce::sendNotificationSync);
+  processor->prepareToPlay(48000,512);for(int note:{60,63,67})processor->keyboard.noteOn(1,note,.8f);
+  juce::AudioBuffer<float>arpAudio(2,512);juce::MidiBuffer arpMidi;double arpEnergy=0;
+  for(int block=0;block<8;++block){processor->processBlock(arpAudio,arpMidi);arpEnergy+=power(arpAudio);}
+  if(arpEnergy<=1e-6)throw std::runtime_error("arp screen keyboard silent: energy="+std::to_string(arpEnergy)+" on="+std::to_string(processor->state.getRawParameterValue("arpOn")->load())+" voices="+std::to_string(processor->voiceCount.load()));
+  check(processor->arpStep.load()==0,"arp did not use prepared sample rate");
+  editor->setSize(1040,740);snapshot("arp.png");
+  std::cout<<"PASS: Voice/Motion/Amplitude/Filter/ARP editor pages, parameter attachments, arp keyboard audio and compact snapshots; previews "<<folder.getFullPathName()<<"\n";return 0;
  }
  auto p=std::make_unique<MemoryLabProcessor>();p->setPlayConfigDetails(0,2,48000,512);p->prepareToPlay(48000,512);
  juce::AudioBuffer<float>a(2,512);juce::MidiBuffer midi;
@@ -39,6 +81,16 @@ int main(int argc,char**argv){try{
  auto restored=std::make_unique<MemoryLabProcessor>();restored->setStateInformation(state.getData(),int(state.getSize()));
  check(std::abs(restored->state.getRawParameterValue("drive")->load()-9)<1e-5,"drive state restore");check(std::abs(restored->state.getRawParameterValue("profile")->load()-.5f)<1e-5,"profile state restore");
  check(restored->state.getRawParameterValue("pressure")->load()==1,"pressure state restore");
+ // New envelope values survive state recall; legacy state resets absent stages.
+ set(*p,"ampAttack",750);set(*p,"fltHold",250);p->getStateInformation(state);restored->setStateInformation(state.getData(),int(state.getSize()));
+ check(std::abs(restored->state.getRawParameterValue("ampAttack")->load()-750)<1,"envelope state recall");
+ check(std::abs(restored->state.getRawParameterValue("fltHold")->load()-250)<1,"filter hold state recall");
+ auto legacy=p->state.copyState();for(int i=legacy.getNumChildren()-1;i>=0;--i){const auto id=legacy.getChild(i).getProperty("id").toString();if(id.startsWith("amp")||id.startsWith("flt"))legacy.removeChild(i,nullptr);}
+ legacy.setProperty("version",1,nullptr);auto xml=legacy.createXml();juce::AudioProcessor::copyXmlToBinary(*xml,state);restored->setStateInformation(state.getData(),int(state.getSize()));
+ check(std::abs(restored->state.getRawParameterValue("ampAttack")->load()-12)<.01,"legacy amp default migration");check(restored->state.getRawParameterValue("fltHold")->load()==0,"legacy filter default migration");
+ check(std::abs(restored->state.getRawParameterValue("drive")->load()-9)<.01,"legacy old parameter lost");
+ // Restore defaults before testing core mapping below.
+ set(*p,"ampAttack",12);set(*p,"fltHold",0);
  // Raw controller mapping compared sample-for-sample with the same core events.
  for(int type=0;type<2;++type){p->prepareToPlay(48000,512);set(*p,"drive",5);set(*p,"profile",1);set(*p,"pressure",type?1.f:0.f);
   native->reset();native->dispatch({0,memorylab::EventKind::Parameter,0,type?1.:0.,0,memorylab::Param::PressureDepth});
@@ -59,5 +111,6 @@ int main(int argc,char**argv){try{
  auto screen=std::make_unique<MemoryLabProcessor>();screen->prepareToPlay(48000,512);screen->keyboard.noteOn(1,60,.8f);double screenEnergy=0;
  for(int i=0;i<4;++i){midi.clear();screen->processBlock(a,midi);screenEnergy+=power(a);}check(screenEnergy>1e-6,"on-screen keyboard silent");screen->keyboard.noteOff(1,60,0);
  for(int i=0;i<140;++i){midi.clear();screen->processBlock(a,midi);}check(power(a)<1e-12,"on-screen keyboard stuck note");
+ arpWrapperTests();
  std::cout<<"PASS: JUCE/native default parity, MIDI sample offsets, stereo, channel CC120 isolation, sustain, bend/pressure mapping, state recall, MIDI block partitioning and on-screen keyboard audio/release\n";return 0;
  }catch(const std::exception&e){std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}}

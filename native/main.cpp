@@ -13,6 +13,7 @@ void operator delete(void*p)noexcept{std::free(p);}
 void operator delete(void*p,std::size_t)noexcept{std::free(p);}
 using namespace memorylab;
 void require(bool ok,const char* why){if(!ok)throw std::runtime_error(why);}
+#include "arp-tests.hpp"
 std::vector<Event> phrase(double sr){
  const double rows[][4]={{0,48,.32,.45},{.52,55,.3,.65},{1.04,60,.42,.9},{1.65,63,.25,.55},{2.08,67,.65,1},{3,60,1.2,.82},{4.5,48,1.2,1}};
  std::vector<Event> e;
@@ -170,6 +171,35 @@ void performanceTests(){
  }
  std::cout<<"PASS performance: sustain/channel ownership, pedal release, stale note-offs, panic silence, channel isolation; 12 mode/rate cases, 36 partition comparisons, no tested render new allocations\n";
 }
+void envelopeTests(){
+ for(double sr:{44100.,48000.,96000.}){
+  EnvelopeSettings settings{.03,.04,.02,.1,.3,.07};FilterEnvelope env;env.noteOn(settings);
+  for(int i=0;i<int(sr*.3);++i){const double t=(i+1)/sr;double expected;
+   if(t<.03)expected=0;else if(t<.07)expected=(t-.03)/.04;else if(t<.09)expected=1;else if(t<.19)expected=1-.7*(t-.09)/.1;else expected=.3;
+   require(std::abs(env.tick(sr)-expected)<1e-8,"dAHDSR stage timing");
+  }env.noteOff(sr);for(int i=0;i<int(sr*.07);++i)require(std::abs(env.tick(sr)-std::max(0.,.3*(1-(i+1)/(sr*.07))))<1e-8,"dAHDSR release");
+  env.noteOn({0,0,0,0,.4,0});require(env.tick(sr)==.4,"zero-duration stages");env.noteOff(sr);require(env.tick(sr)==0,"zero release");
+  env.noteOn({0,.2,0,.2,.5,.1});double level=0;for(int i=0;i<int(sr*.05);++i)level=env.tick(sr);require(std::abs(level-.25)<1e-8,"release attack setup");env.noteOff(sr);
+  require(std::abs(env.tick(sr)-.25*(1-1/(sr*.1)))<1e-8,"release attack continuity");
+  Synth synth;synth.prepare(sr);const std::size_t n=std::size_t(sr*2);std::vector<float>a(n),b(n);
+  std::vector<Event>events{{0,EventKind::Parameter,0,30,0,Param::AmpDelay},{0,EventKind::Parameter,0,200,0,Param::AmpAttack},{0,EventKind::Parameter,0,100,0,Param::AmpHold},
+   {0,EventKind::Parameter,0,150,0,Param::AmpDecay},{0,EventKind::Parameter,0,.4,0,Param::AmpSustain},{0,EventKind::Parameter,0,600,0,Param::AmpRelease},
+   {0,EventKind::Parameter,0,1.5,0,Param::FilterEnvelope},{0,EventKind::Parameter,0,10,0,Param::FilterDelay},{0,EventKind::Parameter,0,50,0,Param::FilterAttack},
+   {0,EventKind::Parameter,0,100,0,Param::FilterHold},{0,EventKind::Parameter,0,200,0,Param::FilterDecay},{0,EventKind::Parameter,0,.2,0,Param::FilterSustain},
+   {0,EventKind::Parameter,0,500,0,Param::FilterRelease},{0,EventKind::NoteOn,60,.8},{std::size_t(sr*.7),EventKind::NoteOff,60}};
+  watchAlloc=true;synth.render(a.data(),n,events.data(),events.size());watchAlloc=false;require(allocations==0,"envelope render allocation");
+  for(float x:a)require(std::isfinite(x)&&std::abs(x)<1,"envelope boundedness");require(!synth.activeVoices(),"envelope release stuck");
+  for(std::size_t block:{17u,127u,512u}){synth.reset();std::size_t j=0;
+   for(std::size_t pos=0;pos<n;pos+=block){const auto size=std::min(block,n-pos);std::array<Event,24>local{};std::size_t count=0;
+    while(j<events.size()&&events[j].offset<pos+size){local[count]=events[j++];local[count++].offset-=pos;}
+    synth.render(b.data()+pos,size,local.data(),count);
+   }require(a==b,"envelope event partition");
+  }
+  synth.reset();Event baseline[]={{0,EventKind::NoteOn,60,.8},{std::size_t(sr*.7),EventKind::NoteOff,60}};synth.render(a.data(),n,baseline,2);
+  synth.reset();Event latched[]={{0,EventKind::NoteOn,60,.8},{std::size_t(sr*.2),EventKind::Parameter,0,500,0,Param::AmpAttack},{std::size_t(sr*.7),EventKind::NoteOff,60}};synth.render(b.data(),n,latched,3);require(a==b,"held note envelope changed after latch");
+ }
+ std::cout<<"PASS editable envelopes: delay/attack/hold/decay/sustain/release timing, zero stages, release in attack, note-on latching, finite output, nine partition comparisons and no tested render new allocations at three rates\n";
+}
 template<class T>void put(std::ofstream& f,T v){f.write(reinterpret_cast<const char*>(&v),sizeof(v));}
 void wav(const char* path,const std::vector<float>&audio){
  std::ofstream f(path,std::ios::binary);require(bool(f),"open WAV");
@@ -178,6 +208,8 @@ void wav(const char* path,const std::vector<float>&audio){
  f.write("data",4);put<std::uint32_t>(f,std::uint32_t(audio.size()*4));f.write(reinterpret_cast<const char*>(audio.data()),audio.size()*4);require(bool(f),"write WAV");
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::strcmp(argv[1],"--arp-test")==0){arpeggiatorTests();return 0;}
+ if(argc==2&&std::strcmp(argv[1],"--envelope-test")==0){envelopeTests();return 0;}
  if(argc==2&&std::strcmp(argv[1],"--performance-test")==0){performanceTests();return 0;}
  if(argc==4&&std::strcmp(argv[1],"--performance-voice")==0){const int mode=std::stoi(argv[3]);require(mode>=0&&mode<=3,"performance mode");
   Synth synth;synth.prepare(48000);auto events=performance(48000,mode);std::vector<float>audio(192000);synth.render(audio.data(),audio.size(),events.data(),events.size());

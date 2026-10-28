@@ -4,10 +4,13 @@ $studySource=Join-Path $studyRoot 'outputs/plugin-build/MemoryLab_artefacts/Rele
 $studyInstalled='C:/Program Files/Common Files/VST3/Memory Lab Study.vst3'
 if (Get-Process -Name FL64,FL,'Memory Lab Study' -ErrorAction SilentlyContinue) { throw 'Close FL Studio and the standalone app before updating the loaded plug-in.' }
 if (-not (Test-Path -LiteralPath $studyInstalled -PathType Container)) { throw 'The expected first installation is missing.' }
-$studyPrior=Get-Content -LiteralPath (Join-Path $studyRoot 'outputs/first-plugin-build.json') -Raw | ConvertFrom-Json
+$studyPrior=Get-Content -LiteralPath (Join-Path $studyRoot 'outputs/envelope-build-0.3.json') -Raw | ConvertFrom-Json
 $studyBinaryRelative='Contents/x86_64-win/Memory Lab Study.vst3'
-if ((Get-FileHash -LiteralPath (Join-Path $studyInstalled $studyBinaryRelative)).Hash -ne $studyPrior.installed_sha256) { throw 'Installed binary differs from the verified first build. Review before overwriting.' }
-$studyBackup=Join-Path $studyRoot 'outputs/installed-backup-0.1.0'
+if (-not (Test-Path -LiteralPath (Join-Path $studySource $studyBinaryRelative) -PathType Leaf)) { throw 'Build and validate the new VST3 bundle first.' }
+$studyBuild=Get-Content -LiteralPath (Join-Path $studyRoot 'outputs/arp-build-0.4.json') -Raw | ConvertFrom-Json
+if ((Get-FileHash -LiteralPath (Join-Path $studySource $studyBinaryRelative)).Hash -ne $studyBuild.binary_sha256) { throw 'Source binary differs from the verified 0.4 build.' }
+if ((Get-FileHash -LiteralPath (Join-Path $studyInstalled $studyBinaryRelative)).Hash -ne $studyPrior.installed_sha256) { throw 'Installed binary differs from the verified 0.3 build. Review before overwriting.' }
+$studyBackup=Join-Path $studyRoot 'outputs/installed-backup-0.3.0'
 if (Test-Path -LiteralPath $studyBackup) { throw 'Backup already exists. Refusing to overwrite history.' }
 Copy-Item -LiteralPath $studyInstalled -Destination $studyBackup -Recurse
 foreach ($studyFile in Get-ChildItem -LiteralPath $studyInstalled -File -Recurse) {

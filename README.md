@@ -6,6 +6,11 @@ practical DSP question. It does not modify the PCLA engine or the companion's fi
 
 ## Current native and plug-in milestone
 
+Installed version 0.3 adds editable amplitude and filter dAHDSR envelopes.
+Holger confirmed playing and enjoying it in FL Studio, including a 130 BPM
+piano-roll pattern. Version 0.4 adds an optional arpeggiator and is installed with
+verified hashes and actual-module checks. See [controls and behavior](plugin/ARPEGGIATOR.md).
+
 Memory Lab Study now has a compiled native engine, JUCE standalone app and Windows
 x64 VST3. The first VST3 is installed at
 `C:/Program Files/Common Files/VST3/Memory Lab Study.vst3` after wrapper checks and

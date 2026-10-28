@@ -7,11 +7,20 @@
 
 namespace memorylab {
 constexpr double pi=3.14159265358979323846;
+struct EnvelopeSettings {double delay=0,attack=.02,hold=0,decay=.35,sustain=.15,release=.4;};
+inline double envelopeLevel(double elapsed,const EnvelopeSettings&s){
+ const double t=elapsed-s.delay;if(t<0)return 0;
+ if(s.attack>0&&t<s.attack)return t/s.attack;
+ if(t<s.attack+s.hold)return 1;
+ if(s.decay>0&&t<s.attack+s.hold+s.decay)return 1-(1-s.sustain)*(t-s.attack-s.hold)/s.decay;
+ return s.sustain;
+}
 struct Parameters {
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
  double pressureDepth=0;
+ EnvelopeSettings ampEnvelope{0,.012,0,.18,.65,.5},filterEnvelopeShape{};
 };
 class MemoryDrive {
  double sr=48000,env=0,previous=0,dcX=0,dcY=0,d=5,dep=.8,rel=250;
@@ -36,7 +45,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -55,11 +64,12 @@ public:
 };
 class FilterEnvelope {
  bool gate=false;double time=0,value=0,step=0;
+ EnvelopeSettings settings{};
 public:
- void noteOn(){gate=true;time=value=step=0;}
- void noteOff(double sr){gate=false;step=value/(sr*.4);}
+ void noteOn(const EnvelopeSettings& next=EnvelopeSettings{}){settings=next;gate=true;time=value=step=0;}
+ void noteOff(double sr){gate=false;if(settings.release==0){value=step=0;}else step=value/(sr*settings.release);}
  double tick(double sr){
-  if(gate){time+=1/sr;value=time<.02?time/.02:time<.37?1-.85*(time-.02)/.35:.15;}
+  if(gate){time+=1/sr;value=envelopeLevel(time,settings);}
   else value=std::max(0.,value-step);
   return value;
  }
@@ -68,7 +78,7 @@ struct Voice {
  bool active=false,gate=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
  ClassicFilter filter;
- FilterEnvelope filterEnv;double lfoPhase=0;
+ FilterEnvelope filterEnv,ampEnv;double lfoPhase=0;
  bool keyDown=false;double lastOutput=0,transitionValue=0;int transitionLeft=0;
 };
 inline double blep(double t,double dt){
@@ -114,7 +124,7 @@ class Synth {
  Parameters target{},current{};OscillatorBank bank;
  std::array<bool,16> sustain{};
  std::array<double,16> bend{},bendTarget{},pressure{},pressureTarget{};
- void release(Voice& v){v.gate=false;v.releaseStep=v.env/(sr*.5);v.filterEnv.noteOff(sr);}
+ void release(Voice& v){v.gate=false;v.ampEnv.noteOff(sr);v.filterEnv.noteOff(sr);}
  void apply(const Event& e){
   if(e.kind==EventKind::Parameter){
    if(!std::isfinite(e.value))return;
@@ -135,6 +145,18 @@ class Synth {
     case Param::CutoffLfo:target.cutoffLfo=std::clamp(e.value,-2.,2.);break;
     case Param::FilterEnvelope:target.filterEnvelope=std::clamp(e.value,-4.,4.);break;
     case Param::PressureDepth:target.pressureDepth=std::clamp(e.value,-2.,2.);break;
+    case Param::AmpDelay:target.ampEnvelope.delay=std::clamp(e.value,0.,5000.)/1000.;break;
+    case Param::AmpAttack:target.ampEnvelope.attack=std::clamp(e.value,0.,10000.)/1000.;break;
+    case Param::AmpHold:target.ampEnvelope.hold=std::clamp(e.value,0.,5000.)/1000.;break;
+    case Param::AmpDecay:target.ampEnvelope.decay=std::clamp(e.value,0.,10000.)/1000.;break;
+    case Param::AmpSustain:target.ampEnvelope.sustain=std::clamp(e.value,0.,1.);break;
+    case Param::AmpRelease:target.ampEnvelope.release=std::clamp(e.value,0.,10000.)/1000.;break;
+    case Param::FilterDelay:target.filterEnvelopeShape.delay=std::clamp(e.value,0.,5000.)/1000.;break;
+    case Param::FilterAttack:target.filterEnvelopeShape.attack=std::clamp(e.value,0.,10000.)/1000.;break;
+    case Param::FilterHold:target.filterEnvelopeShape.hold=std::clamp(e.value,0.,5000.)/1000.;break;
+    case Param::FilterDecay:target.filterEnvelopeShape.decay=std::clamp(e.value,0.,10000.)/1000.;break;
+    case Param::FilterSustain:target.filterEnvelopeShape.sustain=std::clamp(e.value,0.,1.);break;
+    case Param::FilterRelease:target.filterEnvelopeShape.release=std::clamp(e.value,0.,10000.)/1000.;break;
    }return;
   }
   if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
@@ -160,7 +182,7 @@ class Synth {
   const bool replacing=chosen->active;const double oldOutput=chosen->lastOutput;
   *chosen=Voice{};chosen->active=chosen->gate=true;chosen->note=e.note;chosen->channel=e.channel;
   chosen->velocity=std::clamp(e.value,0.,1.);chosen->age=++clock;
-  chosen->filterEnv.noteOn();
+  chosen->filterEnv.noteOn(target.filterEnvelopeShape);chosen->ampEnv.noteOn(target.ampEnvelope);
   chosen->keyDown=true;if(replacing){chosen->transitionLeft=int(sr*.005);chosen->transitionValue=oldOutput;}
   if(!target.retrigger){chosen->phase1=phase1;chosen->phase2=phase2;}
  }
@@ -171,8 +193,7 @@ class Synth {
   double saw=bank.saw(v.phase1,dt);
   double pulse=bank.pulse(v.phase2,dt2,std::clamp(current.pulseWidth+current.pwmLfo*lfo,.1,.9));
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
-  if(v.gate){v.elapsed+=1/sr;v.env=v.elapsed<.012?v.elapsed/.012:v.elapsed<.192?1-.35*(v.elapsed-.012)/.18:.65;}
-  else{v.env=std::max(0.,v.env-v.releaseStep);if(v.env<1e-8){v.active=false;return 0;}}
+  v.env=v.ampEnv.tick(sr);if(!v.gate&&v.env<1e-8){v.active=false;return 0;}
   const double x=(.42*saw+.28*pulse)*v.env*v.velocity;
   const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);

@@ -1,5 +1,39 @@
 # Native editing surface
 
+## Version 0.4: arpeggiator
+
+The new ARP page is documented in ARPEGGIATOR.md. Native timing/allocation,
+wrapper audio/state/host-tempo, five-page editor/keyboard and actual VST3
+audio/state/all-off checks passed. Normal and compact arp snapshots were visually
+inspected in outputs/editor-preview-0.4. Version 0.4 is installed with verified
+hashes; installed-module audio, arp state/all-off and reload checks passed.
+Version 0.3 is backed up at outputs/installed-backup-0.3.0. FL Studio ARP interaction
+awaits user confirmation. See outputs/arp-build-0.4.json.
+
+## Version 0.3: editable envelopes
+
+ENVELOPES opens AMPLITUDE and FILTER pages. Each offers Delay, Attack, Hold,
+Decay, Sustain and Release, with a curve preview that follows the controls.
+The preview holds sustain for 0.5 seconds; actual sustain lasts until key/pedal
+release. Settings latch at note-on, so play a new note after editing stages.
+The filter page includes ENV AMOUNT and BASE CUTOFF and flags a zero amount.
+The amplitude page retains DRIVE and MEMORY controls.
+
+The sixteen existing parameter IDs and plug-in IDs remain stable. Twelve new
+envelope parameters are saved in host state; missing parameters in old presets
+receive the original defaults. The advertised tail is now 11 seconds.
+
+Version 0.3 checks passed for all envelope stages at three sample rates, zero
+stages, release during attack, note-on latching, block partitioning, bounded
+output and no tested native render allocations. Wrapper tests cover legacy
+preset migration and new parameter recall. Editor snapshots are saved under
+outputs/editor-preview-0.3. Version 0.3 is installed with verified file hashes;
+the previous 0.2 is retained at outputs/installed-backup-0.2.0. The installed
+VST3 passed scan, instantiate, MIDI audio, state, release and reload checks.
+See outputs/envelope-build-0.3.json. FL Studio interaction awaits user confirmation.
+
+The sections below document the earlier 0.2 milestone.
+
 Version0.2 replaces the generic parameter list with an original JUCE editor.
 The published eight-encoder interaction direction motivated a paged control bank;
 no hardware artwork, branding or exact panel layout was copied. The surface exposes

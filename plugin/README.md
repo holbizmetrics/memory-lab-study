@@ -26,10 +26,15 @@ into system directories automatically. Framework version9.0.4 commit:
 
 ## UI and state
 
-Version0.2 uses an original custom editor with Voice/Motion pages, eight contextual
+Version0.4 uses an original custom editor with Voice/Motion/Envelopes/ARP pages, eight contextual
 rotary controls, a selected-parameter display, static filter or modulation diagrams,
 an output fader/meter and an on-screen keyboard. The sixteen host parameters retain
-their IDs and meanings. See EDITOR.md for layout, verification and update details.
+their IDs and meanings. Twelve new parameters provide separate amplitude and filter
+Delay/Attack/Hold/Decay/Sustain/Release controls. Envelope stages latch at note-on;
+legacy presets receive the original envelope defaults. See EDITOR.md for details.
+The optional arpeggiator defaults off, follows host or internal tempo and provides
+three note orders, six rates, 1–3 octave layers and gate control. See ARPEGGIATOR.md
+for timing behavior, patch compatibility and first-version limits.
 There is no browser embed or factory-preset bank. The default patch preserves the
 approved native baseline; float host defaults map to their native default values.
 
@@ -42,7 +47,7 @@ core contract specifies. Sample-accurate host parameter automation is not claime
 ## Audio/MIDI boundary
 
 Instrument input: MIDI, no audio input. Output: mono or stereo with duplicated
-mono signal, zero reported algorithmic latency and1.5-second advertised tail.
+mono signal, zero reported algorithmic latency and11-second advertised tail.
 Core sample rates:44.1–192 kHz. Unsupported rates produce silence; no lower-rate
 support is claimed. Only32-bit float processing is advertised. No processing-time
 allocation is introduced by the native adapter, but complete JUCE/host real-time
