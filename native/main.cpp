@@ -102,6 +102,33 @@ void profileTests(){
  }
  std::cout<<"PASS profile: three 3-second cutoff/Q/profile stress traces, nine event partition comparisons, no tested render new allocations; peak "<<peak<<"\n";
 }
+std::vector<Event> modulation(double sr,int mode,bool preRoll=true){
+ auto events=phrase(sr);if(preRoll)for(auto&e:events)e.offset+=std::size_t(sr*.1);
+ if(mode==1||mode==5)events.insert(events.begin(),{0,EventKind::Parameter,0,1.5,0,Param::FilterEnvelope});
+ if(mode==2||mode==5)events.insert(events.begin(),{0,EventKind::Parameter,0,8,0,Param::PitchLfo});
+ if(mode==3||mode==5)events.insert(events.begin(),{0,EventKind::Parameter,0,.15,0,Param::PwmLfo});
+ if(mode==4||mode==5)events.insert(events.begin(),{0,EventKind::Parameter,0,.5,0,Param::CutoffLfo});
+ return events;
+}
+void modulationTests(){
+ for(double sr:{44100.,48000.,96000.}){
+  FilterEnvelope env;env.noteOn();double worst=0;const int hold=int(sr*.6);
+  for(int i=0;i<hold;++i){const double t=(i+1)/sr,expected=t<.02?t/.02:t<.37?1-.85*(t-.02)/.35:.15;worst=std::max(worst,std::abs(env.tick(sr)-expected));}
+  require(worst<1e-9,"filter envelope contour");env.noteOff(sr);
+  for(int i=0;i<int(sr*.4);++i){const double expected=std::max(0.,.15*(1-(i+1)/(sr*.4)));require(std::abs(env.tick(sr)-expected)<1e-9,"filter envelope release");}
+  for(int mode=0;mode<6;++mode){Synth synth;synth.prepare(sr);const auto n=std::size_t(sr*6.8);auto events=modulation(sr,mode,false);
+   std::vector<float>a(n),b(n);watchAlloc=true;synth.render(a.data(),n,events.data(),events.size());watchAlloc=false;require(allocations==0,"mod render allocation");
+   for(float x:a)require(std::isfinite(x)&&std::abs(x)<1,"modulation boundedness");
+   for(std::size_t block:{17u,127u,512u}){synth.reset();std::size_t j=0;
+    for(std::size_t pos=0;pos<n;pos+=block){const auto size=std::min(block,n-pos);std::array<Event,16> local{};std::size_t count=0;
+     while(j<events.size()&&events[j].offset<pos+size){local[count]=events[j++];local[count++].offset-=pos;}
+     synth.render(b.data()+pos,size,local.data(),count);
+    }require(a==b,"modulation partition mismatch");
+   }require(!synth.activeVoices(),"modulation stuck note");
+  }
+ }
+ std::cout<<"PASS modulation: envelope contour/release at three rates, 18 mode/rate cases, 54 partition comparisons, no tested render new allocations\n";
+}
 template<class T>void put(std::ofstream& f,T v){f.write(reinterpret_cast<const char*>(&v),sizeof(v));}
 void wav(const char* path,const std::vector<float>&audio){
  std::ofstream f(path,std::ios::binary);require(bool(f),"open WAV");
@@ -110,6 +137,10 @@ void wav(const char* path,const std::vector<float>&audio){
  f.write("data",4);put<std::uint32_t>(f,std::uint32_t(audio.size()*4));f.write(reinterpret_cast<const char*>(audio.data()),audio.size()*4);require(bool(f),"write WAV");
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::strcmp(argv[1],"--mod-test")==0){modulationTests();return 0;}
+ if(argc==4&&std::strcmp(argv[1],"--mod-voice")==0){const int mode=std::stoi(argv[3]);require(mode>=0&&mode<=5,"mod mode");
+  Synth synth;synth.prepare(48000);auto events=modulation(48000,mode);std::vector<float>audio(331200);synth.render(audio.data(),audio.size(),events.data(),events.size());
+  std::ofstream f(argv[2],std::ios::binary);require(bool(f),"mod open");f.write(reinterpret_cast<const char*>(audio.data()+4800),326400*sizeof(float));require(bool(f),"mod write");return 0;}
  if(argc==2&&std::strcmp(argv[1],"--profile-test")==0){profileTests();return 0;}
  if(argc==7&&std::strcmp(argv[1],"--filter-impulse")==0){
   const double sr=std::stod(argv[3]),cutoff=std::stod(argv[4]),q=std::stod(argv[5]),profile=std::stod(argv[6]);

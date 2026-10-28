@@ -10,6 +10,7 @@ constexpr double pi=3.14159265358979323846;
 struct Parameters {
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
+ double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
 };
 class MemoryDrive {
  double sr=48000,env=0,previous=0,dcX=0,dcY=0,d=5,dep=.8,rel=250;
@@ -33,7 +34,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -50,10 +51,22 @@ public:
   return highWeight*hp+lowWeight*lp;
  }
 };
+class FilterEnvelope {
+ bool gate=false;double time=0,value=0,step=0;
+public:
+ void noteOn(){gate=true;time=value=step=0;}
+ void noteOff(double sr){gate=false;step=value/(sr*.4);}
+ double tick(double sr){
+  if(gate){time+=1/sr;value=time<.02?time/.02:time<.37?1-.85*(time-.02)/.35:.15;}
+  else value=std::max(0.,value-step);
+  return value;
+ }
+};
 struct Voice {
  bool active=false,gate=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
  ClassicFilter filter;
+ FilterEnvelope filterEnv;double lfoPhase=0;
 };
 inline double blep(double t,double dt){
  if(t<dt){t/=dt;return t+t-t*t-1;}
@@ -96,7 +109,7 @@ public:
 class Synth {
  double sr=48000;std::uint64_t clock=0;std::array<Voice,8> voices{};MemoryDrive memory;
  Parameters target{},current{};OscillatorBank bank;
- void release(Voice& v){v.gate=false;v.releaseStep=v.env/(sr*.5);}
+ void release(Voice& v){v.gate=false;v.releaseStep=v.env/(sr*.5);v.filterEnv.noteOff(sr);}
  void apply(const Event& e){
   if(e.kind==EventKind::Parameter){
    if(!std::isfinite(e.value))return;
@@ -111,6 +124,11 @@ class Synth {
     case Param::Volume:target.volume=std::clamp(e.value,0.,.8);break;
     case Param::Retrigger:target.retrigger=e.value>=.5;break;
     case Param::Profile:target.profile=std::clamp(e.value,0.,1.);break;
+    case Param::LfoRate:target.lfoRate=std::clamp(e.value,.05,20.);break;
+    case Param::PitchLfo:target.pitchLfo=std::clamp(e.value,-50.,50.);break;
+    case Param::PwmLfo:target.pwmLfo=std::clamp(e.value,-.35,.35);break;
+    case Param::CutoffLfo:target.cutoffLfo=std::clamp(e.value,-2.,2.);break;
+    case Param::FilterEnvelope:target.filterEnvelope=std::clamp(e.value,-4.,4.);break;
    }return;
   }
   if(e.kind==EventKind::AllOff){for(auto& v:voices)if(v.active)release(v);return;}
@@ -125,17 +143,21 @@ class Synth {
   const double phase1=chosen->phase1,phase2=chosen->phase2;
   *chosen=Voice{};chosen->active=chosen->gate=true;chosen->note=e.note;chosen->channel=e.channel;
   chosen->velocity=std::clamp(e.value,0.,1.);chosen->age=++clock;
+  chosen->filterEnv.noteOn();
   if(!target.retrigger){chosen->phase1=phase1;chosen->phase2=phase2;}
  }
  double voiceTick(Voice& v){
-  const double f=440*std::exp2((v.note-69)/12.),dt=std::min(.45,f/sr),dt2=std::min(.45,f*std::exp2(current.detune/1200)/sr);
+  const double lfo=std::sin(2*pi*v.lfoPhase),filterEnv=v.filterEnv.tick(sr);
+  v.lfoPhase+=current.lfoRate/sr;v.lfoPhase-=std::floor(v.lfoPhase);
+  const double f=440*std::exp2((v.note-69)/12.)*std::exp2(current.pitchLfo*lfo/1200),dt=std::min(.45,f/sr),dt2=std::min(.45,f*std::exp2(current.detune/1200)/sr);
   double saw=bank.saw(v.phase1,dt);
-  double pulse=bank.pulse(v.phase2,dt2,current.pulseWidth);
+  double pulse=bank.pulse(v.phase2,dt2,std::clamp(current.pulseWidth+current.pwmLfo*lfo,.1,.9));
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
   if(v.gate){v.elapsed+=1/sr;v.env=v.elapsed<.012?v.elapsed/.012:v.elapsed<.192?1-.35*(v.elapsed-.012)/.18:.65;}
   else{v.env=std::max(0.,v.env-v.releaseStep);if(v.env<1e-8){v.active=false;return 0;}}
   const double x=(.42*saw+.28*pulse)*v.env*v.velocity;
-  return v.filter.tick(x,sr,current.cutoff,current.q,current.profile);
+  const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity),30.,std::min(18000.,sr*.4));
+  return v.filter.tick(x,sr,cutoff,current.q,current.profile);
  }
 public:
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
@@ -153,6 +175,9 @@ public:
    current.detune+=(target.detune-current.detune)*smooth;current.pulseWidth+=(target.pulseWidth-current.pulseWidth)*smooth;
    current.cutoff+=(target.cutoff-current.cutoff)*smooth;current.q+=(target.q-current.q)*smooth;current.volume+=(target.volume-current.volume)*smooth;
    current.profile+=(target.profile-current.profile)*smooth;
+   current.lfoRate+=(target.lfoRate-current.lfoRate)*smooth;current.pitchLfo+=(target.pitchLfo-current.pitchLfo)*smooth;
+   current.pwmLfo+=(target.pwmLfo-current.pwmLfo)*smooth;current.cutoffLfo+=(target.cutoffLfo-current.cutoffLfo)*smooth;
+   current.filterEnvelope+=(target.filterEnvelope-current.filterEnvelope)*smooth;
    double sum=0;for(auto&v:voices)if(v.active)sum+=voiceTick(v);
    output[i]=static_cast<float>(memory.tick(sum,target)*current.volume);
   }return true;
