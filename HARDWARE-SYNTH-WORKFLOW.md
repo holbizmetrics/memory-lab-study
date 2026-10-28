@@ -172,6 +172,72 @@ A successful local module-loader check is useful preparation, but it is not proo
 of FL Studio loading, UI behavior or hardware MIDI. Confirm those in the target
 host and preserve a host project for future regression checks.
 
+## Make controls and automation part of the instrument contract
+
+Preserve host parameter IDs and registration order across feature additions. Add
+missing controls to legacy state with explicit original defaults; do not leave a
+previously edited value behind when loading an older patch. Test compatibility
+against a reused processor instance as well as a fresh instance.
+
+Define when a parameter takes effect. Our envelope stages latch at note-on;
+changing a release knob on a held note is therefore different from editing a
+live modulation amount. Label that behavior in the editor. A useful envelope
+preview should distinguish a fixed illustrative sustain duration from actual
+key/pedal-held sustain, and flag routes whose modulation amount is zero.
+
+JUCE parameter attachments provide the automation foundation, but verify both
+directions: knob gestures notify the host, and host changes update controls and
+curves without generating new user-edit gestures. Include page switches and
+hidden controls. In this project, a separate test checked 35 stable automatable
+IDs, balanced begin/value/end gestures and value recall; FL Studio then recognized
+Cutoff via Last tweaked and drove its knob/value/curve from a Playlist clip.
+This did not by itself prove mouse-performance recording, host undo grouping,
+fast-ramp audio quality or sample-accurate parameter automation.
+
+For time-based features, use the sample rate supplied during audio preparation,
+not an assumption that a host accessor is already initialized. A keyboard test
+caught the initial arp clock using an uninitialized host-accessor rate in the
+standalone test harness. Test fractional clock accumulation across block sizes,
+tempo fallback, pedal-held input chords, release, panic and transport transitions.
+
+## Preserve playable milestones and diagnose host failures separately
+
+Tag the exact committed source for each playable alpha milestone, with release
+notes that separate automated checks, user playing feedback and remaining limits.
+Keep previous installed bundles and hash records. Do not attach binaries before
+settling distribution licensing. A source tag and an installed binary version
+can use different prerelease labeling if that relationship is documented.
+
+Work on a separate host-project copy for automation and reload tests. A successful
+module-loader test does not cover the full project's other instruments, drivers,
+accessibility providers, editor lifetime or host reload path. Extended enjoyable
+playing is valuable feedback, but is not a timed soak test or universal stability
+proof.
+
+Keep actual crash dumps distinct from snapshots of a healthy running process.
+A debugger wake event in a snapshot is not the previous crash's exception.
+Check file-access errors explicitly: an access-denied search must not be treated
+as proof that no dump exists. Our original dump was later located by Holger.
+Analyze the exception subcode and faulting stack before interpreting a generic
+error label or blaming an audio driver merely because its DLL is loaded.
+
+Treat accessibility inspection as an active integration condition. The original
+FL reload failure occurred in UIAutomationCore provider cleanup after UI
+inspection; the exact owner remained under investigation. Avoid further UI
+inspection during teardown until isolated. Do not disable accessibility globally
+or change audio/DSP behavior on that evidence alone.
+
+Practice debugger cleanup on a disposable target. Interrupting the live capture
+debugger through the shell terminated the attached FL process in this session;
+that was an agent-caused termination, not another spontaneous crash. Detach
+deliberately and verify that the host survives before ending a live session.
+
+C# scripting in WinDbg can make native triage reusable: the user's WinDbgAotExt
+hosted CoreCLR, queried typed module data with LINQ and produced a snapshot report.
+The debuggee itself need not have a managed heap. Keep raw logs, symbol limits,
+failed inspections and unresolved ownership questions alongside conclusions.
+Do not upload memory dumps as ordinary source/release artifacts.
+
 ## Suggested starting package for the next instrument
 
 Create a separate project containing the product/source index, evidence and

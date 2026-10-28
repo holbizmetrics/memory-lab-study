@@ -55,6 +55,47 @@ files, logs, fl-current-triage.md and the approximately 1.5 GB current-state dum
 The dump was not uploaded or attached to GitHub. A dump captured at an actual
 future failure is needed for crash-stack analysis.
 
+## Original crash dump recovered and analyzed
+
+Holger located the original FL64.exe.3660.dmp in his Local/CrashDumps directory
+and supplied WinDbg output. The agent's earlier sandboxed lookup had silently
+skipped an access-denied location; the original dump was not actually lost.
+An elevated read copied its 81,586,247 bytes to the ignored local debug directory.
+The earlier statement about the missing temporary WER dump applies only to that
+temporary file, not to the separately retained LocalDumps file.
+
+Offline cdb analysis with Microsoft symbols confirmed:
+
+- Exception 0xc0000409, subcode 0xA / GUARD_ICALL_CHECK_FAILURE.
+- The faulting path runs through UIAutomationCore!UiaNode::ProviderInfo destructor
+  and ReleaseOnCorrectContext_Callback during provider cleanup on the UI thread.
+- Disassembly reads the COM interface vtable's +0x10 slot (Release), then calls
+  the CFG dispatch thunk. The recovered earlier context contains the invalid
+  call target 0xc776bc763fccd607 and an access violation in that dispatch path.
+- Provider heap memory needed to attribute ownership is absent from this small
+  dump. Memory Lab being loaded/unloaded does not establish that it owns the
+  invalid provider. UI inspection concurrent with reload is a plausible trigger,
+  not a proven component diagnosis. Do not treat this stack as an audio-driver
+  failure or interpret the generic exception text as proof of a stack overwrite.
+
+WinDbgAotExt loaded and its C# module query worked on the original dump. The
+generic !report command took longer, then completed with 305 modules and 119
+threads. The report and native exception/context logs were retained, and the
+offline debugger exited normally.
+
+A temporary live cdb capture had meanwhile been attached to FL to await a
+reproduction. It logged repeated Windows MIDI2 wdmaud2.drv HRESULT 0x80040008
+messages, but no matching fatal dump. FocusriteUSBASIO.dll version 4.150.0.432
+was loaded; module presence and nonfatal MIDI messages are separate evidence.
+After discovering the original dump, the agent incorrectly stopped that live
+debugger using a shell interrupt. That terminated the attached FL process too.
+This second termination was agent-caused and is not another spontaneous crash.
+The saved project copy and dumps remain intact; no live capture remains active.
+Future live sessions must verify detach/target-survival behavior beforehand.
+
+Detailed local files: analyze-original.log, provider-context.log and
+fl-original-crash-2230.dmp under outputs/debug/. These are not release assets.
+
 ## Source-side checks
 
 Run MemoryLabSmoke --automation-test after building. The checks cover:
