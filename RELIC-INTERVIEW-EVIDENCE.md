@@ -145,6 +145,122 @@ independent measurements or assume that phase/gain behavior is established.
 
 ## Next evidence to collect
 
+### Manufacturer NAMM 2024 newsletter supplied by Holger
+
+The supplied newsletter is explicitly labeled NAMM 2024 and signed Jacob and
+Cheryl. It links to https://www.miroc.co.jp/report2/namm-2024-day-4-shear-electronics .
+This dates its stated design stage without relying on a video's relative shipping
+claims. It explicitly lists eight independent cores, four-way multitimbrality,
+four-zone allocation and 512 programs containing four patches each.
+
+Its filter inventory differs from the later specs:
+
+| Source version | Normal / modern profile sweep | Classic profile sweep |
+| --- | --- | --- |
+| NAMM 2024 newsletter | LP4 / LP3 / LP2 / XF2 / BP4 | LP4 / LP3 / LP2 / NF2 / HP2 |
+| Later supplied official specs | BP4 / XF4 / LP2 / LP3 / LP4 | HP2 / NF2 / LP2 |
+
+Sequence orientation alone is not a contradiction, but the early XF2 naming and
+Classic-mode LP3/LP4 coverage differ. Do not assume that the modern Classic mode
+contains the extra slopes, or that the earlier label was simply an error. These
+may reflect revisions or documentation changes; actual mode behavior needs
+confirmation before a hardware-correspondence claim.
+
+The newsletter also describes four LFOs with three-dimensional warp capability.
+This adds a feature direction not captured by merely listing eight waveform shapes.
+It does not define the warp axes, ranges, equations, modulation destinations or
+which later firmware retains that behavior. Record it as a historical stated
+capability, not enough information to implement a matching warp engine.
+
+This is useful evidence that later-generation four-part architecture was already
+being described in 2024, while the SynthPlex 2022 transcript described two parts.
+It does not prove production readiness independently of the manufacturer's claim.
+
+
+### Official voice-core page text and four supplied images
+
+Holger supplied the page text and images on 2026-10-29. Source page:
+https://www.shearelectronics.com/relic/voice-core/ . The supplied images show a
+multi-layer PCB illustration with one strip highlighted, a sawtooth scope trace,
+an artistic component photograph and a scope photograph of an amplitude-shaped
+audio signal. Original capture settings and measurement files are not supplied.
+
+- The PCB artwork supports discussion of a voice board, but is not a readable
+  schematic/netlist. Do not derive filter wiring, component values or circuit
+  equations from its appearance, or treat the four illustrated strips as the
+  instrument's total voice count.
+- The saw trace has an approximately straight rising ramp and a fast but finite,
+  visibly rounded reset. That is a useful qualitative waveform reference, not
+  evidence for an infinitely sharp ideal saw or a particular digital correction.
+  Scope/probe bandwidth and capture conditions could contribute to the reset shape.
+  Visible scale markings alone do not establish the production oscillator's full
+  voltage range, tuning, drift or spectrum across register.
+- The second scope image shows a dense audio waveform with a rising amplitude,
+  a curved fall toward a sustained region and a curved release. It is not an
+  isolated envelope control-voltage trace, and a readable time scale is absent.
+  Do not fit exact envelope coefficients/time constants or claim a particular
+  attack law from this picture. It can guide future qualitative comparisons.
+- The component photograph is illustrative; it does not measure transconductance,
+  clipping, matching, thermal behavior or the source of audible character.
+- The page explicitly describes an SVF plus an extra dipole and additional gain
+  cells for profile sweeping. This strengthens the stated architecture direction,
+  but does not specify the dipole's complete connection, transfer function or
+  feedback/gain laws. A simple interpolation between arbitrary filter outputs
+  must remain labeled as our own design rather than a reconstruction.
+
+The envelope algorithm and component-authenticity language still supplies no
+complete implementable model. Preserve the source images as qualitative evidence;
+reference audio, isolated control signals and capture settings would support much
+stronger measurements. No runtime changes follow automatically from these images.
+
+
+### Official product/specification text supplied by Holger
+
+On 2026-10-29 Holger supplied the official product-page text and its specification
+section, then the separate specs-page text. The repeated specification block is
+one manufacturer specification, not independent corroboration. Reference pages:
+https://www.shearelectronics.com/relic/specs/ and
+https://www.shearelectronics.com/relic/relic . These observations use the supplied
+text, not a new independently dated site capture.
+
+The per-voice inventory is explicit: two SEM-topology VCOs, seven VCAs, four
+dAHDSR envelopes, four eight-shape LFOs and one supervariable VCF. Thus one VCF
+means per voice in this inventory, resolving the isolated interview ambiguity.
+The system inventory is four-way multitimbral, four-zone voice allocation and
+512 programs with four patches each. Do not turn eight independent physical
+voice processors into a software requirement for eight OS threads.
+
+Published filter terminology is CLASSIC HP2/NF2/LP2 and MODERN
+BP4/XF4/LP2/LP3/LP4 with variable bandwidth. XF4 is specified as the 50/50
+BP4+LP2 blend. This is the later naming baseline; the photographed 2022 XF2 label
+remains valid historical evidence. Blend endpoints do not specify interpolation
+law, phase alignment, normalization or a complete nonlinear realization.
+
+Envelope contours are described as CEM3310-inspired and generated with an
+exponential algorithm. Our envelope segments are currently linear, so matching
+the stage names is not matching their contour. The named summation algorithm
+does not supply implementable coefficients, target overshoot, time calibration,
+or retrigger/release rules. Claims of mathematical perfection and glitch freedom
+remain manufacturer claims, not independently verified numerical properties.
+Preserve existing envelope sound when adding any future optional contour mode.
+
+The LFO inventory explicitly includes triangle, sine, pulse and saw, each with
+bipolar variants: eight shapes. Our single per-voice sine LFO is a subset. Shape
+names alone do not fix polarity offsets, phase convention or modulation scaling.
+
+The oscillator range text gives note names and numeric endpoints that warrant
+care: its quoted C0/C7 frequencies do not span seven octaves. Do not silently
+copy that pair into a tuning/calibration test. Pitch standard, octave naming and
+the numeric endpoint must be clarified before treating them as a consistent range.
+
+The product narrative places hardware freeze in early 2024 and manufacturing
+development afterward. Its status paragraph is explicitly as of July 2026 and
+offers an estimated shipping window. It does not resolve the recording date of
+interviews claiming shipping, or independently verify current availability.
+Treat material-authenticity and comparative-sound statements as maker claims;
+they do not establish a measured match for our original software instrument.
+
+
 ### Further creator walkthrough: compensated gain staging and external reverb
 
 Holger supplied another transcript describing the first eight-voice prototype;
