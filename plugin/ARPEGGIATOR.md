@@ -44,6 +44,11 @@ a 64-step polyphonic sequencer and distinguishes it from an arpeggiator. That
 interview does not confirm a native hardware arp. See
 [interview evidence by generation](../RELIC-INTERVIEW-EVIDENCE.md).
 
+A subsequently supplied NAMM 2024 screenshot visibly labels ARP GATE % on the
+hardware panel. This supports an arp-related control on that prototype; its modes
+and operating behavior remain unverified. Do not generalize the 2017 description
+to later versions or claim our arp implements the hardware's behavior.
+
 ## Verification
 
 The native tests cover order and octave range, fractional sample timing, gate

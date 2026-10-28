@@ -7,6 +7,11 @@ envelopes and an optional arpeggiator. Holger confirmed extended musical playing
 in FL Studio and values the current sound's perceived analog character.
 Preserve existing patches and the approved sound while adding features.
 
+v0.4.0-alpha.2 preserves the subsequent patch save/load development milestone,
+automation/accessibility checks and interview evidence as a source prerelease.
+The installed plugin remains unchanged. See
+[release notes](releases/v0.4.0-alpha.2.md).
+
 ## Later milestone: DAW knob automation
 
 Initial work has started: FL Studio recognized Cutoff as last tweaked and played
