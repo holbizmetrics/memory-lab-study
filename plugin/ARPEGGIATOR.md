@@ -39,6 +39,11 @@ This is original behavior. The supplied panel references show an arpeggiator
 section, but the manufacturer's public specs do not establish its detailed modes:
 https://www.shearelectronics.com/relic/specs/
 
+Historical clarification (2026-10-29): the creator's NAMM 2017 interview describes
+a 64-step polyphonic sequencer and distinguishes it from an arpeggiator. That
+interview does not confirm a native hardware arp. See
+[interview evidence by generation](../RELIC-INTERVIEW-EVIDENCE.md).
+
 ## Verification
 
 The native tests cover order and octave range, fractional sample timing, gate

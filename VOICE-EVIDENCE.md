@@ -1,5 +1,10 @@
 # Evidence boundary for the fuller instrument
 
+Additional primary interview evidence and generation distinctions are recorded in
+[Relic interview evidence](RELIC-INTERVIEW-EVIDENCE.md). The NAMM 2017 transcript
+describes the earlier Relic-6, including switched oscillator levels, sync and a
+polyphonic sequencer; it does not establish a native arpeggiator.
+
 Reviewed 2026-10-28. The objective is a broader original Relic-inspired instrument.
 Neither musical approval of our drive nor implementation of listed features
 establishes an emulation of the hardware.
