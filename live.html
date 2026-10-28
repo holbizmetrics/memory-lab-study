@@ -1,0 +1,14 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Drive Memory — Playable Study</title>
+<style>body{background:#101d19;color:#e6efdf;font:17px system-ui;max-width:850px;margin:40px auto;padding:20px}button,select{font:inherit;padding:12px;margin:6px;background:#c3e3a3;border:0;border-radius:6px;color:#142116}label{display:block;margin:22px 0}input{width:55%}small{display:block;color:#b9c8bd}#keys{display:flex;flex-wrap:wrap}#keys button{touch-action:none;min-width:45px}a{color:#c3e3a3}</style>
+<h1>Play the memory</h1><p>A playable follow-up to the envelope-memory sound you liked. Original synth research; no hardware-emulation claim.</p>
+<button id="start">Enable audio</button><button id="demo">Play phrase</button><button id="stop">Stop / all notes off</button>
+<p id="status" role="status">Audio off</p>
+<label>Drive <input id="drive" type="range" min="0" max="12" step=".1" value="5"><output>5</output></label>
+<label>Memory depth <input id="depth" type="range" min="0" max="1.5" step=".01" value=".8"><output>0.8</output></label>
+<label>Recovery (ms) <input id="recovery" type="range" min="50" max="400" step="1" value="250"><output>250</output></label>
+<label>Volume <input id="volume" type="range" min="0" max=".8" step=".01" value=".25"><output>0.25</output></label>
+<button id="preset">Restore medium memory</button><button id="midi">Connect MIDI</button><select id="ports" aria-label="MIDI input"><option value="">No input selected</option></select>
+<p>Play with the keys below, or computer keys A W S E D F T G Y H U J K. Velocity comes from your MIDI controller.</p><div id="keys"></div>
+<p><a href="outputs/ideation-1/index.html">Exact frozen listening reference</a></p>
+<small>The live voice uses two oscillators, a low-pass filter and velocity-sensitive envelopes. It approximates the source recipe; it is not sample-identical. No automatic RMS matching is applied to live playing. Depth fades smoothly below drive 2; the frozen takes are unchanged. This exploratory worklet is not a production VST3, and its resampling does not guarantee alias-free output.</small>
+<script type="module" src="live.js"></script></html>
