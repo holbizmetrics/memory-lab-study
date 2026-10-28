@@ -22,8 +22,38 @@ cb492ca4-07f1-495e-a002-46493768f395. This does not identify a responsible plug-
 Project reload/playback is NOT a passed acceptance check. Investigate the exit
 and repeat under controlled host conditions before declaring recall reliable.
 
+After restarting FL Studio, the user reopened the saved copy successfully and
+Memory Lab's editor appeared. This confirms loading in a fresh process; it does
+not resolve the earlier exit during same-session reload. Playback after restart
+has not yet been reverified by the agent.
+
 No synth runtime changes or new installed build were required for this initial
 automation check. The installed binary remains the verified 0.4 build.
+
+## WinDbg / C# extension follow-up
+
+The original Windows report retained Report.wer but its temporary crash dump was
+gone. At the user's request, cdb captured a separate full-memory snapshot of the
+current FL process at 22:43:30 using a non-invasive attach, then detached. FL
+remained running. This is NOT the 22:30 crash dump.
+
+A fresh offline cdb session loaded the user's WinDbgAotExt csfile-preview bundle
+with bridge/. Version reported 1.3; the hosted CoreCLR test returned 4242.
+The extension's report enumerated 199 modules and 118 threads, and identified a
+native target without a managed heap. A C# LINQ query over debugger.Modules
+returned ilwasapi2asio_x64 and Memory_Lab_Study. No module name containing "focus"
+matched. Module presence or absence does not establish the earlier crash's cause
+or identify a hardware fault.
+
+The snapshot event is debugger wake 0x80000007, not the FL crash 0xc0000409.
+The extension's generic "crash dump" label and unclassified-break verdict must
+be read in that context. No culprit was established. The user reports unusual
+Focusrite behavior; that remains a hypothesis, not a diagnosis.
+
+Local artifacts are in ignored outputs/debug/: capture/analyze/query command
+files, logs, fl-current-triage.md and the approximately 1.5 GB current-state dump.
+The dump was not uploaded or attached to GitHub. A dump captured at an actual
+future failure is needed for crash-stack analysis.
 
 ## Source-side checks
 
