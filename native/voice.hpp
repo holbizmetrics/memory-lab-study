@@ -35,7 +35,7 @@ public:
   return y;
  }
 };
-enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff};
+enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
 enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
@@ -140,6 +140,8 @@ class Synth {
   if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
   if(e.kind==EventKind::AllSoundOff){voices={};sustain.fill(false);memory.clearSignal();return;}
   if(e.channel<0||e.channel>15||!std::isfinite(e.value))return;
+  if(e.kind==EventKind::ChannelAllOff){sustain[e.channel]=false;for(auto&v:voices)if(v.active&&v.channel==e.channel){v.keyDown=false;release(v);}return;}
+  if(e.kind==EventKind::ChannelAllSoundOff){sustain[e.channel]=false;bool any=false;for(auto&v:voices){if(v.channel==e.channel)v=Voice{};any|=v.active;}if(!any)memory.clearSignal();return;}
   if(e.kind==EventKind::Sustain){const bool down=e.value>=.5;sustain[e.channel]=down;
    if(!down)for(auto&v:voices)if(v.active&&v.channel==e.channel&&!v.keyDown&&v.gate)release(v);return;}
   if(e.kind==EventKind::PitchBend){bendTarget[e.channel]=std::clamp(e.value,-1.,1.);return;}
@@ -183,6 +185,8 @@ public:
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
  std::size_t heldVoices(int channel=-1)const{std::size_t n=0;for(const auto&v:voices)if(v.active&&v.keyDown&&(channel<0||v.channel==channel))++n;return n;}
  bool sounding(int note,int channel)const{for(const auto&v:voices)if(v.active&&v.note==note&&v.channel==channel)return true;return false;}
+ // Audio-thread-only event dispatch for a wrapper that renders between events.
+ void dispatch(const Event& event){apply(event);}
  // Events must be sorted, with offsets in [0,frames). Invalid blocks are silent,
  // return false and leave state unchanged. Caller retains ownership of buffers.
  bool render(float* output,std::size_t frames,const Event* events=nullptr,std::size_t count=0){

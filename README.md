@@ -4,7 +4,20 @@ This project lives outside FPSDK and PCLA. It applies PCLA-Experimental's existi
 ideation contracts, Codex provider adapter and inspected InverseGateRunner to a
 practical DSP question. It does not modify the PCLA engine or the companion's files.
 
-## Existing companion and scope
+## Current native and plug-in milestone
+
+Memory Lab Study now has a compiled native engine, JUCE standalone app and Windows
+x64 VST3. The first VST3 is installed at
+`C:/Program Files/Common Files/VST3/Memory Lab Study.vst3` after wrapper checks and
+an actual-module scan/load/audio/state/release/reload check. FL Studio operation
+still needs target-host confirmation. See [the build result](plugin/BUILD-RESULT.md)
+and [wrapper instructions](plugin/README.md).
+
+Reusable lessons for future hardware-inspired instruments are collected in
+[Developing software instruments from hardware synth documentation](HARDWARE-SYNTH-WORKFLOW.md).
+The project remains an original partial instrument, not a complete Relic emulation.
+
+## Existing companion and initial scope
 
 Relic companion thread: `01a18029-93c3-7d71-9909-ca8382ce41c1`.
 Existing project: `C:/Users/Holger/Documents/Codex/2026-10-28/expressive-synth-lab`.
@@ -22,9 +35,9 @@ original code; models propose only bounded parameter data, never executable code
 This is Relic-inspired original research, not a hardware emulation. Manufacturer
 specifications and the user/video description motivate the question; they do not
 establish a distortion circuit, envelope follower, bias or power-supply sag.
-No branding, artwork, firmware or factory presets are copied. No VST3 is claimed
-at this milestone. DSP behavior and listening preferences should precede a
-real-time-safe C++/VST3 implementation and hardware-match claims.
+No branding, artwork, firmware or factory presets are copied. The initial listening
+milestone preceded the native and VST3 work described above. Musical usefulness
+and host integration do not establish a hardware match.
 
 ## PCLA process and evidence
 
