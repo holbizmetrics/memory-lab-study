@@ -96,6 +96,13 @@ Twelve level-matched examples compare the existing LP2, cascaded LP4, normalized
 BP4 and a BP4/LP2 blend, including a shared-drive context. Equation/impulse,
 render and independent WAV checks pass. Installed 0.7 is unchanged.
 
+Following the request to continue, 0.8 development integrates optional filter
+families with a FILTER page, preserved Classic default, continuously running
+filter paths and 20 ms output-weight smoothing. Old patch schemas restore Classic.
+Musical approval remains open. The production engine matches all twelve study
+contexts within 3.72529e-09 absolute sample error after settling. See
+plugin/FILTER-FAMILIES.md for behavior and validation status.
+
 The next sound experiment is an isolated [per-voice post-filter drive study](native/VOICE-DRIVE-STUDY.md).
 Six matched listening clips compare bypass/+8/+24 dB on a note and chord. The
 original experimental stage was not compiled into the plugin. Holger found all three

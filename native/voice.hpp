@@ -4,9 +4,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
 #include "filter-family.hpp"
-#endif
 
 namespace memorylab {
 constexpr double pi=3.14159265358979323846;
@@ -23,6 +21,7 @@ struct Parameters {
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
  double pressureDepth=0,voiceDrive=0,sawLevel=.42,pulseLevel=.28,osc2Interval=0,noiseLevel=0;
+ int filterFamily=0;
  EnvelopeSettings ampEnvelope{0,.012,0,.18,.65,.5},filterEnvelopeShape{};
 };
 class MemoryDrive {
@@ -48,7 +47,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -82,6 +81,7 @@ struct Voice {
  bool active=false,gate=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
  ClassicFilter filter;
+ FilterFamily extendedFilter;
 #if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
  StudyFilterFamily studyFilter;
 #endif
@@ -142,6 +142,7 @@ class Synth {
  double sr=48000;std::uint64_t clock=0;std::array<Voice,8> voices{};MemoryDrive memory;
  Parameters target{},current{};OscillatorBank bank;
  double voiceDriveGain=1,voiceDriveMix=0;
+ std::array<double,3> filterWeights{};
  std::array<bool,16> sustain{};
  std::array<double,16> bend{},bendTarget{},pressure{},pressureTarget{};
  void release(Voice& v){v.gate=false;v.ampEnv.noteOff(sr);v.filterEnv.noteOff(sr);}
@@ -182,6 +183,7 @@ class Synth {
     case Param::PulseLevel:target.pulseLevel=std::clamp(e.value,0.,1.);break;
     case Param::Osc2Interval:target.osc2Interval=std::clamp(std::round(e.value),-24.,24.);break;
     case Param::NoiseLevel:target.noiseLevel=std::clamp(e.value,0.,1.);break;
+    case Param::FilterFamily:target.filterFamily=int(std::clamp(std::round(e.value),0.,3.));break;
    }return;
   }
   if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
@@ -242,6 +244,9 @@ class Synth {
   }
   const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
+  const auto extended=v.extendedFilter.tickAll(x,sr,cutoff,current.q);
+  const double modern=filterWeights[0]+filterWeights[1]+filterWeights[2];
+  if(modern>0)output=output*std::max(0.,1-modern)+extended[0]*filterWeights[0]+extended[1]*filterWeights[1]+extended[2]*filterWeights[2];
 #if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
   if(studyFilterMode)output=v.studyFilter.tick(x,sr,cutoff,current.q,studyFilterMode);
 #endif
@@ -278,7 +283,7 @@ public:
  std::uint64_t studyClippedVoiceSamples()const{return studyClipped;}
 #endif
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
- void reset(){voices={};clock=0;target=current=Parameters{};voiceDriveGain=1;voiceDriveMix=0;memory.prepare(sr);sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
+ void reset(){voices={};clock=0;target=current=Parameters{};voiceDriveGain=1;voiceDriveMix=0;filterWeights={};memory.prepare(sr);sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
  std::size_t heldVoices(int channel=-1)const{std::size_t n=0;for(const auto&v:voices)if(v.active&&v.keyDown&&(channel<0||v.channel==channel))++n;return n;}
  bool sounding(int note,int channel)const{for(const auto&v:voices)if(v.active&&v.note==note&&v.channel==channel)return true;return false;}
@@ -306,6 +311,7 @@ public:
    if(target.sawLevel==0&&current.sawLevel<1e-8)current.sawLevel=0;
    if(target.pulseLevel==0&&current.pulseLevel<1e-8)current.pulseLevel=0;
    current.noiseLevel+=(target.noiseLevel-current.noiseLevel)*smooth;
+   for(int mode=0;mode<3;++mode){const double destination=target.filterFamily==mode+1?1.:0.;filterWeights[mode]+=(destination-filterWeights[mode])*smooth;if(destination==0&&filterWeights[mode]<1e-8)filterWeights[mode]=0;}
    if(target.noiseLevel==0&&current.noiseLevel<1e-8)current.noiseLevel=0;
    if(target.voiceDrive==0&&current.voiceDrive<1e-6)current.voiceDrive=0;
    voiceDriveMix=std::min(1.,current.voiceDrive);

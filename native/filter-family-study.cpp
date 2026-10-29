@@ -13,7 +13,12 @@ struct Setting{const char*name;int family;};
 const Setting settings[]={{"classic-lp2",0},{"steeper-lp4",1},{"bandpass-bp4",2},{"blend-xf4",3}};
 std::vector<float> render(double sr,bool chord,const Setting&s,int block,bool driven=false){
  auto synth=std::make_unique<Synth>();require(synth->prepare(sr),"prepare");
+#if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
  require(synth->setStudyFilter(s.family),"filter configuration");require(!synth->setStudyFilter(-1)&&!synth->setStudyFilter(4),"invalid filter family accepted");
+#else
+ synth->dispatch({0,EventKind::Parameter,0,double(s.family),0,Param::FilterFamily});
+ std::vector<float>preroll(std::size_t(sr*2));require(synth->render(preroll.data(),preroll.size()),"filter preroll");
+#endif
  std::vector<Event>events{{0,EventKind::Parameter,0,driven?5.:0.,0,Param::Drive},{0,EventKind::Parameter,0,driven?.8:0.,0,Param::Depth},{0,EventKind::Parameter,0,1.2,0,Param::Q}};
  for(int note:chord?std::vector<int>{52,55,59}:std::vector<int>{52}){
   events.push_back({std::size_t(sr*.1),EventKind::NoteOn,note,.8});events.push_back({std::size_t(sr*1.9),EventKind::NoteOff,note});

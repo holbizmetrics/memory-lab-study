@@ -26,6 +26,10 @@ into system directories automatically. Framework version9.0.4 commit:
 
 ## UI and state
 
+Version 0.8 development adds a [FILTER page and optional families](FILTER-FAMILIES.md).
+Classic remains the default, mode outputs crossfade, and old states/patches keep
+Classic. There are 41 host controls; new patches use schema 5.
+
 Version 0.7 development adds [white noise](NOISE.md) to OSC, with a default-zero
 level and migration for all older patch schemas. There are 40 host controls;
 new patch files use schema 4.

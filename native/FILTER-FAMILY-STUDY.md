@@ -2,8 +2,10 @@
 
 This isolated experiment follows installed 0.7. It keeps the original classic
 HP/notch/LP filter unchanged and explores additional colours before any plugin
-integration. Only memorylab_filter_family compiles the experimental hook and
-filter-family.hpp. No new host parameters, patches or installed files are changed.
+integration. Only memorylab_filter_family compiles the original fixed-mode hook.
+The subsequent 0.8 development build integrates the same model with a live family
+control; see plugin/FILTER-FAMILIES.md. The listening artifacts here preserve
+the earlier experiment.
 
 ## Declared original model
 

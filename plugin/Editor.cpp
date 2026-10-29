@@ -1,6 +1,7 @@
 #include "Editor.hpp"
 #include "Patch.hpp"
 #include <string>
+#include <complex>
 
 namespace {
 const auto ink=juce::Colour(0xff101819),panel=juce::Colour(0xff1a2729),mint=juce::Colour(0xffb9e7cb),amber=juce::Colour(0xffe8b879),white=juce::Colour(0xffe5eee8),muted=juce::Colour(0xff91a9a1);
@@ -10,7 +11,7 @@ const std::array<Control,8>voice{{
  {"width","PULSE WIDTH","","Shape of oscillator 2. Range 0.10 to 0.90."},
  {"cutoff","CUTOFF","Hz","Sets the center frequency of the classic filter."},
  {"resonance","RESONANCE","Q","Emphasis and decay around the filter frequency."},
- {"profile","PROFILE","","Turn from high-pass through notch to low-pass."},
+ {"profile","CLASSIC PROFILE","","Classic family only: high-pass through notch to low-pass."},
  {"drive","DRIVE","","Output saturation after the voice filter."},
  {"depth","MEMORY","","How strongly recent signal energy affects the drive."},
  {"recovery","RECOVERY","ms","How long the output drive takes to recover."}
@@ -62,7 +63,7 @@ const std::array<Control,8>driveControls{{
  {"recovery","RECOVERY","ms","Recovery of the shared drive memory."},
  {"cutoff","CUTOFF","Hz","Filter frequency before voice drive."},
  {"resonance","RESONANCE","Q","Filter emphasis before clipping."},
- {"profile","PROFILE","","High-pass through notch to low-pass."},
+ {"profile","CLASSIC PROFILE","","Classic family only: high-pass through notch to low-pass."},
  {"volume","OUTPUT","","Final level after both drive stages."}
 }};
 const std::array<Control,8>oscControls{{
@@ -74,6 +75,16 @@ const std::array<Control,8>oscControls{{
  {"pwm","PULSE MOTION","","Depth of the per-voice sine LFO on pulse width."},
  {"cutoff","CUTOFF","Hz","Filter after the oscillator mix."},
  {"noiseLevel","WHITE NOISE","","Noise before the envelope and filter. Zero is off. Mute saw/pulse for noise alone."}
+}};
+const std::array<Control,8>familyControls{{
+ {"filterFamily","FILTER FAMILY","","Classic keeps HP/notch/LP PROFILE. LP4 is steeper; BP4 is band-pass; BLEND mixes BP4 and LP2."},
+ {"cutoff","CUTOFF","Hz","Frequency of the selected filter family."},
+ {"resonance","RESONANCE","Q","Q for each section. Resonance and bandwidth interact."},
+ {"profile","CLASSIC PROFILE","","HP/notch/LP only in CLASSIC. This control is inactive in the other families."},
+ {"filterEnv","ENV AMOUNT","oct","Velocity-scaled filter envelope amount. Edit its stages under ENVELOPES / FILTER."},
+ {"filterLfo","FILTER MOTION","oct","Per-voice sine LFO amount on filter cutoff."},
+ {"voiceDrive","VOICE DRIVE","dB","Per-voice clipping after the selected filter. Zero bypasses."},
+ {"noiseLevel","WHITE NOISE","","Noise joins the oscillators before the shared voice filter."}
 }};
 class PanelLook final:public juce::LookAndFeel_V4 {
 public:
@@ -115,15 +126,15 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
    safe->patchChooser.reset();
   });
  }
- juce::TextButton voicePage{"VOICE"},oscPage{"OSC"},motionPage{"MOTION"},envelopePage{"ENVELOPES"},arpPage{"ARP"},drivePage{"DRIVE"},ampPage{"AMPLITUDE"},filterPage{"FILTER"};
+ juce::TextButton voicePage{"VOICE"},oscPage{"OSC"},familyPage{"FILTER"},motionPage{"MOTION"},envelopePage{"ENVELOPES"},arpPage{"ARP"},drivePage{"DRIVE"},ampPage{"AMPLITUDE"},filterPage{"FILTER"};
  juce::MidiKeyboardComponent keys;
  std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>outputAttachment;
  std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>phaseAttachment;
  bool isMotion=false,isEnvelope=false,binding=false;int pageIndex=0,selected=2;float meter=0;
- const auto&controls()const{return pageIndex==0?voice:pageIndex==1?motion:pageIndex==2?ampControls:pageIndex==3?filterControls:pageIndex==4?arpControls:pageIndex==5?driveControls:oscControls;}
+ const auto&controls()const{return pageIndex==0?voice:pageIndex==1?motion:pageIndex==2?ampControls:pageIndex==3?filterControls:pageIndex==4?arpControls:pageIndex==5?driveControls:pageIndex==6?oscControls:familyControls;}
  float value(const char*id)const{return processor.state.getRawParameterValue(id)->load();}
  void select(int index){selected=index;for(int i=0;i<8;++i){knobs[std::size_t(i)].slider.getProperties().set("selected",i==selected);knobs[std::size_t(i)].slider.repaint();}repaint();}
- void page(int next){pageIndex=next;isMotion=next==1;isEnvelope=next==2||next==3;binding=true;voicePage.setToggleState(next==0,juce::dontSendNotification);motionPage.setToggleState(next==1,juce::dontSendNotification);envelopePage.setToggleState(isEnvelope,juce::dontSendNotification);arpPage.setToggleState(next==4,juce::dontSendNotification);drivePage.setToggleState(next==5,juce::dontSendNotification);oscPage.setToggleState(next==6,juce::dontSendNotification);ampPage.setToggleState(next==2,juce::dontSendNotification);filterPage.setToggleState(next==3,juce::dontSendNotification);ampPage.setVisible(isEnvelope);filterPage.setVisible(isEnvelope);
+ void page(int next){pageIndex=next;isMotion=next==1;isEnvelope=next==2||next==3;binding=true;voicePage.setToggleState(next==0,juce::dontSendNotification);motionPage.setToggleState(next==1,juce::dontSendNotification);envelopePage.setToggleState(isEnvelope,juce::dontSendNotification);arpPage.setToggleState(next==4,juce::dontSendNotification);drivePage.setToggleState(next==5,juce::dontSendNotification);oscPage.setToggleState(next==6,juce::dontSendNotification);familyPage.setToggleState(next==7,juce::dontSendNotification);ampPage.setToggleState(next==2,juce::dontSendNotification);filterPage.setToggleState(next==3,juce::dontSendNotification);ampPage.setVisible(isEnvelope);filterPage.setVisible(isEnvelope);
   for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];const auto&c=controls()[std::size_t(i)];k.attachment.reset();k.label.setText(c.name,juce::dontSendNotification);k.slider.setName(c.name);k.slider.setTooltip(c.help);
    k.slider.setComponentID(c.id);k.attachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.state,c.id,k.slider);
    k.slider.setDoubleClickReturnValue(true,processor.state.getParameter(c.id)->convertFrom0to1(processor.state.getParameter(c.id)->getDefaultValue()));
@@ -138,7 +149,8 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
   const double tangent=std::tan(memorylab::pi*cutoff/sr);
   for(int i=0;i<=400;++i){const double frequency=30*std::pow(18000./30,i/400.);const double w=std::tan(memorylab::pi*std::min(frequency,sr*.49)/sr)/tangent;
    const double hi=p<=.5?1:2-2*p,lo=p<=.5?2*p:1;
-   const double magnitude=std::abs(lo-hi*w*w)/std::sqrt((1-w*w)*(1-w*w)+w*w/(q*q));
+   double magnitude=std::abs(lo-hi*w*w)/std::sqrt((1-w*w)*(1-w*w)+w*w/(q*q));
+   const int family=int(std::round(value("filterFamily")));if(family){const std::complex<double>den(1-w*w,w/q),lp=1./den,bp=std::complex<double>(0,w/q)/den;magnitude=std::abs(family==1?lp*lp:family==2?bp*bp:.5*(bp*bp+lp));}
    const double db=juce::jlimit(-42.,18.,20*std::log10(std::max(1e-8,magnitude)));
    const float x=area.getX()+area.getWidth()*i/400.f,y=area.getBottom()-float((db+42)/60)*area.getHeight();
    if(i==0)curve.startNewSubPath(x,y);else curve.lineTo(x,y);
@@ -196,26 +208,27 @@ public:
   addAndMakeVisible(phase);phaseAttachment=std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(p.state,"phaseReset",phase);
   addAndMakeVisible(voicePage);addAndMakeVisible(motionPage);voicePage.setComponentID("voicePage");motionPage.setComponentID("motionPage");voicePage.onClick=[this]{page(false);};motionPage.onClick=[this]{page(true);};
   addAndMakeVisible(envelopePage);addAndMakeVisible(ampPage);addAndMakeVisible(filterPage);envelopePage.setComponentID("envelopePage");ampPage.setComponentID("ampEnvelopePage");filterPage.setComponentID("filterEnvelopePage");envelopePage.onClick=[this]{page(2);};ampPage.onClick=[this]{page(2);};filterPage.onClick=[this]{page(3);};
-  addAndMakeVisible(oscPage);oscPage.setComponentID("oscPage");oscPage.onClick=[this]{page(6);};addAndMakeVisible(drivePage);drivePage.setComponentID("drivePage");drivePage.onClick=[this]{page(5);};addAndMakeVisible(arpPage);arpPage.setComponentID("arpPage");arpPage.onClick=[this]{page(4);};
+  addAndMakeVisible(familyPage);familyPage.setComponentID("familyPage");familyPage.onClick=[this]{page(7);};addAndMakeVisible(oscPage);oscPage.setComponentID("oscPage");oscPage.onClick=[this]{page(6);};addAndMakeVisible(drivePage);drivePage.setComponentID("drivePage");drivePage.onClick=[this]{page(5);};addAndMakeVisible(arpPage);arpPage.setComponentID("arpPage");arpPage.onClick=[this]{page(4);};
   addAndMakeVisible(keys);keys.setAvailableRange(36,96);keys.setKeyWidth(980.f/36.f);keys.setLowestVisibleKey(36);keys.setOctaveForMiddleC(4);keys.setColour(juce::MidiKeyboardComponent::whiteNoteColourId,juce::Colour(0xffd8e0d7));keys.setColour(juce::MidiKeyboardComponent::blackNoteColourId,juce::Colour(0xff14201c));keys.setColour(juce::MidiKeyboardComponent::keyDownOverlayColourId,mint.withAlpha(.7f));
   page(false);startTimerHz(20);
  }
  ~Surface()override{stopTimer();for(auto&k:knobs)k.attachment.reset();outputAttachment.reset();phaseAttachment.reset();setLookAndFeel(nullptr);}
  void resized()override{
   savePatch.setBounds(912,25,47,32);loadPatch.setBounds(965,25,47,32);
-  voicePage.setBounds(370,25,72,32);oscPage.setBounds(448,25,58,32);motionPage.setBounds(512,25,78,32);envelopePage.setBounds(596,25,104,32);arpPage.setBounds(706,25,58,32);drivePage.setBounds(770,25,88,32);ampPage.setBounds(300,526,130,30);filterPage.setBounds(440,526,130,30);
+  voicePage.setBounds(340,25,68,32);oscPage.setBounds(414,25,52,32);motionPage.setBounds(472,25,70,32);envelopePage.setBounds(548,25,94,32);familyPage.setBounds(648,25,70,32);arpPage.setBounds(724,25,52,32);drivePage.setBounds(782,25,76,32);ampPage.setBounds(300,526,130,30);filterPage.setBounds(440,526,130,30);
   for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];k.label.setBounds(28+i*108,344,106,22);k.slider.setBounds(32+i*108,372,98,126);}
   output.setBounds(926,144,78,325);phase.setBounds(40,526,210,30);keys.setBounds(30,594,980,94);
  }
  void paint(juce::Graphics&g)override{
   g.fillAll(ink);g.setColour(white);g.setFont(juce::Font(juce::FontOptions(27.f,juce::Font::bold)));g.drawText("MEMORY LAB",30,20,320,36,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.7",270,29,90,20,juce::Justification::centredLeft);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.8",240,29,90,20,juce::Justification::centredLeft);
   g.setColour(panel);g.fillRoundedRectangle(28,82,866,236,12);g.fillRoundedRectangle(912,82,100,426,12);
   g.setColour(juce::Colour(0xff090f10));g.fillRoundedRectangle(40,94,842,212,7);
   const auto&c=controls()[std::size_t(selected)];g.setColour(isMotion?amber:mint);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawText(c.name,60,110,285,26,juce::Justification::centredLeft);
   auto*parameter=processor.state.getParameter(c.id);juce::String text=parameter->getText(parameter->getValue(),24);
   if(std::string(c.id)=="voiceDrive"&&value(c.id)==0)text="OFF";
   if(std::string(c.id)=="profile"){const float f=value(c.id);text=f<.01f?"HIGH-PASS":f>.99f?"LOW-PASS":std::abs(f-.5f)<.01f?"NOTCH":juce::String(f,2);}
+  if(std::string(c.id)=="profile"&&std::round(value("filterFamily"))!=0)text="INACTIVE";
   if(std::string(c.id)=="arpOn"||std::string(c.id)=="arpSync")text=value(c.id)>=.5f?"ON":"OFF";
   if(std::string(c.id)=="arpRate"){const char*names[]{"1/4","1/8","1/16","1/32","1/8 TRIPLET","1/16 TRIPLET"};text=names[juce::jlimit(0,5,int(value(c.id)))];}
   if(std::string(c.id)=="arpOrder"){const char*names[]{"UP","DOWN","UP / DOWN"};text=names[juce::jlimit(0,2,int(value(c.id)))];}
@@ -225,7 +238,7 @@ public:
   if(pageIndex==6)oscillatorGraph(g,{376,147,476,134});else if(pageIndex==5)driveGraph(g,{376,147,476,134});else if(pageIndex==4)arpGraph(g,{376,147,476,134});else if(env)envelopeGraph(g,{376,147,476,134});else if(isMotion)motionGraph(g,{376,147,476,134});else filterGraph(g,{376,147,476,134});
   g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("OUTPUT",916,108,94,24,juce::Justification::centred);g.drawText("LEVEL",916,471,94,20,juce::Justification::centred);
   g.setColour(juce::Colour(0xff30443b));g.fillRoundedRectangle(924,495,76,4,2);g.setColour(meter>.95f?amber:mint);g.fillRoundedRectangle(924,495,76*juce::jlimit(0.f,1.f,meter),4,2);
-  g.setColour(muted);g.drawText(pageIndex==6?"SAW + PULSE + NOISE / FILTER / DRIVE":pageIndex==5?"VOICE DRIVE / VOICE MIX / SHARED MEMORY DRIVE":pageIndex==4?"FIRST NOTE STARTS THE CLOCK / PEDAL HOLDS NOTES":isEnvelope?"Times apply to the next note.":"OSCILLATORS   /   CLASSIC FILTER   /   MEMORY DRIVE",isEnvelope?600:320,531,isEnvelope?290:570,22,juce::Justification::centredLeft);
+  g.setColour(muted);g.drawText(pageIndex==6?"SAW + PULSE + NOISE / FILTER / DRIVE":pageIndex==5?"VOICE DRIVE / VOICE MIX / SHARED MEMORY DRIVE":pageIndex==4?"FIRST NOTE STARTS THE CLOCK / PEDAL HOLDS NOTES":isEnvelope?"Times apply to the next note.":"SOURCES   /   FILTER   /   MEMORY DRIVE",isEnvelope?600:320,531,isEnvelope?290:570,22,juce::Justification::centredLeft);
   g.drawText("Drag to edit    |    Double-click to restore a control    |    Click a value to type",40,567,970,20,juce::Justification::centredLeft);
   g.drawText(juce::String(processor.voiceCount.load())+" / 8 VOICES",34,704,180,20,juce::Justification::centredLeft);g.drawText("ORIGINAL SUBTRACTIVE INSTRUMENT STUDY",420,704,590,20,juce::Justification::centredRight);
  }
