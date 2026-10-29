@@ -61,6 +61,12 @@ Version 0.5 is installed and verified. Holger approved the integrated per-voice
 drive sound in FL Studio on 2026-10-29. The SAVE/LOAD and drive milestone is
 preserved in v0.5.0-alpha.1; see releases/v0.5.0-alpha.1.md.
 
+Next listening candidate: [independent oscillator levels and oscillator 2
+intervals](native/OSCILLATOR-MIX-STUDY.md). Twelve level-matched clips and raw
+renders are ready locally. All four native checks and independent WAV checks
+pass. This experiment is not compiled into the plugin; listening review precedes
+any live-control integration.
+
 The next sound experiment is an isolated [per-voice post-filter drive study](native/VOICE-DRIVE-STUDY.md).
 Six matched listening clips compare bypass/+8/+24 dB on a note and chord. The
 original experimental stage was not compiled into the plugin. Holger found all three

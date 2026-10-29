@@ -120,6 +120,9 @@ public:
  double pulse(double phase,double dt,double width)const{return saw(phase-width,dt)-saw(phase,dt);}
 };
 class Synth {
+#if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
+ double studySawLevel=.42,studyPulseLevel=.28,studyInterval=0;
+#endif
 #if MEMORYLAB_EXPERIMENTAL_VOICE_DRIVE
  bool studyDriveEnabled=false;double studyDriveGain=1;std::uint64_t studyClipped=0;
 #endif
@@ -194,12 +197,21 @@ class Synth {
  double voiceTick(Voice& v){
   const double lfo=std::sin(2*pi*v.lfoPhase),filterEnv=v.filterEnv.tick(sr);
   v.lfoPhase+=current.lfoRate/sr;v.lfoPhase-=std::floor(v.lfoPhase);
-  const double f=440*std::exp2((v.note-69)/12.)*std::exp2((current.pitchLfo*lfo+200*bend[v.channel])/1200),dt=std::min(.45,f/sr),dt2=std::min(.45,f*std::exp2(current.detune/1200)/sr);
+  const double f=440*std::exp2((v.note-69)/12.)*std::exp2((current.pitchLfo*lfo+200*bend[v.channel])/1200),dt=std::min(.45,f/sr);
+#if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
+  const double dt2=std::min(.45,f*std::exp2(studyInterval/12.+current.detune/1200)/sr);
+#else
+  const double dt2=std::min(.45,f*std::exp2(current.detune/1200)/sr);
+#endif
   double saw=bank.saw(v.phase1,dt);
   double pulse=bank.pulse(v.phase2,dt2,std::clamp(current.pulseWidth+current.pwmLfo*lfo,.1,.9));
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
   v.env=v.ampEnv.tick(sr);if(!v.gate&&v.env<1e-8){v.active=false;return 0;}
+#if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
+  const double x=(studySawLevel*saw+studyPulseLevel*pulse)*v.env*v.velocity;
+#else
   const double x=(.42*saw+.28*pulse)*v.env*v.velocity;
+#endif
   const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
   // Bypass is exact. Fade in over the first dB so turning the stage on cannot
@@ -212,6 +224,13 @@ class Synth {
   v.lastOutput=output;return output;
  }
 public:
+#if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
+ // Offline configuration only. No live control or smoothing contract yet.
+ bool setStudyOscillators(double sawLevel,double pulseLevel,double interval){
+  if(!std::isfinite(sawLevel)||!std::isfinite(pulseLevel)||!std::isfinite(interval)||sawLevel<0||sawLevel>1||pulseLevel<0||pulseLevel>1||interval<-24||interval>24)return false;
+  studySawLevel=sawLevel;studyPulseLevel=pulseLevel;studyInterval=interval;return true;
+ }
+#endif
 #if MEMORYLAB_EXPERIMENTAL_VOICE_DRIVE
  // Offline experiment only: not compiled into the plugin or standard native core.
  // Configure between renders, never concurrently with the audio thread.
