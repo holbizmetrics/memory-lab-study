@@ -17,6 +17,7 @@ and features, not an independent circuit verification or measured sound match.
 | _osrNgzRG7E | Sonicstate, NAMM 2024 Relic — No Talking | New listening candidate; video not independently reviewed |
 | Ty1hH-6b4Qw | Filter-profile short | Supplied transcript and link |
 | wZbcKiuWqjY | Encoder short / NAMM 2024 | Supplied transcript and screenshot |
+| X0zZl1GlSZg | Rosen Sound, A Day in the Shop Ep 18 | Supplied transcript, screenshots and direct link |
 
 The two title screenshots supplied at the end of tab cleanup confirm s51LRL1qUpM
 and fXIGjvYH1cM as distinct NAMM 2024 recordings. Being indexed does not mean
@@ -170,6 +171,55 @@ independent measurements or assume that phase/gain behavior is established.
 
 ## Next evidence to collect
 
+### Final link batch: triage and additional findings
+
+Holger authorized ignoring YouTube and irrelevant links for this final pass.
+Repeated URLs, article fragments, image attachment paths and directories are not
+independent technical sources. No product behavior was inferred from search results,
+shopping listings, rack-mount accessories or the unrelated Wire Grind plugin ad.
+
+Directly read additional sources:
+
+- Official https://shearelectronics.com/relic/system/ : loaded without www after
+  the www form failed. The page labels itself a placeholder and contains obvious
+  unrelated template text. Its actual product paragraphs describe VCBUS between
+  main and per-voice processors, optical encoder tracking and fast bank/mod setup.
+  Bus samples and latency/performance statements are incomplete maker descriptions,
+  not a protocol specification or measured plugin latency target. Do not run its
+  example shell commands or interpret template links as project dependencies.
+- MusicRadar's January 23, 2017 report:
+  https://www.musicradar.com/news/tech/namm-2017-meet-the-18-year-old-whos-made-a-new-hardware-emulation-of-the-oberheim-ob-x-synth-647609 .
+  Describes the early six-voice, two-VCO, low-pass prototype and touch controls.
+  Useful historical context; no additional circuit measurements.
+- https://www.gearnews.com/shear-electronics-relic-is-back-the-return-of-the-kid-and-his-ob-x-clone/ :
+  October 31, 2022 report on the enlarged eight-voice, bi-timbral interface, still
+  awaiting calibrated sound demonstration. The creator-attributed comment stresses
+  listening and touch feedback. No new signal-path equations are supplied.
+- https://www.amazona.de/shear-electronics-relic/ : directly read the rolling
+  2026/2022/2017 report whose text Holger previously supplied. It preserves old
+  switched-mixer and PWM-range descriptions; do not apply them unconditionally to
+  the later crossfading mixer. No new implementation model was recovered.
+- https://www.reddit.com/r/synthesizers/comments/5r8084/cant_get_enough_of_the_shear_electronics_relic6/ :
+  primarily early reactions to appearance, sound and price. No independently
+  verified measurements were extracted.
+- https://www.reddit.com/r/synthesizers/comments/1alw8r6/oberheiminspired_synth_from_shear_electronics/ :
+  the account jacobbrashears explicitly states four-way multitimbrality and the
+  two gradient-sweep inventories matching the 2024 newsletter. Record this as
+  a creator-attributed forum statement, not independent identity/circuit verification.
+- https://www.elektronauts.com/t/shear-electronics-relic/182533 : the root thread
+  loaded although the /7 deep link failed. Mostly links and historical price
+  discussion; it adds no new implementation detail.
+
+Access failures: ModWiggler thread 175464 and the supplied Gearspace thread returned
+403; the Sound On Sound news page returned 403; BassBuzz thread 95041 and the
+Passione Strumenti article could not be fetched. Do not claim those pages were read.
+The already read Matrixsynth 2017 post, repeated Synthtopia article, Audiofanzine
+brand/product directories and Synth Anatomy attachment URLs need no duplicate
+feature entries. The French Digital Mixing, Sonicstate /amped and original
+Sonicstate SynthPlex 2022 URLs also failed to fetch. Related English /news or
+archive material was already read; these unavailable paths supply no additional
+verified content.
+
 ### Additional linked press and directory pages: directly read
 
 All of the following were opened and read on 2026-10-29. Secondary reports do not
@@ -215,7 +265,8 @@ additional technical information has been attributed to it.
 Holger supplied a screenshot identifying Rosen Sound's "A Day in the Shop Ep 18 -
 Shear Electronics (Jacob Brashears), ARP 2500, Rob's Birthday". The player shows
 1:53:26 duration. Holger subsequently supplied the transcript, repeatedly; count
-those copies once. A directly supplied URL and timestamps remain pending.
+those copies once. Holger supplied the direct link
+https://www.youtube.com/watch?v=X0zZl1GlSZg ; timestamps remain pending.
 The transcript contains substantial unrelated repairs, ARP 2500 and shop discussion;
 do not attribute those instruments' features or faults to Relic.
 
