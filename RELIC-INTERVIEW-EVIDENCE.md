@@ -4,6 +4,29 @@ Recorded 2026-10-29. Keep historical prototype descriptions separate from later
 specifications. A creator's interview is primary evidence of stated design intent
 and features, not an independent circuit verification or measured sound match.
 
+## Quick source index for duplicate checks
+
+| YouTube ID | Identified source | Material retained here |
+| --- | --- | --- |
+| RT608NU78CM | Sound On Sound, Relic-6 / NAMM 2017 | Supplied transcript and link |
+| CUqPG2ycv1A | Sonicstate, SynthPlex 2022 | Supplied transcript and panel screenshots |
+| s51LRL1qUpM | Marinelli, Oberheim Inspired Analog Synth / NAMM 2024 | Supplied transcript, link and title screenshot |
+| fXIGjvYH1cM | RockoN Report, NAMM 2024 Day 4 | Report page read; supplied walkthrough text; title screenshot |
+| Owvc3p4HrnA | Marinelli, Did Jacob Brashears Reinvent the Synthesizer? | Link supplied with long session transcript; association supplied by user |
+| 7cFAWbFDX9k | Marinelli, Some of the Most Expressive Analog Sounds | Indexed via Synthtopia/Matrixsynth; exact transcript association unverified |
+| _osrNgzRG7E | Sonicstate, NAMM 2024 Relic — No Talking | New listening candidate; video not independently reviewed |
+| Ty1hH-6b4Qw | Filter-profile short | Supplied transcript and link |
+| wZbcKiuWqjY | Encoder short / NAMM 2024 | Supplied transcript and screenshot |
+
+The two title screenshots supplied at the end of tab cleanup confirm s51LRL1qUpM
+and fXIGjvYH1cM as distinct NAMM 2024 recordings. Being indexed does not mean
+the video audio has been independently reviewed. A repeated URL adds no new source.
+
+Other pages read directly: official specs and voice-core pages; the official
+2024 newsletter (www hostname); RockoN's report; Synth Anatomy's rolling Relic
+article; Synthtopia's October 2026 article; Matrixsynth's Shear Electronics archive.
+Full references, access limits and version differences are documented below.
+
 ## NAMM 2017: Relic-6
 
 Source: [Sound On Sound interview with Jacob Brashears](https://www.youtube.com/watch?v=RT608NU78CM).
@@ -47,7 +70,9 @@ description or assume old voice counts and routing carried forward unchanged.
 
 Holger supplied a further interview transcript on 2026-10-29, with repeated copies
 of the same passage. Treat those as one source, not independent corroboration.
-Video URL, title, publication date and timestamps are still pending. These are
+Holger subsequently supplied the matching transcript with video URL
+https://www.youtube.com/watch?v=Owvc3p4HrnA . Title, publication date and timestamps
+are still pending. The repeated transcript is not a separate corroborating source. These are
 speaker claims extracted from text; the audio and demonstrations have not been
 independently reviewed here. Do not date the video from its reference to October.
 
@@ -145,10 +170,90 @@ independent measurements or assume that phase/gain behavior is established.
 
 ## Next evidence to collect
 
+### Matrixsynth archive: source index and historical envelope detail
+
+Read on 2026-10-29: https://www.matrixsynth.com/search/label/Shear%20Electronics .
+Its embedded-video URLs distinguish these recordings (dates below are archive
+post dates, not independently verified video upload dates):
+
+| Archive date | Video title / description | YouTube ID |
+| --- | --- | --- |
+| 2026-10-16 | The Relic: Some of the Most Expressive Analog Sounds I've Ever Played | 7cFAWbFDX9k |
+| 2026-09-25 | Did Jacob Brashears Reinvent the Synthesizer? — THE RELIC | Owvc3p4HrnA |
+| 2024-02-07 | Oberheim Inspired Analog Synth by Shear Electronics, NAMM 2024 | s51LRL1qUpM |
+| 2024-01-31 | Sonicstate: NAMM 2024 Relic — No Talking | _osrNgzRG7E |
+
+Direct video fetching failed. The long transcript supplied with Owvc3p4HrnA
+therefore retains its user-provided association; the archive does not establish
+that it duplicates 7cFAWbFDX9k. The no-talking demo is a new listening candidate.
+
+The January 22, 2017 post reproduces historical manufacturer copy:
+https://www.matrixsynth.com/2017/01/namm-2017-shear-electronics-relic-6-new.html .
+It claims envelope output at 40 kHz / 14 bits and describes attack toward 6.5 V
+terminated at 5 V, plus adjustable voice-to-voice envelope timing variation.
+These are early design claims preserved by a secondary archive, not an independently
+verified CEM3310 measurement or a specification for 2026 firmware. They motivate
+testing a truncated exponential attack rather than assuming every envelope stage
+is a simple exponential. Verify authentic chip documentation before claiming a
+chip-specific formula; do not introduce a 40 kHz control clock or quantization
+into the plugin merely because the old hardware description mentions them.
+
+### Synthtopia October 18, 2026 article
+
+Holger supplied this new URL and the article was read on 2026-10-29:
+https://www.synthtopia.com/content/2026/10/18/shear-electronics-relic-features-eight-independent-analog-voice-cores/ .
+It summarizes the later official per-voice and four-part feature inventory and
+links Marinelli's "The Relic: Some of the Most Expressive Analog Sounds I've Ever
+Played", video https://www.youtube.com/watch?v=7cFAWbFDX9k . An earlier tentative
+association with the long transcript remains unverified: Holger subsequently
+supplied that transcript alongside the different video ID Owvc3p4HrnA. Keep the
+two links distinct until their actual content is compared. The linked video could
+not be fetched to independently verify its content or audio.
+The article adds no circuit equations or measured calibration data. Its reported
+16-20-week availability wording must not re-date the July 2026 manufacturer status.
+
+Holger also pasted the Synth Anatomy text after direct reading had succeeded.
+The Relic section matches that page; the appended Polyend Drums "Page 2" is an
+unrelated article and supplies no Relic evidence. Comments are reader opinions,
+not independently verified specifications or measurements.
+
+### Secondary chronology: Synth Anatomy rolling article
+
+Holger supplied https://synthanatomy.com/2026/05/shear-electronics-relic-bi-timbral-ob-x-clone-made-a-comeback-at-syntplex-22.html .
+The page was successfully read on 2026-10-29. It combines a May 7, 2026 update,
+a January 31, 2024 section and the original October 31, 2022 article. Its older
+bi-timbral URL/summary must not override its explicit 2024 four-part update or the
+manufacturer specs. The 2024 section repeats the newsletter inventory, rather
+than independently measuring its features. The 2022 section's screenless claim
+conflicts with the supplied creator transcript describing an IPS display; do not
+promote that secondary statement into a UI requirement. Use this page mainly for
+chronology and source discovery, not circuit equations or sound-validation data.
+
+Holger also supplied the RockoN/MIROC interview page directly:
+https://www.miroc.co.jp/report2/namm-2024-day-4-shear-electronics . This is the same
+interview-page URL linked by the manufacturer newsletter, not a separate new
+newsletter. An initial web fetch failed, but retrying with a trailing slash
+succeeded. The page is dated January 29, 2024 and says RockoN obtained a direct
+line recording alongside the interview. That makes its linked video a promising
+audio reference, but the page text does not prove every segment is effects-free
+or supply recording settings, calibration or downloadable raw audio. Reading
+the page is not the same as having watched or analyzed the video.
+
+
 ### Manufacturer NAMM 2024 newsletter supplied by Holger
 
 The supplied newsletter is explicitly labeled NAMM 2024 and signed Jacob and
 Cheryl. It links to https://www.miroc.co.jp/report2/namm-2024-day-4-shear-electronics .
+Holger subsequently supplied the direct manufacturer archive URL:
+https://shearelectronics.com/relic/status/2024-0130-newsletter-namm-2024/ .
+Its URL identifies the archive entry as 2024-01-30. The repeated supplied text
+matches the newsletter already summarized here and is not a separate source.
+Direct page reading succeeded on 2026-10-29 using the www hostname:
+https://www.shearelectronics.com/relic/status/2024-0130-newsletter-namm-2024/ .
+The filter sequences, four-part architecture and LFO warp wording match the
+supplied text. The non-www URL failed in the web tool; this does not imply
+different content. The RockoN page also links to video fXIGjvYH1cM; direct video
+fetching failed, so page reading is not independent audio analysis.
 This dates its stated design stage without relying on a video's relative shipping
 claims. It explicitly lists eight independent cores, four-way multitimbrality,
 four-zone allocation and 512 programs containing four patches each.
@@ -339,7 +444,10 @@ original modeling choices, with hardware correspondence requiring comparisons.
 
 Holger subsequently provided the fuller interview that appears to contain the
 encoder and filter shorts above. Treat those clips and the fuller transcript as
-overlapping evidence. A direct full-video URL and timestamps remain pending.
+overlapping evidence. Holger subsequently matched this transcript to
+https://www.youtube.com/watch?v=s51LRL1qUpM . Timestamps remain pending.
+This differs from RockoN's linked fXIGjvYH1cM video; similar demonstration material
+does not establish that the two video IDs identify the same recording.
 The creator describes per-voice VCA gain reaching +24 dB at setting 11, a filter
 envelope example moving BP4 through LP2 toward LP4, and a sync patch. An external
 effect is apparently muted for a dry comparison; the transcript does not reliably
