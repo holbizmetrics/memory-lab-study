@@ -18,9 +18,12 @@ defaulting to bypass, with old patch/project migration and stable existing host
 parameter order. Native and plugin checks pass; 0.5 is installed and Holger
 approved the drive sound in FL Studio. See [alpha.1 release notes](releases/v0.5.0-alpha.1.md).
 
-The next 0.6 development build adds [oscillator mixing and interval controls](plugin/OSCILLATORS.md)
+Installed version 0.6 adds [oscillator mixing and interval controls](plugin/OSCILLATORS.md)
 after Holger approved the isolated listening examples. It retains the original
 default mix and supports older patch files and project states.
+
+The next isolated [noise-source listening study](native/NOISE-STUDY.md) is ready
+for review; it is not compiled into the plugin.
 
 Installed version 0.3 adds editable amplitude and filter dAHDSR envelopes.
 Holger confirmed playing and enjoying it in FL Studio, including a 130 BPM

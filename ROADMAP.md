@@ -73,6 +73,13 @@ interval, with 20 ms smoothing, stable appended parameter IDs and old patch/stat
 migration. See plugin/OSCILLATORS.md. The installed 0.5 milestone and its tag
 remain preserved while the new build is validated.
 
+Version 0.6 is now installed and its actual installed module passed validation.
+Holger approved the integrated instrument during musical playing. The 0.5 backup
+and v0.5.0-alpha.1 tag remain preserved. Next listening candidate:
+[noise before the filter](native/NOISE-STUDY.md), with six level-matched examples
+and independent WAV checks. All five native CTest checks pass. The installed
+plugin remains unchanged while this new source is auditioned.
+
 The next sound experiment is an isolated [per-voice post-filter drive study](native/VOICE-DRIVE-STUDY.md).
 Six matched listening clips compare bypass/+8/+24 dB on a note and chord. The
 original experimental stage was not compiled into the plugin. Holger found all three

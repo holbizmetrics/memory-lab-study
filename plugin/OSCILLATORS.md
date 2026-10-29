@@ -23,8 +23,8 @@ schema 3 and contain all 39 controls, requiring this version or later.
 Holger auditioned every note/chord example in oscillator-mix-study-2 and described
 each as correct, as labelled and very clean. This approves those examples, not a
 claim of measured hardware fidelity or every possible parameter combination.
-The installed 0.5 version is preserved until the new build is verified and FL is
-closed. The v0.5.0-alpha.1 tag remains unchanged.
+Version 0.6 is installed, with a verified backup of 0.5 retained locally.
+The v0.5.0-alpha.1 tag remains unchanged.
 
 Verification on 2026-10-29: native CTest 4/4, plugin CTest 4/4 and actual VST3
 validation passed. This includes held eight-note edits at four sample rates,
@@ -32,4 +32,5 @@ mute/unmute, all-sound-off, exact automated block partition parity, host state
 recall, stable parameter order and both old patch schemas. Normal and compact
 editor snapshots were inspected. The default native phrase remains byte-identical
 to the approved baseline. Full FL automation recording/undo/reload remains a
-separate, unverified host milestone. Installation is pending FL closing.
+separate, unverified host milestone. The installed VST3 also passed actual-module
+validation. Holger approved the integrated instrument during musical playing.

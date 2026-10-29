@@ -75,6 +75,9 @@ public:
  }
 };
 struct Voice {
+#if MEMORYLAB_EXPERIMENTAL_NOISE
+ std::uint32_t studyNoiseState=1;
+#endif
  bool active=false,gate=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
  ClassicFilter filter;
@@ -120,6 +123,9 @@ public:
  double pulse(double phase,double dt,double width)const{return saw(phase-width,dt)-saw(phase,dt);}
 };
 class Synth {
+#if MEMORYLAB_EXPERIMENTAL_NOISE
+ double studyNoiseLevel=0;bool studyNoiseSolo=false;
+#endif
 #if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
  double studySawLevel=.42,studyPulseLevel=.28,studyInterval=0;
 #endif
@@ -193,6 +199,10 @@ class Synth {
   const bool replacing=chosen->active;const double oldOutput=chosen->lastOutput;
   *chosen=Voice{};chosen->active=chosen->gate=true;chosen->note=e.note;chosen->channel=e.channel;
   chosen->velocity=std::clamp(e.value,0.,1.);chosen->age=++clock;
+#if MEMORYLAB_EXPERIMENTAL_NOISE
+  chosen->studyNoiseState=std::uint32_t(chosen->age)*747796405u+std::uint32_t(e.note+128*e.channel+1)*2891336453u;
+  if(!chosen->studyNoiseState)chosen->studyNoiseState=1;
+#endif
   chosen->filterEnv.noteOn(target.filterEnvelopeShape);chosen->ampEnv.noteOn(target.ampEnvelope);
   chosen->keyDown=true;if(replacing){chosen->transitionLeft=int(sr*.005);chosen->transitionValue=oldOutput;}
   if(!target.retrigger){chosen->phase1=phase1;chosen->phase2=phase2;}
@@ -213,7 +223,14 @@ class Synth {
 #if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
   const double x=(studySawLevel*saw+studyPulseLevel*pulse)*v.env*v.velocity;
 #else
-  const double x=(current.sawLevel*saw+current.pulseLevel*pulse)*v.env*v.velocity;
+  double x=(current.sawLevel*saw+current.pulseLevel*pulse)*v.env*v.velocity;
+#if MEMORYLAB_EXPERIMENTAL_NOISE
+  if(studyNoiseLevel>0){auto&state=v.studyNoiseState;state^=state<<13;state^=state>>17;state^=state<<5;
+   const double noise=double(state)/2147483648.-1.;
+   if(studyNoiseSolo)x=0;
+   x+=studyNoiseLevel*noise*v.env*v.velocity;
+  }
+#endif
 #endif
   const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
@@ -227,6 +244,9 @@ class Synth {
   v.lastOutput=output;return output;
  }
 public:
+#if MEMORYLAB_EXPERIMENTAL_NOISE
+ bool setStudyNoise(double level,bool solo){if(!std::isfinite(level)||level<0||level>1)return false;studyNoiseLevel=level;studyNoiseSolo=solo;return true;}
+#endif
 #if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
  // Offline configuration only. No live control or smoothing contract yet.
  bool setStudyOscillators(double sawLevel,double pulseLevel,double interval){
