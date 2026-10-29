@@ -46,3 +46,7 @@ The installed 0.5 VST3 hash is also unchanged:
 Listen before integrating. A plugin version will need smoothed live levels and
 an explicit interval-change policy, appended stable host parameters, patch/state
 migration, editor controls and separate wrapper/host checks.
+
+Listening review on 2026-10-29: Holger reported every chord and sound was correct,
+matched its label, and sounded very clean. Approved for optional plugin integration;
+see plugin/OSCILLATORS.md for the live-control contract.

@@ -65,6 +65,16 @@ const std::array<Control,8>driveControls{{
  {"profile","PROFILE","","High-pass through notch to low-pass."},
  {"volume","OUTPUT","","Final level after both drive stages."}
 }};
+const std::array<Control,8>oscControls{{
+ {"sawLevel","OSC 1 / SAW","","Level of oscillator 1 before the filter. Zero mutes this source."},
+ {"pulseLevel","OSC 2 / PULSE","","Level of oscillator 2 before the filter. Zero mutes this source."},
+ {"osc2Interval","OSC 2 INTERVAL","semitones","Oscillator 2 interval. Changes glide over about 20 ms on held notes."},
+ {"detune","OSC 2 DETUNE","cents","Fine detune added to oscillator 2 interval. Original: +7 cents."},
+ {"width","PULSE WIDTH","","Width of oscillator 2 pulse wave."},
+ {"pwm","PULSE MOTION","","Depth of the per-voice sine LFO on pulse width."},
+ {"cutoff","CUTOFF","Hz","Filter after the oscillator mix."},
+ {"voiceDrive","VOICE DRIVE","dB","Per-voice clipping after the filter. Zero bypasses."}
+}};
 class PanelLook final:public juce::LookAndFeel_V4 {
 public:
  PanelLook(){setColour(juce::Slider::textBoxTextColourId,white);setColour(juce::Slider::textBoxBackgroundColourId,ink);setColour(juce::Slider::textBoxOutlineColourId,juce::Colours::transparentBlack);setColour(juce::TextButton::buttonColourId,panel);setColour(juce::TextButton::buttonOnColourId,mint);setColour(juce::TextButton::textColourOffId,white);setColour(juce::TextButton::textColourOnId,ink);setColour(juce::ToggleButton::textColourId,white);setColour(juce::ToggleButton::tickColourId,mint);}
@@ -105,19 +115,19 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
    safe->patchChooser.reset();
   });
  }
- juce::TextButton voicePage{"VOICE"},motionPage{"MOTION"},envelopePage{"ENVELOPES"},arpPage{"ARP"},drivePage{"DRIVE"},ampPage{"AMPLITUDE"},filterPage{"FILTER"};
+ juce::TextButton voicePage{"VOICE"},oscPage{"OSC"},motionPage{"MOTION"},envelopePage{"ENVELOPES"},arpPage{"ARP"},drivePage{"DRIVE"},ampPage{"AMPLITUDE"},filterPage{"FILTER"};
  juce::MidiKeyboardComponent keys;
  std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>outputAttachment;
  std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>phaseAttachment;
  bool isMotion=false,isEnvelope=false,binding=false;int pageIndex=0,selected=2;float meter=0;
- const auto&controls()const{return pageIndex==0?voice:pageIndex==1?motion:pageIndex==2?ampControls:pageIndex==3?filterControls:pageIndex==4?arpControls:driveControls;}
+ const auto&controls()const{return pageIndex==0?voice:pageIndex==1?motion:pageIndex==2?ampControls:pageIndex==3?filterControls:pageIndex==4?arpControls:pageIndex==5?driveControls:oscControls;}
  float value(const char*id)const{return processor.state.getRawParameterValue(id)->load();}
  void select(int index){selected=index;for(int i=0;i<8;++i){knobs[std::size_t(i)].slider.getProperties().set("selected",i==selected);knobs[std::size_t(i)].slider.repaint();}repaint();}
- void page(int next){pageIndex=next;isMotion=next==1;isEnvelope=next==2||next==3;binding=true;voicePage.setToggleState(next==0,juce::dontSendNotification);motionPage.setToggleState(next==1,juce::dontSendNotification);envelopePage.setToggleState(isEnvelope,juce::dontSendNotification);arpPage.setToggleState(next==4,juce::dontSendNotification);drivePage.setToggleState(next==5,juce::dontSendNotification);ampPage.setToggleState(next==2,juce::dontSendNotification);filterPage.setToggleState(next==3,juce::dontSendNotification);ampPage.setVisible(isEnvelope);filterPage.setVisible(isEnvelope);
+ void page(int next){pageIndex=next;isMotion=next==1;isEnvelope=next==2||next==3;binding=true;voicePage.setToggleState(next==0,juce::dontSendNotification);motionPage.setToggleState(next==1,juce::dontSendNotification);envelopePage.setToggleState(isEnvelope,juce::dontSendNotification);arpPage.setToggleState(next==4,juce::dontSendNotification);drivePage.setToggleState(next==5,juce::dontSendNotification);oscPage.setToggleState(next==6,juce::dontSendNotification);ampPage.setToggleState(next==2,juce::dontSendNotification);filterPage.setToggleState(next==3,juce::dontSendNotification);ampPage.setVisible(isEnvelope);filterPage.setVisible(isEnvelope);
   for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];const auto&c=controls()[std::size_t(i)];k.attachment.reset();k.label.setText(c.name,juce::dontSendNotification);k.slider.setName(c.name);k.slider.setTooltip(c.help);
    k.slider.setComponentID(c.id);k.attachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.state,c.id,k.slider);
    k.slider.setDoubleClickReturnValue(true,processor.state.getParameter(c.id)->convertFrom0to1(processor.state.getParameter(c.id)->getDefaultValue()));
-  }binding=false;select(pageIndex==5?0:isEnvelope?1:isMotion?0:2);
+  }binding=false;select(pageIndex>=5?0:isEnvelope?1:isMotion?0:2);
  }
  void timerCallback()override{meter=juce::jmax(meter*.8f,processor.outputPeak.load());repaint();}
  void filterGraph(juce::Graphics&g,juce::Rectangle<float> area){
@@ -149,6 +159,14 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
    const float x=area.getX()+area.getWidth()*i/400.f,py=area.getBottom()-float(y)*area.getHeight();if(i==0)curve.startNewSubPath(x,py);else curve.lineTo(x,py);
   }g.setColour(amber);g.strokePath(curve,juce::PathStrokeType(2));
  }
+ void oscillatorGraph(juce::Graphics&g,juce::Rectangle<float>area){
+  int row=0;for(const char*id:{"sawLevel","pulseLevel"}){const float y=area.getY()+row*48;
+   g.setColour(muted);g.drawText(row?"OSC 2 / PULSE":"OSC 1 / SAW",int(area.getX()),int(y),120,24,juce::Justification::centredLeft);
+   g.setColour(panel);g.fillRoundedRectangle(area.getX()+130,y+3,area.getWidth()-130,18,3);
+   g.setColour(row?amber:mint);g.fillRoundedRectangle(area.getX()+130,y+3,(area.getWidth()-130)*value(id),18,3);++row;
+  }
+  g.setColour(muted);g.drawText("OSC 2: "+juce::String(value("osc2Interval"),0)+" semitones / "+juce::String(value("detune"),1)+" cents",int(area.getX()),int(area.getBottom()-24),int(area.getWidth()),24,juce::Justification::centredLeft);
+ }
  void driveGraph(juce::Graphics&g,juce::Rectangle<float>area){
   juce::Path curve;const double db=value("voiceDrive"),mix=std::min(1.,db),gain=std::pow(10.,db/20.);
   g.setColour(muted.withAlpha(.3f));g.drawLine(area.getX(),area.getCentreY(),area.getRight(),area.getCentreY());g.drawLine(area.getCentreX(),area.getY(),area.getCentreX(),area.getBottom());
@@ -178,20 +196,20 @@ public:
   addAndMakeVisible(phase);phaseAttachment=std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(p.state,"phaseReset",phase);
   addAndMakeVisible(voicePage);addAndMakeVisible(motionPage);voicePage.setComponentID("voicePage");motionPage.setComponentID("motionPage");voicePage.onClick=[this]{page(false);};motionPage.onClick=[this]{page(true);};
   addAndMakeVisible(envelopePage);addAndMakeVisible(ampPage);addAndMakeVisible(filterPage);envelopePage.setComponentID("envelopePage");ampPage.setComponentID("ampEnvelopePage");filterPage.setComponentID("filterEnvelopePage");envelopePage.onClick=[this]{page(2);};ampPage.onClick=[this]{page(2);};filterPage.onClick=[this]{page(3);};
-  addAndMakeVisible(drivePage);drivePage.setComponentID("drivePage");drivePage.onClick=[this]{page(5);};addAndMakeVisible(arpPage);arpPage.setComponentID("arpPage");arpPage.onClick=[this]{page(4);};
+  addAndMakeVisible(oscPage);oscPage.setComponentID("oscPage");oscPage.onClick=[this]{page(6);};addAndMakeVisible(drivePage);drivePage.setComponentID("drivePage");drivePage.onClick=[this]{page(5);};addAndMakeVisible(arpPage);arpPage.setComponentID("arpPage");arpPage.onClick=[this]{page(4);};
   addAndMakeVisible(keys);keys.setAvailableRange(36,96);keys.setKeyWidth(980.f/36.f);keys.setLowestVisibleKey(36);keys.setOctaveForMiddleC(4);keys.setColour(juce::MidiKeyboardComponent::whiteNoteColourId,juce::Colour(0xffd8e0d7));keys.setColour(juce::MidiKeyboardComponent::blackNoteColourId,juce::Colour(0xff14201c));keys.setColour(juce::MidiKeyboardComponent::keyDownOverlayColourId,mint.withAlpha(.7f));
   page(false);startTimerHz(20);
  }
  ~Surface()override{stopTimer();for(auto&k:knobs)k.attachment.reset();outputAttachment.reset();phaseAttachment.reset();setLookAndFeel(nullptr);}
  void resized()override{
   savePatch.setBounds(912,25,47,32);loadPatch.setBounds(965,25,47,32);
-  voicePage.setBounds(400,25,85,32);motionPage.setBounds(493,25,85,32);envelopePage.setBounds(586,25,104,32);arpPage.setBounds(698,25,65,32);drivePage.setBounds(771,25,88,32);ampPage.setBounds(300,526,130,30);filterPage.setBounds(440,526,130,30);
+  voicePage.setBounds(370,25,72,32);oscPage.setBounds(448,25,58,32);motionPage.setBounds(512,25,78,32);envelopePage.setBounds(596,25,104,32);arpPage.setBounds(706,25,58,32);drivePage.setBounds(770,25,88,32);ampPage.setBounds(300,526,130,30);filterPage.setBounds(440,526,130,30);
   for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];k.label.setBounds(28+i*108,344,106,22);k.slider.setBounds(32+i*108,372,98,126);}
   output.setBounds(926,144,78,325);phase.setBounds(40,526,210,30);keys.setBounds(30,594,980,94);
  }
  void paint(juce::Graphics&g)override{
   g.fillAll(ink);g.setColour(white);g.setFont(juce::Font(juce::FontOptions(27.f,juce::Font::bold)));g.drawText("MEMORY LAB",30,20,320,36,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.5",280,29,110,20,juce::Justification::centredLeft);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.6",270,29,90,20,juce::Justification::centredLeft);
   g.setColour(panel);g.fillRoundedRectangle(28,82,866,236,12);g.fillRoundedRectangle(912,82,100,426,12);
   g.setColour(juce::Colour(0xff090f10));g.fillRoundedRectangle(40,94,842,212,7);
   const auto&c=controls()[std::size_t(selected)];g.setColour(isMotion?amber:mint);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawText(c.name,60,110,285,26,juce::Justification::centredLeft);
@@ -203,11 +221,11 @@ public:
   if(std::string(c.id)=="arpOrder"){const char*names[]{"UP","DOWN","UP / DOWN"};text=names[juce::jlimit(0,2,int(value(c.id)))];}
   g.setColour(white);g.setFont(juce::Font(juce::FontOptions(38.f,juce::Font::bold)));g.drawText(text,58,145,290,54,juce::Justification::centredLeft);
   g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(13.f)));g.drawText(c.unit,61,197,260,20,juce::Justification::centredLeft);g.drawFittedText(c.help,60,229,285,61,juce::Justification::topLeft,3);
-  const bool env=isEnvelope||(isMotion&&std::string(c.id)=="filterEnv");g.setColour(muted);g.drawText(pageIndex==5?"PER-VOICE DRIVE / STATIC TRANSFER":pageIndex==4?"ARPEGGIATOR / 16-STEP RHYTHM PREVIEW":env?(pageIndex==2?"AMPLITUDE ENVELOPE / NEXT NOTE":"FILTER ENVELOPE / NEXT NOTE"):isMotion?"PER-VOICE SINE LFO / 1 SECOND":"STATIC FILTER RESPONSE / 30 Hz - 18 kHz",376,110,480,22,juce::Justification::centredLeft);
-  if(pageIndex==5)driveGraph(g,{376,147,476,134});else if(pageIndex==4)arpGraph(g,{376,147,476,134});else if(env)envelopeGraph(g,{376,147,476,134});else if(isMotion)motionGraph(g,{376,147,476,134});else filterGraph(g,{376,147,476,134});
+  const bool env=isEnvelope||(isMotion&&std::string(c.id)=="filterEnv");g.setColour(muted);g.drawText(pageIndex==6?"OSCILLATOR MIX / SOURCE LEVELS":pageIndex==5?"PER-VOICE DRIVE / STATIC TRANSFER":pageIndex==4?"ARPEGGIATOR / 16-STEP RHYTHM PREVIEW":env?(pageIndex==2?"AMPLITUDE ENVELOPE / NEXT NOTE":"FILTER ENVELOPE / NEXT NOTE"):isMotion?"PER-VOICE SINE LFO / 1 SECOND":"STATIC FILTER RESPONSE / 30 Hz - 18 kHz",376,110,480,22,juce::Justification::centredLeft);
+  if(pageIndex==6)oscillatorGraph(g,{376,147,476,134});else if(pageIndex==5)driveGraph(g,{376,147,476,134});else if(pageIndex==4)arpGraph(g,{376,147,476,134});else if(env)envelopeGraph(g,{376,147,476,134});else if(isMotion)motionGraph(g,{376,147,476,134});else filterGraph(g,{376,147,476,134});
   g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("OUTPUT",916,108,94,24,juce::Justification::centred);g.drawText("LEVEL",916,471,94,20,juce::Justification::centred);
   g.setColour(juce::Colour(0xff30443b));g.fillRoundedRectangle(924,495,76,4,2);g.setColour(meter>.95f?amber:mint);g.fillRoundedRectangle(924,495,76*juce::jlimit(0.f,1.f,meter),4,2);
-  g.setColour(muted);g.drawText(pageIndex==5?"VOICE DRIVE / VOICE MIX / SHARED MEMORY DRIVE":pageIndex==4?"FIRST NOTE STARTS THE CLOCK / PEDAL HOLDS NOTES":isEnvelope?"Times apply to the next note.":"OSCILLATORS   /   CLASSIC FILTER   /   MEMORY DRIVE",isEnvelope?600:320,531,isEnvelope?290:570,22,juce::Justification::centredLeft);
+  g.setColour(muted);g.drawText(pageIndex==6?"SAW + PULSE / FILTER / VOICE DRIVE / SHARED DRIVE":pageIndex==5?"VOICE DRIVE / VOICE MIX / SHARED MEMORY DRIVE":pageIndex==4?"FIRST NOTE STARTS THE CLOCK / PEDAL HOLDS NOTES":isEnvelope?"Times apply to the next note.":"OSCILLATORS   /   CLASSIC FILTER   /   MEMORY DRIVE",isEnvelope?600:320,531,isEnvelope?290:570,22,juce::Justification::centredLeft);
   g.drawText("Drag to edit    |    Double-click to restore a control    |    Click a value to type",40,567,970,20,juce::Justification::centredLeft);
   g.drawText(juce::String(processor.voiceCount.load())+" / 8 VOICES",34,704,180,20,juce::Justification::centredLeft);g.drawText("ORIGINAL SUBTRACTIVE INSTRUMENT STUDY",420,704,590,20,juce::Justification::centredRight);
  }

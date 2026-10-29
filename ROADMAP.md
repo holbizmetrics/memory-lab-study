@@ -67,6 +67,12 @@ renders are ready locally. All four native checks and independent WAV checks
 pass. This experiment is not compiled into the plugin; listening review precedes
 any live-control integration.
 
+Holger approved all oscillator study examples as correct and very clean.
+Version 0.6 development integrates separate saw/pulse levels and an oscillator 2
+interval, with 20 ms smoothing, stable appended parameter IDs and old patch/state
+migration. See plugin/OSCILLATORS.md. The installed 0.5 milestone and its tag
+remain preserved while the new build is validated.
+
 The next sound experiment is an isolated [per-voice post-filter drive study](native/VOICE-DRIVE-STUDY.md).
 Six matched listening clips compare bypass/+8/+24 dB on a note and chord. The
 original experimental stage was not compiled into the plugin. Holger found all three

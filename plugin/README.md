@@ -26,6 +26,10 @@ into system directories automatically. Framework version9.0.4 commit:
 
 ## UI and state
 
+Version 0.6 development adds [oscillator source levels and interval](OSCILLATORS.md),
+an OSC page and three appended host controls. Older states/patches retain the
+original oscillator balance. Its patch format is schema 3 with 39 controls.
+
 The 0.5 development build adds an optional [per-voice drive](VOICE-DRIVE.md)
 page and a 36th host control. It defaults to bypass and migrates older states and
 patches to bypass. The following 0.4 description records the preceding feature set.

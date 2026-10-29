@@ -16,9 +16,13 @@ int main(int argc,char**argv){try{
  juce::AudioProcessorParameter*voiceDrive=nullptr;
  for(auto*parameter:plugin->getParameters())if(parameter->getName(128)=="Voice drive (dB): zero bypasses")voiceDrive=parameter;
  check(voiceDrive&&voiceDrive->getValue()==0,"VST3 voice drive missing or enabled by default");
+ juce::AudioProcessorParameter*oscInterval=nullptr;
+ for(auto*parameter:plugin->getParameters())if(parameter->getName(128)=="Oscillator 2 interval (semitones)")oscInterval=parameter;
+ check(oscInterval!=nullptr,"VST3 oscillator interval missing");oscInterval->setValueNotifyingHost(.75f);
  voiceDrive->setValueNotifyingHost(1);midi.clear();for(int i=0;i<20;++i)plugin->processBlock(audio,midi);check(energy(audio)>1e-6,"VST3 enabled voice drive silent");
  auto state=juce::MemoryBlock{};plugin->getStateInformation(state);check(state.getSize()>0,"empty VST3 state");plugin->setStateInformation(state.getData(),int(state.getSize()));
  check(voiceDrive->getValue()==1,"VST3 voice drive state lost");voiceDrive->setValueNotifyingHost(0);
+ check(std::abs(oscInterval->getValue()-.75f)<1e-6,"VST3 oscillator interval state lost");
  midi.clear();midi.addEvent(juce::MidiMessage::noteOff(1,60),0);plugin->processBlock(audio,midi);
  for(int i=0;i<140;++i){midi.clear();plugin->processBlock(audio,midi);}check(energy(audio)<1e-12,"VST3 stuck release");
  juce::AudioProcessorParameter*arpOn=nullptr;

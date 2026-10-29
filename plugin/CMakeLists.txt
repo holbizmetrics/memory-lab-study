@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(MemoryLabPlugin VERSION 0.5.0 LANGUAGES C CXX)
+project(MemoryLabPlugin VERSION 0.6.0 LANGUAGES C CXX)
 set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../outputs/deps/JUCE" CACHE PATH "Pinned JUCE source checkout")
 add_subdirectory("${JUCE_PATH}" "${CMAKE_BINARY_DIR}/juce")
 juce_add_plugin(MemoryLab
