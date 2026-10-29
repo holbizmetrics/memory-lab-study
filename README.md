@@ -6,6 +6,10 @@ practical DSP question. It does not modify the PCLA engine or the companion's fi
 
 ## Current native and plug-in milestone
 
+A [project website](docs/index.html) is prepared in `docs/` for GitHub Pages,
+with editor screenshots and a listening comparison. Hosting status and setup
+are recorded in [the site notes](docs/README.md); it is not yet published.
+
 Upcoming work is tracked in [the roadmap](ROADMAP.md), including the requested
 DAW knob-automation recording, editing and project-recall milestone.
 
