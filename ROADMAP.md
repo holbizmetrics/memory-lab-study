@@ -86,6 +86,16 @@ adds WHITE NOISE to OSC, defaulting to zero, with old patch/state migration.
 See plugin/NOISE.md. The installed 0.6 baseline is retained until validation and
 the guarded update complete.
 
+Version 0.7 is installed and its installed module passed validation. Holger's
+integrated noise listening judgment remains open; the matched production noise
+diagnostic reproduces all six approved offline examples exactly (see
+native/NOISE-DIAGNOSTIC.md). Keep that concern distinct from technical checks.
+
+Next isolated candidate: [filter families](native/FILTER-FAMILY-STUDY.md).
+Twelve level-matched examples compare the existing LP2, cascaded LP4, normalized
+BP4 and a BP4/LP2 blend, including a shared-drive context. Equation/impulse,
+render and independent WAV checks pass. Installed 0.7 is unchanged.
+
 The next sound experiment is an isolated [per-voice post-filter drive study](native/VOICE-DRIVE-STUDY.md).
 Six matched listening clips compare bypass/+8/+24 dB on a note and chord. The
 original experimental stage was not compiled into the plugin. Holger found all three

@@ -26,6 +26,11 @@ The [noise-source listening study](native/NOISE-STUDY.md) was approved for music
 use. Version 0.7 development integrates [WHITE NOISE on OSC](plugin/NOISE.md),
 defaulting to zero and preserving old patch/project settings.
 
+Installed 0.7 is verified. Integrated noise musical approval remains open; its
+[matched-fixture diagnostic](native/NOISE-DIAGNOSTIC.md) found no engine mismatch
+under the approved study conditions. The next isolated
+[filter-family listening study](native/FILTER-FAMILY-STUDY.md) is ready for review.
+
 Installed version 0.3 adds editable amplitude and filter dAHDSR envelopes.
 Holger confirmed playing and enjoying it in FL Studio, including a 130 BPM
 piano-roll pattern. Version 0.4 adds an optional arpeggiator and is installed with

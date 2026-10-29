@@ -4,6 +4,9 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
+#include "filter-family.hpp"
+#endif
 
 namespace memorylab {
 constexpr double pi=3.14159265358979323846;
@@ -79,6 +82,9 @@ struct Voice {
  bool active=false,gate=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
  ClassicFilter filter;
+#if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
+ StudyFilterFamily studyFilter;
+#endif
  FilterEnvelope filterEnv,ampEnv;double lfoPhase=0;
  bool keyDown=false;double lastOutput=0,transitionValue=0;int transitionLeft=0;
 };
@@ -121,6 +127,9 @@ public:
  double pulse(double phase,double dt,double width)const{return saw(phase-width,dt)-saw(phase,dt);}
 };
 class Synth {
+#if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
+ int studyFilterMode=0;
+#endif
 #if MEMORYLAB_EXPERIMENTAL_NOISE
  double studyNoiseLevel=0;bool studyNoiseSolo=false;
 #endif
@@ -233,6 +242,9 @@ class Synth {
   }
   const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
+#if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
+  if(studyFilterMode)output=v.studyFilter.tick(x,sr,cutoff,current.q,studyFilterMode);
+#endif
   // Bypass is exact. Fade in over the first dB so turning the stage on cannot
   // suddenly truncate a high-resonance signal already above the clip threshold.
   if(voiceDriveMix>0)output+=(std::clamp(output*voiceDriveGain,-1.,1.)-output)*voiceDriveMix;
@@ -243,6 +255,9 @@ class Synth {
   v.lastOutput=output;return output;
  }
 public:
+#if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
+ bool setStudyFilter(int mode){if(mode<0||mode>3)return false;studyFilterMode=mode;return true;}
+#endif
 #if MEMORYLAB_EXPERIMENTAL_NOISE
  bool setStudyNoise(double level,bool solo){if(!std::isfinite(level)||level<0||level>1)return false;studyNoiseLevel=level;studyNoiseSolo=solo;return true;}
 #endif
