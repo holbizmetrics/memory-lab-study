@@ -80,6 +80,12 @@ and v0.5.0-alpha.1 tag remain preserved. Next listening candidate:
 and independent WAV checks. All five native CTest checks pass. The installed
 plugin remains unchanged while this new source is auditioned.
 
+Holger approved both noise-solo fixtures and the other noise examples as clean
+and musically useful, and requested live integration. Version 0.7 development
+adds WHITE NOISE to OSC, defaulting to zero, with old patch/state migration.
+See plugin/NOISE.md. The installed 0.6 baseline is retained until validation and
+the guarded update complete.
+
 The next sound experiment is an isolated [per-voice post-filter drive study](native/VOICE-DRIVE-STUDY.md).
 Six matched listening clips compare bypass/+8/+24 dB on a note and chord. The
 original experimental stage was not compiled into the plugin. Holger found all three

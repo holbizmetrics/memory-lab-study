@@ -3,8 +3,10 @@
 The next experiment after the approved 0.6 oscillator controls adds pseudorandom
 white noise to each voice before its existing amplitude envelope and classic
 filter. This is an original noise source, not a model of a hardware noise circuit.
-Only memorylab_noise compiles MEMORYLAB_EXPERIMENTAL_NOISE; the installed plugin
-does not contain the experiment and is unchanged.
+Only memorylab_noise compiles the original fixed-configuration
+MEMORYLAB_EXPERIMENTAL_NOISE hook. The subsequent 0.7 integration adds a smoothed
+live level separately; see plugin/NOISE.md. These listening artifacts preserve
+the earlier experiment.
 
 Each active voice uses a nonzero xorshift32 state, seeded deterministically from
 note-on order, note and MIDI channel. Voices have separate streams rather than
@@ -45,3 +47,7 @@ Installed 0.6 VST3 hash remains:
 771008429B9463B747529312BC98207753E4AA38A13DB75FE46246825F906342.
 Listening review precedes integration, which would need a smoothed default-zero
 level, preserved parameter IDs, patch/state migration and plugin/host checks.
+
+Listening review on 2026-10-29: Holger approved the examples as clean, highlighted
+both noise-solo fixtures, and identified risers and pad swells as musical uses.
+He requested integration; see plugin/NOISE.md for the live-control contract.

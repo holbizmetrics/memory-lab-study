@@ -73,7 +73,7 @@ const std::array<Control,8>oscControls{{
  {"width","PULSE WIDTH","","Width of oscillator 2 pulse wave."},
  {"pwm","PULSE MOTION","","Depth of the per-voice sine LFO on pulse width."},
  {"cutoff","CUTOFF","Hz","Filter after the oscillator mix."},
- {"voiceDrive","VOICE DRIVE","dB","Per-voice clipping after the filter. Zero bypasses."}
+ {"noiseLevel","WHITE NOISE","","Noise before the envelope and filter. Zero is off. Mute saw/pulse for noise alone."}
 }};
 class PanelLook final:public juce::LookAndFeel_V4 {
 public:
@@ -160,8 +160,8 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
   }g.setColour(amber);g.strokePath(curve,juce::PathStrokeType(2));
  }
  void oscillatorGraph(juce::Graphics&g,juce::Rectangle<float>area){
-  int row=0;for(const char*id:{"sawLevel","pulseLevel"}){const float y=area.getY()+row*48;
-   g.setColour(muted);g.drawText(row?"OSC 2 / PULSE":"OSC 1 / SAW",int(area.getX()),int(y),120,24,juce::Justification::centredLeft);
+  int row=0;for(const char*id:{"sawLevel","pulseLevel","noiseLevel"}){const float y=area.getY()+row*34;
+   g.setColour(muted);g.drawText(row==0?"OSC 1 / SAW":row==1?"OSC 2 / PULSE":"WHITE NOISE",int(area.getX()),int(y),120,24,juce::Justification::centredLeft);
    g.setColour(panel);g.fillRoundedRectangle(area.getX()+130,y+3,area.getWidth()-130,18,3);
    g.setColour(row?amber:mint);g.fillRoundedRectangle(area.getX()+130,y+3,(area.getWidth()-130)*value(id),18,3);++row;
   }
@@ -209,7 +209,7 @@ public:
  }
  void paint(juce::Graphics&g)override{
   g.fillAll(ink);g.setColour(white);g.setFont(juce::Font(juce::FontOptions(27.f,juce::Font::bold)));g.drawText("MEMORY LAB",30,20,320,36,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.6",270,29,90,20,juce::Justification::centredLeft);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.7",270,29,90,20,juce::Justification::centredLeft);
   g.setColour(panel);g.fillRoundedRectangle(28,82,866,236,12);g.fillRoundedRectangle(912,82,100,426,12);
   g.setColour(juce::Colour(0xff090f10));g.fillRoundedRectangle(40,94,842,212,7);
   const auto&c=controls()[std::size_t(selected)];g.setColour(isMotion?amber:mint);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawText(c.name,60,110,285,26,juce::Justification::centredLeft);
@@ -225,7 +225,7 @@ public:
   if(pageIndex==6)oscillatorGraph(g,{376,147,476,134});else if(pageIndex==5)driveGraph(g,{376,147,476,134});else if(pageIndex==4)arpGraph(g,{376,147,476,134});else if(env)envelopeGraph(g,{376,147,476,134});else if(isMotion)motionGraph(g,{376,147,476,134});else filterGraph(g,{376,147,476,134});
   g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("OUTPUT",916,108,94,24,juce::Justification::centred);g.drawText("LEVEL",916,471,94,20,juce::Justification::centred);
   g.setColour(juce::Colour(0xff30443b));g.fillRoundedRectangle(924,495,76,4,2);g.setColour(meter>.95f?amber:mint);g.fillRoundedRectangle(924,495,76*juce::jlimit(0.f,1.f,meter),4,2);
-  g.setColour(muted);g.drawText(pageIndex==6?"SAW + PULSE / FILTER / VOICE DRIVE / SHARED DRIVE":pageIndex==5?"VOICE DRIVE / VOICE MIX / SHARED MEMORY DRIVE":pageIndex==4?"FIRST NOTE STARTS THE CLOCK / PEDAL HOLDS NOTES":isEnvelope?"Times apply to the next note.":"OSCILLATORS   /   CLASSIC FILTER   /   MEMORY DRIVE",isEnvelope?600:320,531,isEnvelope?290:570,22,juce::Justification::centredLeft);
+  g.setColour(muted);g.drawText(pageIndex==6?"SAW + PULSE + NOISE / FILTER / DRIVE":pageIndex==5?"VOICE DRIVE / VOICE MIX / SHARED MEMORY DRIVE":pageIndex==4?"FIRST NOTE STARTS THE CLOCK / PEDAL HOLDS NOTES":isEnvelope?"Times apply to the next note.":"OSCILLATORS   /   CLASSIC FILTER   /   MEMORY DRIVE",isEnvelope?600:320,531,isEnvelope?290:570,22,juce::Justification::centredLeft);
   g.drawText("Drag to edit    |    Double-click to restore a control    |    Click a value to type",40,567,970,20,juce::Justification::centredLeft);
   g.drawText(juce::String(processor.voiceCount.load())+" / 8 VOICES",34,704,180,20,juce::Justification::centredLeft);g.drawText("ORIGINAL SUBTRACTIVE INSTRUMENT STUDY",420,704,590,20,juce::Justification::centredRight);
  }

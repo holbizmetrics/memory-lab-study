@@ -44,7 +44,7 @@ private:
  double clockBpm=130;
  double renderSampleRate=48000;
  bool ready=false;
- static constexpr std::size_t parameterCount=32;
+ static constexpr std::size_t parameterCount=33;
  std::array<std::atomic<float>*,parameterCount> values{};
  std::array<float,parameterCount> previous{};
  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MemoryLabProcessor)

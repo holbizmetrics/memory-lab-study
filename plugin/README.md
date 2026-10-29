@@ -26,6 +26,10 @@ into system directories automatically. Framework version9.0.4 commit:
 
 ## UI and state
 
+Version 0.7 development adds [white noise](NOISE.md) to OSC, with a default-zero
+level and migration for all older patch schemas. There are 40 host controls;
+new patch files use schema 4.
+
 Version 0.6 development adds [oscillator source levels and interval](OSCILLATORS.md),
 an OSC page and three appended host controls. Older states/patches retain the
 original oscillator balance. Its patch format is schema 3 with 39 controls.

@@ -19,10 +19,14 @@ int main(int argc,char**argv){try{
  juce::AudioProcessorParameter*oscInterval=nullptr;
  for(auto*parameter:plugin->getParameters())if(parameter->getName(128)=="Oscillator 2 interval (semitones)")oscInterval=parameter;
  check(oscInterval!=nullptr,"VST3 oscillator interval missing");oscInterval->setValueNotifyingHost(.75f);
+ juce::AudioProcessorParameter*noiseLevel=nullptr;
+ for(auto*parameter:plugin->getParameters())if(parameter->getName(128)=="White noise level")noiseLevel=parameter;
+ check(noiseLevel&&noiseLevel->getValue()==0,"VST3 noise missing or enabled by default");noiseLevel->setValueNotifyingHost(.35f);
  voiceDrive->setValueNotifyingHost(1);midi.clear();for(int i=0;i<20;++i)plugin->processBlock(audio,midi);check(energy(audio)>1e-6,"VST3 enabled voice drive silent");
  auto state=juce::MemoryBlock{};plugin->getStateInformation(state);check(state.getSize()>0,"empty VST3 state");plugin->setStateInformation(state.getData(),int(state.getSize()));
  check(voiceDrive->getValue()==1,"VST3 voice drive state lost");voiceDrive->setValueNotifyingHost(0);
  check(std::abs(oscInterval->getValue()-.75f)<1e-6,"VST3 oscillator interval state lost");
+ check(std::abs(noiseLevel->getValue()-.35f)<1e-5,"VST3 noise state lost");
  midi.clear();midi.addEvent(juce::MidiMessage::noteOff(1,60),0);plugin->processBlock(audio,midi);
  for(int i=0;i<140;++i){midi.clear();plugin->processBlock(audio,midi);}check(energy(audio)<1e-12,"VST3 stuck release");
  juce::AudioProcessorParameter*arpOn=nullptr;

@@ -19,7 +19,7 @@ struct Parameters {
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
- double pressureDepth=0,voiceDrive=0,sawLevel=.42,pulseLevel=.28,osc2Interval=0;
+ double pressureDepth=0,voiceDrive=0,sawLevel=.42,pulseLevel=.28,osc2Interval=0,noiseLevel=0;
  EnvelopeSettings ampEnvelope{0,.012,0,.18,.65,.5},filterEnvelopeShape{};
 };
 class MemoryDrive {
@@ -45,7 +45,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -75,9 +75,7 @@ public:
  }
 };
 struct Voice {
-#if MEMORYLAB_EXPERIMENTAL_NOISE
- std::uint32_t studyNoiseState=1;
-#endif
+ std::uint32_t noiseState=1;
  bool active=false,gate=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
  ClassicFilter filter;
@@ -174,6 +172,7 @@ class Synth {
     case Param::SawLevel:target.sawLevel=std::clamp(e.value,0.,1.);break;
     case Param::PulseLevel:target.pulseLevel=std::clamp(e.value,0.,1.);break;
     case Param::Osc2Interval:target.osc2Interval=std::clamp(std::round(e.value),-24.,24.);break;
+    case Param::NoiseLevel:target.noiseLevel=std::clamp(e.value,0.,1.);break;
    }return;
   }
   if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
@@ -199,10 +198,8 @@ class Synth {
   const bool replacing=chosen->active;const double oldOutput=chosen->lastOutput;
   *chosen=Voice{};chosen->active=chosen->gate=true;chosen->note=e.note;chosen->channel=e.channel;
   chosen->velocity=std::clamp(e.value,0.,1.);chosen->age=++clock;
-#if MEMORYLAB_EXPERIMENTAL_NOISE
-  chosen->studyNoiseState=std::uint32_t(chosen->age)*747796405u+std::uint32_t(e.note+128*e.channel+1)*2891336453u;
-  if(!chosen->studyNoiseState)chosen->studyNoiseState=1;
-#endif
+  chosen->noiseState=std::uint32_t(chosen->age)*747796405u+std::uint32_t(e.note+128*e.channel+1)*2891336453u;
+  if(!chosen->noiseState)chosen->noiseState=1;
   chosen->filterEnv.noteOn(target.filterEnvelopeShape);chosen->ampEnv.noteOn(target.ampEnvelope);
   chosen->keyDown=true;if(replacing){chosen->transitionLeft=int(sr*.005);chosen->transitionValue=oldOutput;}
   if(!target.retrigger){chosen->phase1=phase1;chosen->phase2=phase2;}
@@ -221,17 +218,19 @@ class Synth {
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
   v.env=v.ampEnv.tick(sr);if(!v.gate&&v.env<1e-8){v.active=false;return 0;}
 #if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
-  const double x=(studySawLevel*saw+studyPulseLevel*pulse)*v.env*v.velocity;
+  double x=(studySawLevel*saw+studyPulseLevel*pulse)*v.env*v.velocity;
 #else
   double x=(current.sawLevel*saw+current.pulseLevel*pulse)*v.env*v.velocity;
+#endif
 #if MEMORYLAB_EXPERIMENTAL_NOISE
-  if(studyNoiseLevel>0){auto&state=v.studyNoiseState;state^=state<<13;state^=state>>17;state^=state<<5;
+  const double noiseLevel=studyNoiseLevel;if(studyNoiseSolo)x=0;
+#else
+  const double noiseLevel=current.noiseLevel;
+#endif
+  if(noiseLevel>0){auto&state=v.noiseState;state^=state<<13;state^=state>>17;state^=state<<5;
    const double noise=double(state)/2147483648.-1.;
-   if(studyNoiseSolo)x=0;
-   x+=studyNoiseLevel*noise*v.env*v.velocity;
+   x+=noiseLevel*noise*v.env*v.velocity;
   }
-#endif
-#endif
   const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
   // Bypass is exact. Fade in over the first dB so turning the stage on cannot
@@ -291,6 +290,8 @@ public:
    current.osc2Interval+=(target.osc2Interval-current.osc2Interval)*smooth;
    if(target.sawLevel==0&&current.sawLevel<1e-8)current.sawLevel=0;
    if(target.pulseLevel==0&&current.pulseLevel<1e-8)current.pulseLevel=0;
+   current.noiseLevel+=(target.noiseLevel-current.noiseLevel)*smooth;
+   if(target.noiseLevel==0&&current.noiseLevel<1e-8)current.noiseLevel=0;
    if(target.voiceDrive==0&&current.voiceDrive<1e-6)current.voiceDrive=0;
    voiceDriveMix=std::min(1.,current.voiceDrive);
    voiceDriveGain=voiceDriveMix>0?std::pow(10.,current.voiceDrive/20.):1;

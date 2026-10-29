@@ -2,7 +2,7 @@
 
 SAVE and LOAD in the top right of the editor open native file dialogs for
 `.mlpatch` files. Save a sound, choose another sound or change controls, then load
-the file to restore all 39 synthesis, envelope, output and arpeggiator controls.
+the file to restore all 40 synthesis, envelope, output and arpeggiator controls.
 Keep the `.mlpatch` extension when naming files. The last selected path is used
 for subsequent dialogs in that editor session.
 
@@ -13,11 +13,12 @@ notifies the host of parameter changes, but host undo grouping is not verified.
 FL project state remains the way to preserve the complete arrangement and its
 automation clips; patch files store instrument settings only.
 
-The 0.6 format is readable XML, with a MemoryLabPatch root and schemaVersion 3.
+The 0.7 format is readable XML, with a MemoryLabPatch root and schemaVersion 4.
 Older schema-1 files with their original 35 controls load with voice drive at zero.
 Schema-1 and schema-2 files restore the original oscillator balance and zero
 interval. Schema-2 preserves its saved voice-drive setting. New schema-3 files
-require the 0.6 build or later.
+from 0.6 remain readable. Schema-1/2/3 patches load with noise off; new schema-4
+files require the 0.7 build or later.
 Every current parameter must appear exactly once with a finite, in-range value.
 Malformed files, unsupported schemas, unknown IDs and incomplete patches are
 rejected before any controls change. Saving writes a temporary file and replaces

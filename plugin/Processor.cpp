@@ -3,7 +3,7 @@
 
 namespace {
 struct Spec{const char* id;const char* name;float low,high,step;double initial;float skew;memorylab::Param parameter;};
-const std::array<Spec,32> specs{{
+const std::array<Spec,33> specs{{
  {"drive","Drive",0,12,.1f,5,1,memorylab::Param::Drive},
  {"depth","Memory depth",0,1.5f,.01f,.8,1,memorylab::Param::Depth},
  {"recovery","Memory recovery (ms)",50,400,1,250,.5f,memorylab::Param::Recovery},
@@ -35,7 +35,8 @@ const std::array<Spec,32> specs{{
  {"voiceDrive","Voice drive (dB): zero bypasses",0,24,.1f,0,1,memorylab::Param::VoiceDrive},
  {"sawLevel","Oscillator 1 saw level",0,1,.001f,.42,1,memorylab::Param::SawLevel},
  {"pulseLevel","Oscillator 2 pulse level",0,1,.001f,.28,1,memorylab::Param::PulseLevel},
- {"osc2Interval","Oscillator 2 interval (semitones)",-24,24,1,0,1,memorylab::Param::Osc2Interval}
+ {"osc2Interval","Oscillator 2 interval (semitones)",-24,24,1,0,1,memorylab::Param::Osc2Interval},
+ {"noiseLevel","White noise level",0,1,.001f,0,1,memorylab::Param::NoiseLevel}
 }};
 struct ArpSpec{const char*id;const char*name;float low,high,step,initial;};
 const std::array<ArpSpec,7> arpSpecs{{
@@ -151,7 +152,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",5,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",6,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,

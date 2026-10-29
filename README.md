@@ -22,8 +22,9 @@ Installed version 0.6 adds [oscillator mixing and interval controls](plugin/OSCI
 after Holger approved the isolated listening examples. It retains the original
 default mix and supports older patch files and project states.
 
-The next isolated [noise-source listening study](native/NOISE-STUDY.md) is ready
-for review; it is not compiled into the plugin.
+The [noise-source listening study](native/NOISE-STUDY.md) was approved for musical
+use. Version 0.7 development integrates [WHITE NOISE on OSC](plugin/NOISE.md),
+defaulting to zero and preserving old patch/project settings.
 
 Installed version 0.3 adds editable amplitude and filter dAHDSR envelopes.
 Holger confirmed playing and enjoying it in FL Studio, including a 130 BPM
