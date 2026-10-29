@@ -170,6 +170,46 @@ independent measurements or assume that phase/gain behavior is established.
 
 ## Next evidence to collect
 
+### Additional linked press and directory pages: directly read
+
+All of the following were opened and read on 2026-10-29. Secondary reports do not
+override the manufacturer's generation-specific inventory or supply circuit models.
+
+- Audiofanzine brand directory, https://en.audiofanzine.com/shear-electronics/ :
+  separately lists Relic and Relic-6. The linked French product page,
+  https://fr.audiofanzine.com/rack-analogique/shear-electronics/relic/ , explicitly
+  has no technical sheet. No manual or measurements were recovered from it.
+- Audiofanzine's https://fr.audiofanzine.com/rack-analogique/shear-electronics/relic/news/a.play,n.67276.html :
+  November 2, 2022 report on the eight-voice, then bi-timbral prototype. Its limited
+  initial-run/pricing statements are historical reporting, not a lifetime production
+  cap or current quote. It adds no new filter/control equations.
+- Gearnews, https://www.gearnews.com/shear-electronics-relic-synth/ : all four
+  supplied fragment links address sections of this single rolling article.
+  The recent section still says six voices, conflicting with later official
+  eight-voice specs; its older prototype passage also has a suspect displayed
+  2026 date while discussing the eighteen-year-old creator. Preserve those
+  inconsistencies, rather than reclassifying Relic as six-voice in 2026.
+- Digital Mixing, https://digital-mixing.com/en/news/17350-shear-electronics-relic-the-discreet-oberheim-ob-x-clone-enters-production-%E2%89%88-e14000-14-07-2026/ :
+  July 14, 2026 report. It repeats bi-timbrality despite the manufacturer's four-part
+  specs, and conflates the original OB-X with the broader SEM morphing filter.
+  Its embedded s51LRL1qUpM interview is already indexed. Do not treat its claims
+  about emulation limits or sonic superiority as measurements.
+- Sonicstate, https://sonicstate.com/news/2024/01/31/namm-2024-shear-electronics-relic-sounds-only/ :
+  original post for the already indexed no-talking preset demonstration with Jacob
+  and Jim Heywood. Page text was read; embedded audio was not analyzed here.
+- Sonicstate, https://sonicstate.com/news/2026/09/27/relic-synthesizer-ships-after-five-years-of-development/ :
+  current title is "Shear Electronics Relic Meets Anthony Marinelli". It describes
+  four-part operation and gain staging, and mentions Osmose expression. This is
+  consistent feature reporting, not a complete independently verified MPE contract.
+  The dated article also references October 2026 in its text; distinguish page
+  date from subsequently updated availability language.
+
+The repeatedly supplied Synthtopia and main Synth Anatomy URLs are the same
+articles already read and indexed above, not additional corroborating sources.
+The supplied longer Synth Anatomy path ending `.html/shear-electronics-relic`
+failed to fetch. It may be an attachment path, but that was not verified; no
+additional technical information has been attributed to it.
+
 ### Rosen Sound long-form session: supplied transcript reviewed
 
 Holger supplied a screenshot identifying Rosen Sound's "A Day in the Shop Ep 18 -

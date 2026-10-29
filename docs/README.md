@@ -20,6 +20,9 @@ The fallback `holbizmetrics/memory-lab-study-site` repository is unused and has
 no Pages site configured. Do not use it as a second deployment destination.
 
 The intended URL is `https://holbizmetrics.github.io/memory-lab-study/`.
+Publication verified on 2026-10-29: GitHub Pages reported build `built` for
+commit 9060a94, and the live root returned HTTP 200 with the expected title and
+updated public repository wording. This verifies delivery, not browser UI layout.
 `.nojekyll` bypasses Jekyll.
 No custom domain or build workflow is necessary. Confirm the returned Pages URL
 and successful build before reporting the site as published.
