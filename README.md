@@ -6,9 +6,9 @@ practical DSP question. It does not modify the PCLA engine or the companion's fi
 
 ## Current native and plug-in milestone
 
-A [project website](docs/index.html) is prepared in `docs/` for GitHub Pages,
-with editor screenshots and a listening comparison. Hosting status and setup
-are recorded in [the site notes](docs/README.md); it is not yet published.
+The [project website](https://holbizmetrics.github.io/memory-lab-study/) includes
+editor screenshots and a listening comparison. Its source lives in `docs/`;
+hosting setup and verification limits are recorded in [the site notes](docs/README.md).
 
 Upcoming work is tracked in [the roadmap](ROADMAP.md), including the requested
 DAW knob-automation recording, editing and project-recall milestone.

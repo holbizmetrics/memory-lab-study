@@ -11,18 +11,16 @@ come from our editor; the audio comes from our original offline drive study.
 
 ## Hosting status
 
-Not published. The repository is private and the Pages endpoint returned 404 when
-queried on 2026-10-29. The account API did not expose a plan name, so eligibility
-for private-repository Pages remains unconfirmed. GitHub requires an appropriate
-paid plan for Pages from a private repository; see
-https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages .
+The first Pages request on 2026-10-29 returned HTTP 422 because the repository
+was private and the account plan did not support that configuration. A public
+site-only fallback repository was created, but before its hosting was configured,
+Holger independently made the original repository public. Publication now uses
+the original `holbizmetrics/memory-lab-study` repository, main branch, `/docs`.
+The fallback `holbizmetrics/memory-lab-study-site` repository is unused and has
+no Pages site configured. Do not use it as a second deployment destination.
 
-Publishing a normally public Pages site is distinct from publishing the repository.
-Do not change repository visibility to work around eligibility. The site explicitly
-marks repository/notebook/release links as requiring repository access.
-
-After approval to publish this site publicly, configure Pages to deploy from the
-main branch's /docs folder if supported by the account. `.nojekyll` bypasses Jekyll.
+The intended URL is `https://holbizmetrics.github.io/memory-lab-study/`.
+`.nojekyll` bypasses Jekyll.
 No custom domain or build workflow is necessary. Confirm the returned Pages URL
 and successful build before reporting the site as published.
 

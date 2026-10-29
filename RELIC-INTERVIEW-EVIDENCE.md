@@ -170,6 +170,57 @@ independent measurements or assume that phase/gain behavior is established.
 
 ## Next evidence to collect
 
+### Rosen Sound long-form session: supplied transcript reviewed
+
+Holger supplied a screenshot identifying Rosen Sound's "A Day in the Shop Ep 18 -
+Shear Electronics (Jacob Brashears), ARP 2500, Rob's Birthday". The player shows
+1:53:26 duration. Holger subsequently supplied the transcript, repeatedly; count
+those copies once. A directly supplied URL and timestamps remain pending.
+The transcript contains substantial unrelated repairs, ARP 2500 and shop discussion;
+do not attribute those instruments' features or faults to Relic.
+
+The Relic segment explicitly describes four physical cards with two independent
+voice cores each, pre-filter VCAs for oscillator 1, oscillator 2 and white noise,
+and stereo output VCAs numbered 6/7 per voice. VCAs 4/5 are not fully mapped by
+that passage. Four system outputs, stereo grouping and four-part operation repeat
+earlier claims. This refines the signal-path inventory without supplying equations.
+
+The hands-on session supports a usability lesson: briefly explain the bank buttons,
+then let the player explore controls. Preset discovery and clear control mapping
+matter alongside detailed engineering explanations. Put a playable first-sound
+path before technical reference material in any future manual.
+
+Pulse-width zippering is described during the session and the player likes that
+particular sound. This does not imply every control should be unsmoothed, or that
+all clicks are acceptable. Keep intentional stepped movement separate from bugs.
+The filter-envelope numbering discussion is confused in the transcript; do not
+freeze a universal envelope-to-destination mapping from it.
+
+A controller interoperability issue is discussed. MIDI running status is proposed
+as one possible explanation, not diagnosed. The lesson for our wrapper is to test
+different controllers and correctly handle or ignore applicable events. Raw MIDI
+byte-stream parsing belongs below the VST3/JUCE event boundary; do not add a running
+status parser to our already decoded host-event handler based on this speculation.
+
+Serviceability comments are commitments/opinions, not proof of future parts or
+schematic availability. Positive playing impressions are not measured fidelity.
+Neither the unrelated shop repairs nor the personal anecdotes are needed in our
+instrument specification.
+
+### Individually supplied Matrixsynth posts
+
+The January 8, 2018 update was read directly:
+https://www.matrixsynth.com/2018/01/an-update-on-shear-electronics-relic.html .
+Its reproduced manufacturer statement describes adding individual encoder bars,
+optical encoders and MIDI-cable software updates during the post-2017 redesign.
+Treat these as historical plans, not present firmware/update specifications.
+
+The directly supplied October 2026 post URL is
+https://www.matrixsynth.com/2026/10/the-relic-some-of-most-expressive.html .
+Direct fetching failed; its entry was already read on the accessible label archive
+and linked to 7cFAWbFDX9k. Do not claim the standalone page or embedded audio was
+successfully reviewed.
+
 ### Matrixsynth archive: source index and historical envelope detail
 
 Read on 2026-10-29: https://www.matrixsynth.com/search/label/Shear%20Electronics .
