@@ -42,5 +42,6 @@ and second-instantiation checks. Integration tests cover held eight-note mode
 switches and high-Q cutoff edges at 44.1/48/96/192 kHz, exact block partition
 agreement, legacy host state, all four older patch schemas and stable host IDs.
 Normal LP4 and compact Blend editor snapshots were inspected. Full FL automation
-recording/undo/project reload remains unverified separately. Installation is
-pending FL closing; the guarded updater backs up and verifies installed 0.7 first.
+recording/undo/project reload remains unverified separately. Version 0.8 is now
+installed and its installed module passed validation. The guarded updater backed
+up and verified the previous 0.7 bundle first.

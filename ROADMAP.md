@@ -1,5 +1,14 @@
 # Memory Lab Study roadmap
 
+## Release policy and current installation
+
+Every verified, delivered numbered synth version receives an annotated source
+tag and a published GitHub prerelease. This is a standing user instruction,
+recorded in AGENTS.md. Tags point to the exact verified source and are never moved.
+Versions 0.6, 0.7 and 0.8 are preserved as v0.6.0-alpha.1, v0.7.0-alpha.1 and
+v0.8.0-alpha.1 respectively; their release notes live under releases/.
+Installed 0.8 passed actual-module validation, with a verified 0.7 backup retained.
+
 ## Preserved milestone
 
 v0.4.0-alpha.1 is the first tagged source prerelease: editable amplitude/filter
