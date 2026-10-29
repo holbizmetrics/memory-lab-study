@@ -29,5 +29,6 @@ Do not replace the installed VST3 while FL Studio or the standalone app is open.
 
 Verified 2026-10-29: native CTest 3/3, plugin CTest 4/4, actual VST3 validation
 including the new control and state recall, and normal/compact editor snapshots.
-The build is ready locally. Installation is pending because FL Studio is open;
-the guarded updater preserves and verifies the existing 0.4 bundle first.
+The 0.5 build is installed and its installed VST3 passed actual-module validation.
+The guarded updater preserved and verified the existing 0.4 bundle first.
+Holger subsequently approved the drive sound during musical playing in FL Studio.
