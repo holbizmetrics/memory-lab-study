@@ -30,3 +30,10 @@ mute/re-enable/all-sound-off, exact block partition parity, host state migration
 stable parameter order and schema-1/2/3 patch migration. Normal/compact editor
 snapshots were inspected. The default native audio remains byte-identical.
 Full FL automation recording/undo/project recall remains unverified separately.
+
+Listening status: Holger subsequently reported uncertainty about integrated 0.7
+noise and an impression that it damaged the sound. Integrated musical approval
+is open. The [diagnostic comparison](../native/NOISE-DIAGNOSTIC.md) reproduces all
+six approved offline raw examples exactly using the production engine with
+matched settings. Separate drive-context clips investigate the shared nonlinear
+path; they do not diagnose the user's uncaptured patch. No DSP change was made.

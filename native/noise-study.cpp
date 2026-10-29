@@ -27,10 +27,20 @@ std::vector<Event> fixture(double sr,bool chord){
  std::stable_sort(events.begin(),events.end(),[](auto&a,auto&b){return a.offset<b.offset;});return events;
 }
 
-std::vector<float> render(double sr,bool chord,int mode,int block){
+std::vector<float> render(double sr,bool chord,int mode,int block,int chain=0){
  auto synth=std::make_unique<Synth>();require(synth->prepare(sr),"prepare failed");
+#if MEMORYLAB_EXPERIMENTAL_NOISE
  require(synth->setStudyNoise(mode==0?0:mode==1?.08:.35,mode==2),"noise configuration failed");require(!synth->setStudyNoise(std::numeric_limits<double>::quiet_NaN(),false)&&!synth->setStudyNoise(-1,false)&&!synth->setStudyNoise(2,false),"invalid noise level accepted");
- const auto events=fixture(sr,chord);std::vector<float> audio(std::size_t(sr*3));
+#else
+ synth->dispatch({0,EventKind::Parameter,0,mode==0?0:mode==1?.08:.35,0,Param::NoiseLevel});
+ if(mode==2){synth->dispatch({0,EventKind::Parameter,0,0,0,Param::SawLevel});synth->dispatch({0,EventKind::Parameter,0,0,0,Param::PulseLevel});}
+ // Settle the live smoothing before note-on, without advancing any voice RNG.
+ std::vector<float>preroll(std::size_t(sr*2));require(synth->render(preroll.data(),preroll.size()),"preroll failed");
+#endif
+ auto events=fixture(sr,chord);
+ if(chain){events[0].value=5;events[1].value=.8;}
+ if(chain==2)events.insert(events.begin(),{0,EventKind::Parameter,0,24,0,Param::VoiceDrive});
+ std::vector<float> audio(std::size_t(sr*3));
  std::size_t pos=0,eventIndex=0;
  while(pos<audio.size()){
   const auto count=std::min<std::size_t>(block,audio.size()-pos);std::array<Event,128> local{};std::size_t used=0;
