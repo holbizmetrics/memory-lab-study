@@ -47,7 +47,17 @@ with peak headroom. The player has six explicit audio controls and no autoplay.
 The first HTML check mistakenly matched the explanatory text about autoplay;
 it was corrected to parse actual audio element attributes, and passed.
 
-Next: Holger's listening comparison before a host parameter or production stage.
+## Listening feedback, 2026-10-29
+
+Holger listened to the comparison and reported that all settings sounded clear
+and good, with no perceived flattening or distortion where it should not be.
+No preferred gain setting or separate note/chord ranking was specified. This is
+positive subjective feedback on the supplied clips, not a rejection of +24 dB.
+It supports retaining optional per-voice drive as a candidate for integration,
+with the existing sound available at the default/bypass setting.
+
+Next: define the host control, bypass and parameter/patch compatibility contracts
+before integrating the experimental stage into the plugin.
 Keep the approved shared memory drive available regardless of this study's outcome.
 
 ## Reproduce
