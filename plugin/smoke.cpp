@@ -8,6 +8,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "automation-checks.hpp"
 #include "uia-lifecycle-checks.hpp"
 #include "patch-checks.hpp"
+#include "voice-drive-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -66,6 +67,9 @@ int main(int argc,char**argv){try{
   if(arpEnergy<=1e-6)throw std::runtime_error("arp screen keyboard silent: energy="+std::to_string(arpEnergy)+" on="+std::to_string(processor->state.getRawParameterValue("arpOn")->load())+" voices="+std::to_string(processor->voiceCount.load()));
   check(processor->arpStep.load()==0,"arp did not use prepared sample rate");
   editor->setSize(1040,740);snapshot("arp.png");
+  auto*drivePage=dynamic_cast<juce::Button*>(find(*editor,"drivePage"));check(drivePage&&bool(drivePage->onClick),"drive page missing");drivePage->onClick();snapshot("drive.png");
+  auto*voiceDrive=dynamic_cast<juce::Slider*>(find(*editor,"voiceDrive"));check(voiceDrive,"voice drive knob missing");voiceDrive->setValue(24,juce::sendNotificationSync);check(processor->state.getRawParameterValue("voiceDrive")->load()==24,"voice drive attachment");
+  editor->setSize(832,592);snapshot("drive-compact.png");
   std::cout<<"PASS: Voice/Motion/Amplitude/Filter/ARP editor pages, parameter attachments, arp keyboard audio and compact snapshots; previews "<<folder.getFullPathName()<<"\n";return 0;
  }
  auto p=std::make_unique<MemoryLabProcessor>();p->setPlayConfigDetails(0,2,48000,512);p->prepareToPlay(48000,512);
@@ -119,6 +123,6 @@ int main(int argc,char**argv){try{
  auto screen=std::make_unique<MemoryLabProcessor>();screen->prepareToPlay(48000,512);screen->keyboard.noteOn(1,60,.8f);double screenEnergy=0;
  for(int i=0;i<4;++i){midi.clear();screen->processBlock(a,midi);screenEnergy+=power(a);}check(screenEnergy>1e-6,"on-screen keyboard silent");screen->keyboard.noteOff(1,60,0);
  for(int i=0;i<140;++i){midi.clear();screen->processBlock(a,midi);}check(power(a)<1e-12,"on-screen keyboard stuck note");
- arpWrapperTests();
+ arpWrapperTests();voiceDriveChecks();
  std::cout<<"PASS: JUCE/native default parity, MIDI sample offsets, stereo, channel CC120 isolation, sustain, bend/pressure mapping, state recall, MIDI block partitioning and on-screen keyboard audio/release\n";return 0;
  }catch(const std::exception&e){std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}}

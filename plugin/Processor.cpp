@@ -3,7 +3,7 @@
 
 namespace {
 struct Spec{const char* id;const char* name;float low,high,step;double initial;float skew;memorylab::Param parameter;};
-const std::array<Spec,28> specs{{
+const std::array<Spec,29> specs{{
  {"drive","Drive",0,12,.1f,5,1,memorylab::Param::Drive},
  {"depth","Memory depth",0,1.5f,.01f,.8,1,memorylab::Param::Depth},
  {"recovery","Memory recovery (ms)",50,400,1,250,.5f,memorylab::Param::Recovery},
@@ -31,7 +31,8 @@ const std::array<Spec,28> specs{{
  {"fltHold","Filter hold (ms)",0,5000,1,0,.3f,memorylab::Param::FilterHold},
  {"fltDecay","Filter decay (ms)",0,10000,1,350,.3f,memorylab::Param::FilterDecay},
  {"fltSustain","Filter sustain",0,1,.001f,.15,1,memorylab::Param::FilterSustain},
- {"fltRelease","Filter release (ms)",0,10000,1,400,.3f,memorylab::Param::FilterRelease}
+ {"fltRelease","Filter release (ms)",0,10000,1,400,.3f,memorylab::Param::FilterRelease},
+ {"voiceDrive","Voice drive (dB): zero bypasses",0,24,.1f,0,1,memorylab::Param::VoiceDrive}
 }};
 struct ArpSpec{const char*id;const char*name;float low,high,step,initial;};
 const std::array<ArpSpec,7> arpSpecs{{
@@ -47,10 +48,12 @@ const std::array<ArpSpec,7> arpSpecs{{
 
 juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout(){
  juce::AudioProcessorValueTreeState::ParameterLayout result;
- for(std::size_t i=0;i<specs.size();++i){const auto&s=specs[i];
+ auto addSpec=[&](const Spec&s){
   result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{s.id,1},s.name,
    juce::NormalisableRange<float>{s.low,s.high,s.step,s.skew},float(s.initial)));
- }
+ };
+ // Keep the original 35 host indices stable. New controls append after the arp.
+ for(std::size_t i=0;i+1<specs.size();++i)addSpec(specs[i]);
  for(std::size_t i=0;i<arpSpecs.size();++i){const auto&s=arpSpecs[i];
   auto attributes=juce::AudioParameterFloatAttributes()
    .withStringFromValueFunction([i](float value,int){
@@ -67,6 +70,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout()
    });
   result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{s.id,1},s.name,juce::NormalisableRange<float>{s.low,s.high,s.step},s.initial,attributes));
  }
+ addSpec(specs.back());
  return result;
 }
 MemoryLabProcessor::MemoryLabProcessor():AudioProcessor(BusesProperties().withOutput("Output",juce::AudioChannelSet::stereo(),true)),state(*this,nullptr,"MemoryLabState",layout()){
@@ -144,7 +148,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",3,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",4,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,

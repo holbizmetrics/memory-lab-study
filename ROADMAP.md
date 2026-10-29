@@ -59,9 +59,9 @@ The installed synth remains available for playing while the work is planned.
 
 The next sound experiment is an isolated [per-voice post-filter drive study](native/VOICE-DRIVE-STUDY.md).
 Six matched listening clips compare bypass/+8/+24 dB on a note and chord. The
-experimental stage is not compiled into the plugin. Holger found all three
+original experimental stage was not compiled into the plugin. Holger found all three
 settings clear and good, without perceived flattening or unwanted distortion;
-no preferred gain setting was specified. Optional integration is the next candidate.
+no preferred gain setting was specified. Version 0.5 development integrates an optional per-voice drive, defaulting to exact bypass. See plugin/VOICE-DRIVE.md for its signal path and limits.
 
 Development step on 2026-10-29: SAVE/LOAD patch files now preserve all 35 controls
 independently of the host project. File validation and roundtrip tests pass, as

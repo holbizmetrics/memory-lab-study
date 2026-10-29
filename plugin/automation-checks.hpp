@@ -3,9 +3,9 @@
 void automationChecks(){
  auto processor=std::make_unique<MemoryLabProcessor>();
  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
- const char*ids[]{"drive","depth","recovery","detune","width","cutoff","resonance","volume","profile","lfoRate","vibrato","pwm","filterLfo","filterEnv","pressure","phaseReset","ampDelay","ampAttack","ampHold","ampDecay","ampSustain","ampRelease","fltDelay","fltAttack","fltHold","fltDecay","fltSustain","fltRelease","arpOn","arpSync","arpBpm","arpRate","arpOrder","arpOctaves","arpGate"};
- check(processor->getParameters().size()==35,"automation parameter count changed");
- for(int i=0;i<35;++i){auto*p=processor->state.getParameter(ids[i]);check(p&&p==processor->getParameters()[i],"automation ID/order changed");check(p->isAutomatable(),"parameter not automatable");}
+ const char*ids[]{"drive","depth","recovery","detune","width","cutoff","resonance","volume","profile","lfoRate","vibrato","pwm","filterLfo","filterEnv","pressure","phaseReset","ampDelay","ampAttack","ampHold","ampDecay","ampSustain","ampRelease","fltDelay","fltAttack","fltHold","fltDecay","fltSustain","fltRelease","arpOn","arpSync","arpBpm","arpRate","arpOrder","arpOctaves","arpGate","voiceDrive"};
+ check(processor->getParameters().size()==36,"automation parameter count changed");
+ for(int i=0;i<36;++i){auto*p=processor->state.getParameter(ids[i]);check(p&&p==processor->getParameters()[i],"automation ID/order changed");check(p->isAutomatable(),"parameter not automatable");}
  struct Monitor:juce::AudioProcessorParameter::Listener{
   std::string events;
   void parameterValueChanged(int,float)override{events+='V';}
@@ -31,9 +31,10 @@ void automationChecks(){
  page("envelopePage");exercise("ampAttack",20,80,120);
  page("filterEnvelopePage");exercise("fltDecay",100,200,300);
  page("arpPage");exercise("arpGate",20,40,70);exercise("arpOrder",1,2,0);
- juce::MemoryBlock state;processor->getStateInformation(state);
+ page("drivePage");exercise("voiceDrive",8,24,12);juce::MemoryBlock state;processor->getStateInformation(state);
  auto restored=std::make_unique<MemoryLabProcessor>();restored->setStateInformation(state.getData(),int(state.getSize()));
  check(std::abs(restored->state.getRawParameterValue("cutoff")->load()-3300)<1,"automation value state recall");
  check(restored->state.getRawParameterValue("arpGate")->load()==70,"arp automation value state recall");
- std::cout<<"PASS automation foundation: 35 stable automatable IDs/order, balanced knob gestures, parameter-to-editor updates without gesture echo, hidden-page rebinding and value recall. FL host recording/playback not covered.\n";
+ check(restored->state.getRawParameterValue("voiceDrive")->load()==12,"voice drive automation state recall");
+ std::cout<<"PASS automation foundation: 36 stable automatable IDs/order, balanced knob gestures, parameter-to-editor updates without gesture echo, hidden-page rebinding and value recall. FL host recording/playback not covered.\n";
 }

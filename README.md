@@ -13,6 +13,10 @@ hosting setup and verification limits are recorded in [the site notes](docs/READ
 Upcoming work is tracked in [the roadmap](ROADMAP.md), including the requested
 DAW knob-automation recording, editing and project-recall milestone.
 
+Version 0.5 development adds optional [per-voice drive](plugin/VOICE-DRIVE.md),
+defaulting to bypass, with old patch/project migration and stable existing host
+parameter order. Native and plugin checks pass; installation awaits FL closing.
+
 Installed version 0.3 adds editable amplitude and filter dAHDSR envelopes.
 Holger confirmed playing and enjoying it in FL Studio, including a 130 BPM
 piano-roll pattern. Version 0.4 adds an optional arpeggiator and is installed with

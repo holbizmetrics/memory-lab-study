@@ -19,7 +19,7 @@ struct Parameters {
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
- double pressureDepth=0;
+ double pressureDepth=0,voiceDrive=0;
  EnvelopeSettings ampEnvelope{0,.012,0,.18,.65,.5},filterEnvelopeShape{};
 };
 class MemoryDrive {
@@ -45,7 +45,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -125,6 +125,7 @@ class Synth {
 #endif
  double sr=48000;std::uint64_t clock=0;std::array<Voice,8> voices{};MemoryDrive memory;
  Parameters target{},current{};OscillatorBank bank;
+ double voiceDriveGain=1,voiceDriveMix=0;
  std::array<bool,16> sustain{};
  std::array<double,16> bend{},bendTarget{},pressure{},pressureTarget{};
  void release(Voice& v){v.gate=false;v.ampEnv.noteOff(sr);v.filterEnv.noteOff(sr);}
@@ -160,6 +161,7 @@ class Synth {
     case Param::FilterDecay:target.filterEnvelopeShape.decay=std::clamp(e.value,0.,10000.)/1000.;break;
     case Param::FilterSustain:target.filterEnvelopeShape.sustain=std::clamp(e.value,0.,1.);break;
     case Param::FilterRelease:target.filterEnvelopeShape.release=std::clamp(e.value,0.,10000.)/1000.;break;
+    case Param::VoiceDrive:target.voiceDrive=std::clamp(e.value,0.,24.);break;
    }return;
   }
   if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
@@ -200,6 +202,9 @@ class Synth {
   const double x=(.42*saw+.28*pulse)*v.env*v.velocity;
   const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
+  // Bypass is exact. Fade in over the first dB so turning the stage on cannot
+  // suddenly truncate a high-resonance signal already above the clip threshold.
+  if(voiceDriveMix>0)output+=(std::clamp(output*voiceDriveGain,-1.,1.)-output)*voiceDriveMix;
 #if MEMORYLAB_EXPERIMENTAL_VOICE_DRIVE
   if(studyDriveEnabled){output*=studyDriveGain;if(std::abs(output)>1)++studyClipped;output=std::clamp(output,-1.,1.);}
 #endif
@@ -217,7 +222,7 @@ public:
  std::uint64_t studyClippedVoiceSamples()const{return studyClipped;}
 #endif
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
- void reset(){voices={};clock=0;target=current=Parameters{};memory.prepare(sr);sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
+ void reset(){voices={};clock=0;target=current=Parameters{};voiceDriveGain=1;voiceDriveMix=0;memory.prepare(sr);sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
  std::size_t heldVoices(int channel=-1)const{std::size_t n=0;for(const auto&v:voices)if(v.active&&v.keyDown&&(channel<0||v.channel==channel))++n;return n;}
  bool sounding(int note,int channel)const{for(const auto&v:voices)if(v.active&&v.note==note&&v.channel==channel)return true;return false;}
@@ -239,6 +244,10 @@ public:
    current.pwmLfo+=(target.pwmLfo-current.pwmLfo)*smooth;current.cutoffLfo+=(target.cutoffLfo-current.cutoffLfo)*smooth;
    current.filterEnvelope+=(target.filterEnvelope-current.filterEnvelope)*smooth;
    current.pressureDepth+=(target.pressureDepth-current.pressureDepth)*smooth;
+   current.voiceDrive+=(target.voiceDrive-current.voiceDrive)*smooth;
+   if(target.voiceDrive==0&&current.voiceDrive<1e-6)current.voiceDrive=0;
+   voiceDriveMix=std::min(1.,current.voiceDrive);
+   voiceDriveGain=voiceDriveMix>0?std::pow(10.,current.voiceDrive/20.):1;
    for(int channel=0;channel<16;++channel){bend[channel]+=(bendTarget[channel]-bend[channel])*smooth;pressure[channel]+=(pressureTarget[channel]-pressure[channel])*smooth;}
    double sum=0;for(auto&v:voices)if(v.active)sum+=voiceTick(v);
    output[i]=static_cast<float>(memory.tick(sum,target)*current.volume);

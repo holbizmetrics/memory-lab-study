@@ -26,6 +26,10 @@ into system directories automatically. Framework version9.0.4 commit:
 
 ## UI and state
 
+The 0.5 development build adds an optional [per-voice drive](VOICE-DRIVE.md)
+page and a 36th host control. It defaults to bypass and migrates older states and
+patches to bypass. The following 0.4 description records the preceding feature set.
+
 Version0.4 uses an original custom editor with Voice/Motion/Envelopes/ARP pages, eight contextual
 rotary controls, a selected-parameter display, static filter or modulation diagrams,
 an output fader/meter and an on-screen keyboard. The sixteen host parameters retain
