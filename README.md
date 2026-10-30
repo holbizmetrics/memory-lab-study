@@ -35,6 +35,11 @@ Version 0.8 development adds an optional [FILTER page](plugin/FILTER-FAMILIES.md
 with Classic, LP4, BP4 and Blend. Classic and all old patch mappings are preserved;
 musical approval of the new live modes remains open.
 
+Holger reported a possible 0.8 distortion regression on 2026-10-30. The
+[current investigation](plugin/DISTORTION-INVESTIGATION.md) preserves that report:
+controlled actual-plugin renders match earlier builds, but the affected patch
+and FL playback context still need reproduction before proceeding to 0.9.
+
 Installed version 0.3 adds editable amplitude and filter dAHDSR envelopes.
 Holger confirmed playing and enjoying it in FL Studio, including a 130 BPM
 piano-roll pattern. Version 0.4 adds an optional arpeggiator and is installed with

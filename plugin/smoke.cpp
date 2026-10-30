@@ -12,6 +12,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "oscillator-checks.hpp"
 #include "noise-checks.hpp"
 #include "filter-family-checks.hpp"
+#include "tab-switch-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -42,6 +43,7 @@ void arpWrapperTests(){
  std::cout<<"PASS arp wrapper: audio block parity, host BPM/internal/fallback, stop/disable cleanup, state recall and legacy bypass\n";
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::string(argv[1])=="--tab-test"){juce::ScopedJuceInitialiser_GUI gui;tabSwitchChecks();return 0;}
  juce::ScopedJuceInitialiser_GUI gui;
 #if JUCE_WINDOWS
  if(argc==2&&std::string(argv[1])=="--uia-lifecycle-test"){uiaLifecycleChecks();return 0;}

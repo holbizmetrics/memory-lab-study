@@ -2,6 +2,12 @@
 
 ## Release policy and current installation
 
+2026-10-30 priority: Holger reports possible persistent distortion in 0.8 and is
+testing before 0.9. Keep the regression open. [Investigation](plugin/DISTORTION-INVESTIGATION.md)
+found no parameter writes from tab switching and byte-identical actual VST3 audio
+across 0.4/0.6/0.7/0.8 for three controlled settings. His affected patch/FL chain
+still needs reproduction; do not infer musical approval from these checks.
+
 Every verified, delivered numbered synth version receives an annotated source
 tag and a published GitHub prerelease. This is a standing user instruction,
 recorded in AGENTS.md. Tags point to the exact verified source and are never moved.
