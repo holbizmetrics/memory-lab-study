@@ -4,12 +4,33 @@
 #include <fstream>
 void check(bool ok,const char*why){if(!ok)throw std::runtime_error(why);}
 double energy(const juce::AudioBuffer<float>&a){double e=0;for(int ch=0;ch<a.getNumChannels();++ch)for(int i=0;i<a.getNumSamples();++i){const float v=a.getSample(ch,i);check(std::isfinite(v)&&std::abs(v)<1,"nonfinite/clipped audio");e+=v*v;}return e;}
-int capture(const char*bundle,const char*stem,const char*setting){
+int capture(const char*bundle,const char*stem,const char*setting,const char*patchFile=nullptr){
  juce::ScopedJuceInitialiser_GUI gui;juce::VST3PluginFormatHeadless format;juce::OwnedArray<juce::PluginDescription>types;format.findAllTypesForFile(types,juce::File(juce::String::fromUTF8(bundle)).getFullPathName());check(types.size()==1,"capture scan");
  juce::String error;auto p=format.createInstanceFromDescription(*types[0],48000,512,error);if(!p)throw std::runtime_error(error.toStdString());p->setPlayConfigDetails(0,2,48000,512);p->prepareToPlay(48000,512);
  auto setNamed=[&](const char*name,float normalized){for(auto*parameter:p->getParameters())if(parameter->getName(128)==name){parameter->setValueNotifyingHost(normalized);return true;}return false;};
  const std::string mode(setting);check(mode=="default"||mode=="clean"||mode=="stress","unknown capture setting");
- if(mode=="clean"){check(setNamed("Drive",0),"capture drive missing");check(setNamed("Memory depth",0),"capture depth missing");setNamed("Voice drive (dB): zero bypasses",0);setNamed("White noise level",0);setNamed("Filter family: Classic / LP4 / BP4 / Blend",0);}
+ if(patchFile){
+  auto patch=juce::parseXML(juce::File(juce::String::fromUTF8(patchFile)));
+  check(patch&&patch->hasTagName("MemoryLabPatch")&&patch->getIntAttribute("schemaVersion")==5,"capture expects schema 5 patch");
+  juce::MemoryBlock state;p->getStateInformation(state);auto outer=juce::AudioProcessor::getXmlFromBinary(state.getData(),int(state.getSize()));check(bool(outer),"capture host state XML");
+  auto* component=outer->getChildByName("IComponent");check(component!=nullptr,"capture VST3 component state");
+  juce::MemoryBlock componentState;check(componentState.fromBase64Encoding(component->getAllSubText()),"capture component decode");
+  auto xml=juce::AudioProcessor::getXmlFromBinary(componentState.getData(),int(componentState.getSize()));check(bool(xml),"capture processor XML");
+  int applied=0;for(auto*entry:patch->getChildIterator()){
+   bool found=false;for(auto*target:xml->getChildIterator())if(target->getStringAttribute("id")==entry->getStringAttribute("id")){target->setAttribute("value",entry->getDoubleAttribute("value"));found=true;++applied;break;}
+   check(found,"capture unknown patch ID");
+  }
+  check(applied==41,"capture incomplete patch");
+  if(mode=="clean")for(auto*entry:xml->getChildIterator()){const auto id=entry->getStringAttribute("id");if(id=="drive"||id=="depth"||id=="voiceDrive")entry->setAttribute("value",0.);}
+  juce::AudioProcessor::copyXmlToBinary(*xml,componentState);component->deleteAllTextElements();component->addTextElement(componentState.toBase64Encoding());
+  juce::AudioProcessor::copyXmlToBinary(*outer,state);p->setStateInformation(state.getData(),int(state.getSize()));
+  juce::MemoryBlock restored;p->getStateInformation(restored);auto restoredOuter=juce::AudioProcessor::getXmlFromBinary(restored.getData(),int(restored.getSize()));check(bool(restoredOuter),"capture restored host state");
+  auto* restoredComponent=restoredOuter->getChildByName("IComponent");check(restoredComponent!=nullptr,"capture restored component");
+  check(componentState.fromBase64Encoding(restoredComponent->getAllSubText()),"capture restored decode");
+  auto actual=juce::AudioProcessor::getXmlFromBinary(componentState.getData(),int(componentState.getSize()));check(bool(actual),"capture restored processor state");
+  for(auto*want:xml->getChildIterator()){bool matched=false;for(auto*got:actual->getChildIterator())if(got->getStringAttribute("id")==want->getStringAttribute("id")){matched=std::abs(got->getDoubleAttribute("value")-want->getDoubleAttribute("value"))<.001;break;}check(matched,"capture patch state mismatch");}
+ }
+ if(mode=="clean"&&!patchFile){check(setNamed("Drive",0),"capture drive missing");check(setNamed("Memory depth",0),"capture depth missing");setNamed("Voice drive (dB): zero bypasses",0);setNamed("White noise level",0);setNamed("Filter family: Classic / LP4 / BP4 / Blend",0);}
  juce::AudioBuffer<float>a(2,512);juce::MidiBuffer midi;for(int i=0;i<100;++i){midi.clear();p->processBlock(a,midi);}
  std::ofstream raw(std::string(stem)+".f32",std::ios::binary),settings(std::string(stem)+".txt");check(bool(raw)&&bool(settings),"capture open");settings<<"plugin="<<types[0]->version.toStdString()<<"\nsetting="<<mode<<'\n';for(auto*parameter:p->getParameters())settings<<parameter->getName(128).toStdString()<<'='<<parameter->getText(parameter->getValue(),128).toStdString()<<" normalized="<<parameter->getValue()<<'\n';
  const auto notes=mode=="stress"?std::vector<int>{48,50,52,53,55,57,59,60}:std::vector<int>{52,55,59};
@@ -20,6 +41,7 @@ int capture(const char*bundle,const char*stem,const char*setting){
  check(bool(raw)&&bool(settings),"capture write");std::cout<<"CAPTURE version="<<types[0]->version<<" mode="<<mode<<" peak="<<peak<<" rms="<<std::sqrt(sum/144000)<<" samples_above_full_scale="<<overload<<" processing_ms="<<processingMs<<" worst_block_budget_ratio="<<worstRatio<<'\n';p->releaseResources();return 0;
 }
 int main(int argc,char**argv){try{
+ if(argc==6&&std::string(argv[1])=="--capture-patch")return capture(argv[2],argv[3],argv[5],argv[4]);
  if(argc==5&&std::string(argv[1])=="--capture")return capture(argv[2],argv[3],argv[4]);
  if(argc!=2)throw std::runtime_error("Expected path to one VST3 bundle");
  juce::ScopedJuceInitialiser_GUI gui;juce::VST3PluginFormatHeadless format;juce::OwnedArray<juce::PluginDescription>types;

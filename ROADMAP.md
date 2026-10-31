@@ -1,5 +1,12 @@
 # Memory Lab Study roadmap
 
+## Future project note (2026-10-31)
+
+Holger requested recording Genki Instruments Katla as a future VST3 instrument
+project/inspiration (video reference: "Genki Instruments Katla #2 | Winterdagen").
+Research, implementation scope and any hardware-modeling claims are undecided.
+Stay focused on completing the current Memory Lab project before starting it.
+
 ## Release policy and current installation
 
 2026-10-30 priority: Holger reports possible persistent distortion in 0.8 and is
