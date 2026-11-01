@@ -3,8 +3,11 @@
 SAVE and LOAD in the top right of the editor open native file dialogs for
 `.mlpatch` files. Save a sound, choose another sound or change controls, then load
 the file to restore all 41 synthesis, envelope, output and arpeggiator controls.
-Keep the `.mlpatch` extension when naming files. The last selected path is used
-for subsequent dialogs in that editor session.
+Keep the `.mlpatch` extension when naming files. Successful saves and loads
+remember their folder for both dialogs, including after reopening the editor
+or application. Cancellation and rejected patches do not update it. Missing
+folders fall back to Documents. This is a local UI preference, not part of a
+patch or host sound state; other DAWs' own export dialogs remain independent.
 
 Stop playback and release held notes before loading. Existing notes retain their
 latched envelope stages; the patch does not restart notes or capture active voices.
@@ -26,8 +29,11 @@ rejected before any controls change. Saving writes a temporary file and replaces
 the destination only after that write succeeds. No factory bank is included.
 Host project/preset state uses the existing migration path and is unchanged.
 
-Verification on 2026-10-29: all four CTest checks passed, including patch roundtrip
+Historical verification on 2026-10-29: all four CTest checks passed, including patch roundtrip
 for all controls, invalid-file rejection without partial edits and file save/load.
 The actual VST3 passed scan/load/audio/state/release/reload checks. Editor snapshots
 were inspected at the compact size. Native dialog operation inside FL Studio is
-not yet verified, and this development build has not replaced the installed 0.4.
+was not yet verified in that historical check. On 2026-10-31 Holger manually
+loaded eight patches in FL; FPSDK readback independently matched all 41 controls
+in each (328/328 comparisons). Persistent folder behavior is a later UI update;
+native-dialog persistence in FL still needs its own live check after installation.

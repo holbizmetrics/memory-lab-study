@@ -1,7 +1,14 @@
 #pragma once
 #include "Patch.hpp"
+#include "PatchLocation.hpp"
 
 void patchChecks(){
+ // Exercise real persisted UI preferences across fresh owners, away from user settings.
+ juce::TemporaryFile preferences;
+ const auto documents=juce::File::getSpecialLocation(juce::File::userDocumentsDirectory);
+ const auto chosen=juce::File::getCurrentWorkingDirectory().getChildFile("test-patch.mlpatch");
+ {memorylab::PatchLocation location(preferences.getFile());check(location.initialFile().getParentDirectory()==documents,"patch folder initial fallback");check(location.rememberSuccess(chosen),"patch folder preference write");}
+ {memorylab::PatchLocation reopened(preferences.getFile());check(reopened.initialFile().getParentDirectory()==chosen.getParentDirectory(),"patch folder not persisted across reopen");check(!reopened.rememberSuccess(juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile(juce::Uuid().toString()).getChildFile("missing.mlpatch")),"missing patch folder accepted");check(reopened.initialFile().getParentDirectory()==chosen.getParentDirectory(),"failed folder preference changed prior selection");}
  auto source=std::make_unique<MemoryLabProcessor>(),target=std::make_unique<MemoryLabProcessor>();
  int index=0;
  for(auto* p:source->getParameters())p->setValueNotifyingHost(float(++index)/float(source->getParameters().size()+1));

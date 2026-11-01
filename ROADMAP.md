@@ -2,12 +2,44 @@
 
 ## Future project note (2026-10-31)
 
+### Hybrid physically modeled choir (2026-11-01)
+
+Holger proposed a future choir instrument with two blendable voice-generation
+approaches: a directly controlled formant layer and a physical vocal model
+(voiced excitation feeding a simplified vocal tract, with turbulent breath).
+Both should offer vowel/tract shaping and expressive controls. Physical vocal
+models naturally produce formants too; these are alternative implementations,
+not a division between having formants and having none.
+
+Holger confirmed the initial scope on 2026-11-01: wordless choir only, with
+shapable vowels, evolving choir pads and breathy textures. Lyrics and intelligible
+words are outside this first scope. Build
+one expressive voice first, then add a small ensemble with individual pitch,
+timing, vibrato, vowel and breath variation. Consonants, lyrics and intelligible
+singing are separate, substantially harder milestones. No acoustic fidelity or
+specific implementation has been established. Keep this as a future project;
+finish the current Memory Lab work before starting implementation.
+
+### Genki Instruments Katla
+
 Holger requested recording Genki Instruments Katla as a future VST3 instrument
 project/inspiration (video reference: "Genki Instruments Katla #2 | Winterdagen").
 Research, implementation scope and any hardware-modeling claims are undecided.
 Stay focused on completing the current Memory Lab project before starting it.
 
 ## Release policy and current installation
+
+2026-11-01: Holger provisionally accepts the current sound with drives off, and
+also accepted voice drive down with shared drive enabled. Its intentional
+clipping purpose was unclear. No DSP repair is claimed. Finish the 0.8 usability
+update: explicit drive help, disabled/dimmed Classic Profile outside Classic,
+and persistent successful patch-folder preference. Preserve sound/defaults.
+
+Proposed 0.9 scope (not implemented or frozen): extend the existing per-voice LFO
+with triangle, saw and pulse waveforms alongside sine, update the waveform preview
+and append a stable host control with old patches restoring sine. Verify timing,
+modulation range, waveform transitions and unchanged default audio before delivery.
+This is an incremental motion feature, not the full four-LFO Relic modulation system.
 
 2026-10-30 priority: Holger reports possible persistent distortion in 0.8 and is
 testing before 0.9. Keep the regression open. [Investigation](plugin/DISTORTION-INVESTIGATION.md)

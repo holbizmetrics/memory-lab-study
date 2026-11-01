@@ -1,5 +1,6 @@
 #include "Editor.hpp"
 #include "Patch.hpp"
+#include "PatchLocation.hpp"
 #include <string>
 #include <complex>
 
@@ -12,7 +13,7 @@ const std::array<Control,8>voice{{
  {"cutoff","CUTOFF","Hz","Sets the center frequency of the classic filter."},
  {"resonance","RESONANCE","Q","Emphasis and decay around the filter frequency."},
  {"profile","CLASSIC PROFILE","","Classic family only: high-pass through notch to low-pass."},
- {"drive","DRIVE","","Output saturation after the voice filter."},
+ {"drive","SHARED DRIVE","","Intentional saturation after voices mix. Zero bypasses. OUTPUT controls loudness."},
  {"depth","MEMORY","","How strongly recent signal energy affects the drive."},
  {"recovery","RECOVERY","ms","How long the output drive takes to recover."}
 }};
@@ -33,7 +34,7 @@ const std::array<Control,8>ampControls{{
  {"ampDecay","DECAY","ms","Fall from peak to the sustain level. Applies on the next note."},
  {"ampSustain","SUSTAIN","","Level held while the key or sustain pedal remains down."},
  {"ampRelease","RELEASE","ms","Fade from the current level after key/pedal release. Applies on the next note."},
- {"drive","DRIVE","","Shared output drive. Its response also depends on the amplitude contour."},
+ {"drive","SHARED DRIVE","","Intentional shared saturation. Zero bypasses; separate from VOICE DRIVE."},
  {"depth","MEMORY","","Depth of the shared drive memory."}
 }};
 const std::array<Control,8>filterControls{{
@@ -57,8 +58,8 @@ const std::array<Control,8>arpControls{{
  {"cutoff","BASE CUTOFF","Hz","Shape the sound while the arpeggio runs."}
 }};
 const std::array<Control,8>driveControls{{
- {"voiceDrive","VOICE DRIVE","dB","Per-voice clipping after the filter. Zero bypasses. Lower OUTPUT to compensate."},
- {"drive","SHARED DRIVE","","Memory drive after the voices mix."},
+ {"voiceDrive","VOICE DRIVE","dB","Intentional distortion: boosts each filtered voice into clipping. Zero bypasses. Use OUTPUT for loudness."},
+ {"drive","SHARED DRIVE","","Independent saturation after voices mix. Zero bypasses. Both drives at zero bypass both drive effects."},
  {"depth","MEMORY","","Depth of the shared drive memory."},
  {"recovery","RECOVERY","ms","Recovery of the shared drive memory."},
  {"cutoff","CUTOFF","Hz","Filter frequency before voice drive."},
@@ -83,7 +84,7 @@ const std::array<Control,8>familyControls{{
  {"profile","CLASSIC PROFILE","","HP/notch/LP only in CLASSIC. This control is inactive in the other families."},
  {"filterEnv","ENV AMOUNT","oct","Velocity-scaled filter envelope amount. Edit its stages under ENVELOPES / FILTER."},
  {"filterLfo","FILTER MOTION","oct","Per-voice sine LFO amount on filter cutoff."},
- {"voiceDrive","VOICE DRIVE","dB","Per-voice clipping after the selected filter. Zero bypasses."},
+ {"voiceDrive","VOICE DRIVE","dB","Intentional distortion after the filter. Zero bypasses; separate from SHARED DRIVE."},
  {"noiseLevel","WHITE NOISE","","Noise joins the oscillators before the shared voice filter."}
 }};
 class PanelLook final:public juce::LookAndFeel_V4 {
@@ -111,16 +112,19 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
  juce::Slider output;juce::ToggleButton phase{"RESET OSC PHASE"};
  juce::TextButton savePatch{"SAVE"},loadPatch{"LOAD"};
  std::unique_ptr<juce::FileChooser> patchChooser;
- juce::File patchFile{juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("Memory Lab Study.mlpatch")};
+ memorylab::PatchLocation patchLocation;
+ juce::File patchFile{patchLocation.initialFile()};
  void choosePatch(bool saving){
   if(patchChooser)return;
+  const auto remembered=patchLocation.initialFile().getParentDirectory();
+  if(remembered!=patchFile.getParentDirectory())patchFile=remembered.getChildFile(patchFile.getFileName());
   patchChooser=std::make_unique<juce::FileChooser>(saving?"Save Memory Lab patch":"Load Memory Lab patch",patchFile,"*.mlpatch",true,false,this);
   const auto chooserFlags=saving?(juce::FileBrowserComponent::saveMode|juce::FileBrowserComponent::canSelectFiles|juce::FileBrowserComponent::warnAboutOverwriting):(juce::FileBrowserComponent::openMode|juce::FileBrowserComponent::canSelectFiles);
   patchChooser->launchAsync(chooserFlags,[safe=juce::Component::SafePointer<Surface>(this),saving](const juce::FileChooser& chooser){
    if(!safe)return;auto file=chooser.getResult();
    if(file!=juce::File{}){
     const auto result=saving?memorylab::patch::save(safe->processor,file):memorylab::patch::load(safe->processor,file);
-    if(result.wasOk())safe->patchFile=file;
+    if(result.wasOk()){safe->patchFile=file;safe->patchLocation.rememberSuccess(file);}
     else juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,"Memory Lab patch",result.getErrorMessage());
    }
    safe->patchChooser.reset();
@@ -138,9 +142,16 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
   for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];const auto&c=controls()[std::size_t(i)];k.attachment.reset();k.label.setText(c.name,juce::dontSendNotification);k.slider.setName(c.name);k.slider.setTooltip(c.help);
    k.slider.setComponentID(c.id);k.attachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.state,c.id,k.slider);
    k.slider.setDoubleClickReturnValue(true,processor.state.getParameter(c.id)->convertFrom0to1(processor.state.getParameter(c.id)->getDefaultValue()));
-  }binding=false;select(pageIndex>=5?0:isEnvelope?1:isMotion?0:2);
+  }binding=false;refreshProfileState();select(pageIndex>=5?0:isEnvelope?1:isMotion?0:2);
  }
- void timerCallback()override{meter=juce::jmax(meter*.8f,processor.outputPeak.load());repaint();}
+ void refreshProfileState(){
+  for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];const auto&c=controls()[std::size_t(i)];
+   const bool inactive=std::string(c.id)=="profile"&&std::round(value("filterFamily"))!=0;
+   k.slider.setEnabled(!inactive);k.slider.setAlpha(inactive?.35f:1.f);k.label.setAlpha(inactive?.45f:1.f);
+   k.slider.setTooltip(inactive?"Inactive in this family. Select CLASSIC to use high-pass / notch / low-pass profile.":c.help);
+  }
+ }
+ void timerCallback()override{meter=juce::jmax(meter*.8f,processor.outputPeak.load());refreshProfileState();repaint();}
  void filterGraph(juce::Graphics&g,juce::Rectangle<float> area){
   const double q=value("resonance"),p=value("profile");juce::Path curve;
   g.setColour(juce::Colour(0xff263b38));for(int i=0;i<=4;++i){float x=area.getX()+area.getWidth()*i/4;g.drawVerticalLine(int(x),area.getY(),area.getBottom());}for(int i=0;i<=3;++i){float y=area.getY()+area.getHeight()*i/3;g.drawHorizontalLine(int(y),area.getX(),area.getRight());}
@@ -221,7 +232,7 @@ public:
  }
  void paint(juce::Graphics&g)override{
   g.fillAll(ink);g.setColour(white);g.setFont(juce::Font(juce::FontOptions(27.f,juce::Font::bold)));g.drawText("MEMORY LAB",30,20,320,36,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.8",240,29,90,20,juce::Justification::centredLeft);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.8 a2",240,29,90,20,juce::Justification::centredLeft);
   g.setColour(panel);g.fillRoundedRectangle(28,82,866,236,12);g.fillRoundedRectangle(912,82,100,426,12);
   g.setColour(juce::Colour(0xff090f10));g.fillRoundedRectangle(40,94,842,212,7);
   const auto&c=controls()[std::size_t(selected)];g.setColour(isMotion?amber:mint);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawText(c.name,60,110,285,26,juce::Justification::centredLeft);
@@ -233,7 +244,9 @@ public:
   if(std::string(c.id)=="arpRate"){const char*names[]{"1/4","1/8","1/16","1/32","1/8 TRIPLET","1/16 TRIPLET"};text=names[juce::jlimit(0,5,int(value(c.id)))];}
   if(std::string(c.id)=="arpOrder"){const char*names[]{"UP","DOWN","UP / DOWN"};text=names[juce::jlimit(0,2,int(value(c.id)))];}
   g.setColour(white);g.setFont(juce::Font(juce::FontOptions(38.f,juce::Font::bold)));g.drawText(text,58,145,290,54,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(13.f)));g.drawText(c.unit,61,197,260,20,juce::Justification::centredLeft);g.drawFittedText(c.help,60,229,285,61,juce::Justification::topLeft,3);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(13.f)));g.drawText(c.unit,61,197,260,20,juce::Justification::centredLeft);
+  const bool profileInactive=std::string(c.id)=="profile"&&std::round(value("filterFamily"))!=0;
+  g.drawFittedText(profileInactive?"Inactive in this family. Select CLASSIC to use high-pass / notch / low-pass profile.":c.help,60,229,285,61,juce::Justification::topLeft,3);
   const bool env=isEnvelope||(isMotion&&std::string(c.id)=="filterEnv");g.setColour(muted);g.drawText(pageIndex==6?"OSCILLATOR MIX / SOURCE LEVELS":pageIndex==5?"PER-VOICE DRIVE / STATIC TRANSFER":pageIndex==4?"ARPEGGIATOR / 16-STEP RHYTHM PREVIEW":env?(pageIndex==2?"AMPLITUDE ENVELOPE / NEXT NOTE":"FILTER ENVELOPE / NEXT NOTE"):isMotion?"PER-VOICE SINE LFO / 1 SECOND":"STATIC FILTER RESPONSE / 30 Hz - 18 kHz",376,110,480,22,juce::Justification::centredLeft);
   if(pageIndex==6)oscillatorGraph(g,{376,147,476,134});else if(pageIndex==5)driveGraph(g,{376,147,476,134});else if(pageIndex==4)arpGraph(g,{376,147,476,134});else if(env)envelopeGraph(g,{376,147,476,134});else if(isMotion)motionGraph(g,{376,147,476,134});else filterGraph(g,{376,147,476,134});
   g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("OUTPUT",916,108,94,24,juce::Justification::centred);g.drawText("LEVEL",916,471,94,20,juce::Justification::centred);

@@ -7,6 +7,20 @@ void tabSwitchChecks(){
   for(auto*parameter:p->getParameters())parameter->addListener(&monitor);
   auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
   for(int cycle=0;cycle<4;++cycle)for(const char*id:{"voicePage","oscPage","motionPage","envelopePage","filterEnvelopePage","familyPage","arpPage","drivePage"}){auto*b=dynamic_cast<juce::Button*>(find(*editor,id));check(b&&bool(b->onClick),"tab missing");b->onClick();}
+  auto*profile=dynamic_cast<juce::Slider*>(find(*editor,"profile"));check(profile&&profile->isEnabled()==(family==0),"Classic Profile active in wrong family");
+  set(*p,"filterFamily",family==0?3.f:0.f);
+  const auto deadline=juce::Time::getMillisecondCounterHiRes()+1000.;
+  while(profile->isEnabled()!=(family!=0)&&juce::Time::getMillisecondCounterHiRes()<deadline){
+#if JUCE_WINDOWS
+   // Dispatch only this isolated test process's messages; no FL UI Automation.
+   uia_checks::pump();
+#endif
+   juce::Thread::sleep(5);juce::Timer::callPendingTimersSynchronously();
+  }
+  check(profile->isEnabled()==(family!=0),"Classic Profile did not follow host family change");
+  set(*p,"filterFamily",family);
+  // The two intentional host writes above are excluded from the editor-write check.
+  monitor.writes-=2;
   editor.reset();for(auto*parameter:p->getParameters())parameter->removeListener(&monitor);
   check(monitor.writes==0,"opening editor or switching tabs wrote a parameter");for(int i=0;i<p->getParameters().size();++i)check(p->getParameters()[i]->getValue()==before[std::size_t(i)],"tab switch changed sound settings");
  }

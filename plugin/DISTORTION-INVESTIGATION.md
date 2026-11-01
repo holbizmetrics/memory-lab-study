@@ -1,5 +1,125 @@
 # Possible 0.8 distortion regression — investigation open
 
+## Latest operator clarification (2026-11-01)
+
+Holger accepted the Classic/MAX-noise reference as harsh noise without the
+unwanted distortion. He subsequently said live sound no longer appeared distorted
+after reducing VOICE DRIVE. Its intentional per-voice clipping purpose had not
+been clear to him. After distinguishing it from SHARED DRIVE he provisionally
+accepted voice drive down with shared drive enabled, then explicitly confirmed:
+"When no drive is on the sound is fine." He said we can move forward for now.
+
+No production DSP correction or installed-module change occurred. Earlier patch
+and readback evidence had voiceDrive=0, so this does not establish that every
+previous report was caused by turning up that control. Do not claim a repaired
+regression or a psychological cause. Preserve the current sound and evidence.
+Immediate work is drive-purpose clarity, inactive Classic Profile presentation
+and persistent patch-folder preference. Holger confirmed that Profile works
+when Classic is selected; its apparent inactivity occurred in Blend, as designed.
+
+## Classic/MAX-noise version pair (2026-11-01)
+
+At PCLA's request fd959ccc, rendered Holger's saved Classic MAX/noise1 patch in
+both preserved modules, shared drive enabled. Same fixed MIDI as the earlier
+version comparison; source settings include Q3.72/cutoff2062, drive5/depth.8.
+Result: sample-identical, maximum absolute difference and difference RMS zero.
+Artifacts: `outputs/user-version-noise-max-1` (two original WAVs, matched copies,
+raw files, state readbacks/logs and manifest). No installed plugin change.
+This shows equal behavior for these settings/fixture, not that Holger's earlier
+live 0.7 sessions necessarily had the same settings or listening conditions.
+If offline playback lacks the live symptom, investigate missing live conditions;
+do not treat it as proof that the tester's earlier experience was wrong.
+
+## Held-window drive measurements cross-checked (2026-11-01)
+
+PCLA message f3f1253c measured raw captures from .3–1.5 s, excluding attack and
+release. `plugin/measure-drive-held.py` independently reproduced all twelve
+RMS-drop and crest pairs to rounding; results are retained as
+`outputs/lp4-headroom-study-2/held-window-independent.json`. Q3.72/noise MIN:
+Classic combined-signal wet/dry RMS drop 12.16 dB, crest 12.51→6.81; original
+LP4 15.77 dB, 12.45→6.33; candidate 7.17 dB, 12.46→8.47. Q8/noise MAX original
+LP4: 29.61 dB, 11.20→5.05. These differ from whole-clip crest values because
+the analysis window differs, not because the audio changed.
+
+This supports a strong nonlinear drive interaction, not a universal quality
+classification based on crest alone. Combined tone/noise RMS ratios do not
+isolate detector gain or tonal attenuation. Controlled coherent-tone/noise and
+aliasing probes remain distinct next measurements. Noise routing through drive
+is not intrinsically an error; an optional clean-noise design must preserve
+filter/envelope shaping. Our memory-drive model is an original addition, with
+no measured equivalence to the hardware Relic established. Holger hears actual
+distortion of the tone, not merely the presence of white noise.
+
+## Live-listening feedback and timing follow-up (2026-11-01)
+
+Holger reports preferring drive bypass with noise MIN/MAX at Q 3.72 and 8 across
+the study. He subsequently clarified the original/compensated grouping, so no
+separately established original-versus-compensated preference is inferred. He
+still feels something changed in 0.8. PCLA relayed that the issue occurs with
+song playback, MIDI keyboard and computer keyboard; the exact song MIDI is no
+longer a prerequisite for investigating live playback.
+
+PCLA independently confirmed both saved-setting version pairs were identical
+and supplied a positive control: drive-on versus bypassed differs. It noted that
+extended filter states run even in Classic (intentional warm-state behavior).
+`plugin/benchmark-version-voices.py` measured held-block processing in six fresh
+instances per version at one and eight voices (the maximum), serial alternating
+order, 48 kHz/512 frames, same saved Classic/noise-zero patch and drive 5/depth .8.
+Each run measured 131 held blocks. Median of run block medians:
+
+- One voice: 0.7 158.45 us; 0.8 173.10 us (+9.25%). Run ranges 147.6–178.0
+  versus 162.5–184.2 us. Worst observed block-budget ratio .047925.
+- Eight voices: 0.7 717.10 us; 0.8 776.65 us (+8.30%). Ranges 660.1–773.6
+  versus 647.9–840.0 us. Worst observed block-budget ratio .181875.
+
+Audio was identical across versions/repeats within each voice fixture. Results
+and 24 capture logs/raw files are in `outputs/version-voice-timing-1`. Timing
+ranges overlap. These are descriptive offline cost measurements, not evidence
+of FL xruns or proof against a device/small-buffer/host-load issue. No deadline
+exhaustion was measured here. A single-note symptom alone cannot rule out a
+host-wide realtime deadline issue. Preserve warm-state/transition behavior if
+considering a future optimization; no skip/reset change has been made.
+
+MemoryDrive code inspection finds a bounded first-order rectified envelope with
+5 ms attack and recovery-controlled decay (252 ms here), 20 ms parameter
+smoothing, an 8 Hz DC blocker and one previous-input sample for interpolation.
+Recent input history affects output; the code does not show an unbounded
+minutes-long accumulator for bounded finite input. A long-history test would
+still be distinct from a fresh-instance test. No universal stability proof is
+claimed by this inspection.
+
+Tone/noise cross-modulation through the nonlinear shared stage is a supported
+mechanism, but does not make that routing intrinsically erroneous or establish
+it as the sole cause. Holger rejects drive with noise zero too. A clean-noise
+branch must preserve filtering/envelopes and be optional for old-patch behavior;
+moving raw noise straight to the output would change the agreed feature.
+Likewise, changed listener expectations and an interface-rate incident are not
+established causes. Checked Memory Lab notes record Focusrite crash hypotheses,
+not the specifically alleged 48k/44.1k/exclusive-mode noise fix. PCLA was asked
+for its source and for live buffer/rate/underrun observations before assigning
+those explanations. No DSP fix or installed plugin change occurred.
+
+## Saved-setting 0.7/0.8 version boundary (2026-11-01)
+
+PCLA proposed a four-way test and Holger authorized renewed SecuredChat
+collaboration. `plugin/compare-user-versions.py` rendered preserved actual 0.7
+and 0.8 modules using his saved Classic MIN settings: cutoff 2062, Q 3.72,
+detune 9.2, recovery 252, drive 5, depth .8, noise/voiceDrive 0. The 0.7 schema-4
+copy omits only filterFamily; the 0.8 schema-5 copy explicitly selects Classic.
+Both receive the same other 40 values through host state with readback checks.
+Bypassed variants change only drive/depth/voiceDrive to zero.
+
+Result: both drive-on and drive-bypassed pairs are sample-identical, maximum
+absolute difference and difference RMS both zero. Artifacts:
+`outputs/user-version-comparison-1` (four original WAVs, four matched WAVs,
+raw float32 files, logs, parameter readbacks, patches and manifest with hashes).
+These use the fixed synthetic E-minor MIDI chord at 48 kHz/512 frames, not
+Holger's exact FL song MIDI. Fresh instances and silent settling do not test
+long-running state, automation, expression, family transitions or the FL chain.
+Equal results narrow the investigation for this fixture; they do not close his
+report or establish universal Classic-path equivalence. PCLA was sent the files
+for independent analysis. No sound change or plugin installation occurred.
+
 ## LP4 compensation listening study (2026-10-31)
 
 `plugin/study-lp4-headroom.py` creates isolated derivative patches and captures

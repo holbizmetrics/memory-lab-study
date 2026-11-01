@@ -1,5 +1,10 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+The 0.8 usability follow-up is documented in
+[v0.8.0-alpha.2](releases/v0.8.0-alpha.2.md): clearer intentional-drive help,
+disabled Classic-only profile controls in other families, and a remembered
+patch folder. Sound, parameter IDs and patch compatibility remain unchanged.
+
 This project lives outside FPSDK and PCLA. It applies PCLA-Experimental's existing
 ideation contracts, Codex provider adapter and inspected InverseGateRunner to a
 practical DSP question. It does not modify the PCLA engine or the companion's files.
