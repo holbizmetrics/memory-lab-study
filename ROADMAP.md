@@ -1,5 +1,19 @@
 # Memory Lab Study roadmap
 
+## Requested extension: patch randomizer (2026-11-01)
+
+Holger also requested INIT to restore the factory sound without needing a saved
+default patch. Include that small usability addition in 0.10. It restores sound
+parameters to their factory defaults and leaves the remembered patch folder alone.
+
+Holger proposed a dice/randomizer for generating presets. Record it for after
+0.10's LFO timing work, rather than expanding the current milestone. Proposed
+first scope: bounded musical variation of oscillators, filters, envelopes and
+motion, with output and intentional distortion controlled; optional section locks
+and undo/restore of the previous patch. Keep it explicit and opt-in, preserve saved
+patches/default sound, and distinguish it from hardware Relic equivalence. Exact
+controls and implementation remain to be decided.
+
 ## Future project note (2026-10-31)
 
 ### Hybrid physically modeled choir (2026-11-01)
@@ -28,6 +42,12 @@ Research, implementation scope and any hardware-modeling claims are undecided.
 Stay focused on completing the current Memory Lab project before starting it.
 
 ## Release policy and current installation
+
+0.10 is implemented and technically verified: MOTION/CLOCK adds BPM sync and
+retrigger/free-run, and INIT restores factory controls. Seven plugin checks pass;
+actual default/legacy modulation parity and clock comparisons pass. New timing
+musical approval remains pending. Holger approved 0.9's shapes in FL on November 1.
+See releases/v0.10.0-alpha.1.md for precise limits and validation scope.
 
 2026-11-01: Holger provisionally accepts the current sound with drives off, and
 also accepted voice drive down with shared drive enabled. Its intentional

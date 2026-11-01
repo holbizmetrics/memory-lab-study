@@ -1,5 +1,12 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.10 development adds [MOTION / CLOCK](plugin/MOTION.md): BPM sync, six note
+divisions, fallback tempo and independent LFO note retrigger/free-running mode.
+Existing patches retain the approved 0.9 behaviour. New timing-mode listening
+approval is pending; Holger confirmed 0.9's LFO shapes in FL Studio. INIT restores
+factory controls without needing a saved default patch. See
+[0.10 release notes](releases/v0.10.0-alpha.1.md).
+
 0.9 adds [LFO shapes on MOTION](plugin/MOTION.md): sine, triangle, rising saw and
 pulse, with old patch/state migration to sine and stable existing host IDs.
 Technical checks and listening status are recorded in

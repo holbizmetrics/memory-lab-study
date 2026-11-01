@@ -1,4 +1,34 @@
-# Motion waveforms — 0.9
+# Motion — waveforms and clock
+
+## 0.10 clock controls
+
+MOTION has MODULATION and CLOCK subpages. CLOCK exposes TEMPO SYNC, DIVISION,
+NOTE RETRIGGER, FALLBACK BPM, FREE RATE, SHAPE, FILTER MOTION and OUTPUT.
+Sync off retains the original smoothed 0.05–20 Hz rate. Sync on uses one cycle per
+quarter, eighth, sixteenth, 32nd, eighth-triplet or sixteenth-triplet note. Valid
+host BPM (20–400) takes priority; otherwise the independent fallback BPM is used.
+The arpeggiator's tempo controls do not configure the LFO. FREE RATE is dimmed
+while synced, and DIVISION is dimmed while unsynced. The preview reports effective
+rate, BPM source and retrigger mode. Sync controls speed, not host PPQ/bar alignment.
+
+NOTE RETRIGGER on retains per-note phase-zero starts. Off makes all voices use one
+shared continuously advancing phase, including through silence while the host is
+processing audio. This phase resets on engine prepare/reset, is not saved as part
+of a patch, and does not follow transport seeks or restart on host play/stop.
+Switching sync/retrigger/shape on held notes may cause modulation jumps. Oscillator
+phase reset remains independent. Host tempo updates take effect at block boundaries;
+synced speed changes immediately, while the old unsynced rate smoothing is retained.
+
+Four new host parameters append after the original 42: `lfoSync`, `lfoDivision`,
+`lfoRetrigger`, `lfoBpm` (indices 42–45). Patch schema 7 stores all 46 controls.
+Schemas 1–6 and old host states restore sync off, sixteenth division, retrigger on
+and fallback 130 BPM; saved free rate and LFO shape remain as before. Old builds
+cannot read schema 7. Musical approval of 0.10's new timing modes is pending.
+
+## 0.9 waveform milestone
+
+Holger confirmed the new shapes work and sound cool in FL on November 1, 2026.
+The following describes the original 0.9 milestone; 0.10 adds the clock options above.
 
 MOTION now has an LFO SHAPE knob: SINE, TRIANGLE, SAW and PULSE. It replaces
 the duplicated MEMORY depth knob on that page; memory depth remains on VOICE,

@@ -34,6 +34,7 @@ for shape,name in enumerate(('sine','triangle','saw','pulse')):
 # Compare against the verified previous module, using its backup after installation.
 old_bundle=ROOT/'outputs/installed-backup-0.8.0-alpha.2'
 if not old_bundle.is_dir():old_bundle=Path('C:/Program Files/Common Files/VST3/Memory Lab Study.vst3')
+else:old_bundle=old_bundle/'Contents/x86_64-win/Memory Lab Study.vst3'
 old_root=ET.parse(OUT/'sine.mlpatch').getroot();old_root.set('schemaVersion','5')
 old_root.remove(next(e for e in old_root if e.get('id')=='lfoShape'))
 old_patch=OUT/'sine-legacy.mlpatch';ET.ElementTree(old_root).write(old_patch,encoding='unicode')
