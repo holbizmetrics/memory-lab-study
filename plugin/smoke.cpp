@@ -12,6 +12,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "oscillator-checks.hpp"
 #include "noise-checks.hpp"
 #include "filter-family-checks.hpp"
+#include "motion-checks.hpp"
 #include "tab-switch-checks.hpp" // Includes live host-family enabled-state coverage.
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
@@ -50,6 +51,7 @@ int main(int argc,char**argv){try{
 #endif
  if(argc==2&&std::string(argv[1])=="--automation-test"){automationChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--patch-test"){patchChecks();return 0;}
+ if(argc==2&&std::string(argv[1])=="--motion-test"){motionChecks();return 0;}
  if(argc==2){
   auto processor=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
   const juce::File folder{juce::String::fromUTF8(argv[1])};folder.createDirectory();check(folder.isDirectory(),"snapshot folder");
@@ -57,6 +59,7 @@ int main(int argc,char**argv){try{
   snapshot("voice.png");
   auto*cutoff=dynamic_cast<juce::Slider*>(find(*editor,"cutoff"));check(cutoff,"cutoff control missing");cutoff->setValue(2000,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("cutoff")->load()-2000)<1,"cutoff attachment");
   auto*motion=dynamic_cast<juce::Button*>(find(*editor,"motionPage"));check(motion&&bool(motion->onClick),"motion page missing");motion->onClick();snapshot("motion.png");
+  set(*processor,"lfoShape",1);snapshot("motion-triangle.png");set(*processor,"lfoShape",2);snapshot("motion-saw.png");set(*processor,"lfoShape",3);snapshot("motion-pulse.png");set(*processor,"lfoShape",0);
   auto*vibrato=dynamic_cast<juce::Slider*>(find(*editor,"vibrato"));check(vibrato,"vibrato control missing");vibrato->setValue(8,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("vibrato")->load()-8)<.01,"vibrato attachment");
   auto*envelopes=dynamic_cast<juce::Button*>(find(*editor,"envelopePage"));check(envelopes&&bool(envelopes->onClick),"envelope page missing");envelopes->onClick();snapshot("amplitude.png");
   auto*attack=dynamic_cast<juce::Slider*>(find(*editor,"ampAttack"));check(attack,"amplitude attack control missing");attack->setValue(500,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("ampAttack")->load()-500)<1,"amplitude attack attachment");snapshot("amplitude-edited.png");

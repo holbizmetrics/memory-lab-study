@@ -35,11 +35,21 @@ clipping purpose was unclear. No DSP repair is claimed. Finish the 0.8 usability
 update: explicit drive help, disabled/dimmed Classic Profile outside Classic,
 and persistent successful patch-folder preference. Preserve sound/defaults.
 
-Proposed 0.9 scope (not implemented or frozen): extend the existing per-voice LFO
+0.9 scope (implemented and technically verified, 2026-11-01): extend the existing per-voice LFO
 with triangle, saw and pulse waveforms alongside sine, update the waveform preview
-and append a stable host control with old patches restoring sine. Verify timing,
-modulation range, waveform transitions and unchanged default audio before delivery.
+and append a stable host control with old patches restoring sine. Six plugin tests
+pass, with exact default and active sine-modulation VST3 audio parity against 0.8.
+Musical listening approval of the new shapes is pending. Waveform changes are
+discrete and may cause intentional modulation jumps on held notes.
 This is an incremental motion feature, not the full four-LFO Relic modulation system.
+
+Tentative sequence discussed with Holger, not promised or frozen: 0.10 adds LFO
+tempo sync/retrigger options; 0.11 explores multiple LFOs and assignable modulation;
+0.12 expression/keyboard tracking; 0.13 starting patches and browsing; later 0.x
+closes agreed gaps and performs compatibility/CPU/DAW validation. 1.0 is the
+stable, documented, musically approved completion point. 1.x refines it; a possible
+2.0 layering/splits/multitimbral expansion is a separate scope decision. Compare
+hardware documentation before claiming equivalence or committing those features.
 
 2026-10-30 priority: Holger reports possible persistent distortion in 0.8 and is
 testing before 0.9. Keep the regression open. [Investigation](plugin/DISTORTION-INVESTIGATION.md)
@@ -52,7 +62,8 @@ tag and a published GitHub prerelease. This is a standing user instruction,
 recorded in AGENTS.md. Tags point to the exact verified source and are never moved.
 Versions 0.6, 0.7 and 0.8 are preserved as v0.6.0-alpha.1, v0.7.0-alpha.1 and
 v0.8.0-alpha.1 respectively; their release notes live under releases/.
-Installed 0.8 passed actual-module validation, with a verified 0.7 backup retained.
+0.8 alpha 2 was installed and hash-verified on November 1, with the previous 0.8
+bundle retained as a verified backup. 0.9 development follows that installation.
 
 ## Preserved milestone
 

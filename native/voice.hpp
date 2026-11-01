@@ -8,6 +8,16 @@
 
 namespace memorylab {
 constexpr double pi=3.14159265358979323846;
+// Bipolar, note-retriggered modulation waveforms. Sine keeps the original math.
+inline double lfoSample(double phase,int shape){
+ phase-=std::floor(phase);
+ switch(shape){
+  case 1:return 1-4*std::abs(phase-.5); // triangle: -1, +1, -1
+  case 2:return 2*phase-1; // rising saw; intentional reset at wrap
+  case 3:return phase<.5?1.:-1.; // 50% pulse; intentional stepped modulation
+  default:return std::sin(2*pi*phase);
+ }
+}
 struct EnvelopeSettings {double delay=0,attack=.02,hold=0,decay=.35,sustain=.15,release=.4;};
 inline double envelopeLevel(double elapsed,const EnvelopeSettings&s){
  const double t=elapsed-s.delay;if(t<0)return 0;
@@ -21,7 +31,7 @@ struct Parameters {
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
  double pressureDepth=0,voiceDrive=0,sawLevel=.42,pulseLevel=.28,osc2Interval=0,noiseLevel=0;
- int filterFamily=0;
+ int filterFamily=0,lfoShape=0;
  EnvelopeSettings ampEnvelope{0,.012,0,.18,.65,.5},filterEnvelopeShape{};
 };
 class MemoryDrive {
@@ -47,7 +57,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -184,6 +194,7 @@ class Synth {
     case Param::Osc2Interval:target.osc2Interval=std::clamp(std::round(e.value),-24.,24.);break;
     case Param::NoiseLevel:target.noiseLevel=std::clamp(e.value,0.,1.);break;
     case Param::FilterFamily:target.filterFamily=int(std::clamp(std::round(e.value),0.,3.));break;
+    case Param::LfoShape:target.lfoShape=int(std::clamp(std::round(e.value),0.,3.));break;
    }return;
   }
   if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
@@ -216,7 +227,7 @@ class Synth {
   if(!target.retrigger){chosen->phase1=phase1;chosen->phase2=phase2;}
  }
  double voiceTick(Voice& v){
-  const double lfo=std::sin(2*pi*v.lfoPhase),filterEnv=v.filterEnv.tick(sr);
+  const double lfo=target.lfoShape==0?std::sin(2*pi*v.lfoPhase):lfoSample(v.lfoPhase,target.lfoShape),filterEnv=v.filterEnv.tick(sr);
   v.lfoPhase+=current.lfoRate/sr;v.lfoPhase-=std::floor(v.lfoPhase);
   const double f=440*std::exp2((v.note-69)/12.)*std::exp2((current.pitchLfo*lfo+200*bend[v.channel])/1200),dt=std::min(.45,f/sr);
 #if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX

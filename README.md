@@ -1,5 +1,10 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.9 adds [LFO shapes on MOTION](plugin/MOTION.md): sine, triangle, rising saw and
+pulse, with old patch/state migration to sine and stable existing host IDs.
+Technical checks and listening status are recorded in
+[v0.9.0-alpha.1 release notes](releases/v0.9.0-alpha.1.md).
+
 The 0.8 usability follow-up is documented in
 [v0.8.0-alpha.2](releases/v0.8.0-alpha.2.md): clearer intentional-drive help,
 disabled Classic-only profile controls in other families, and a remembered
@@ -41,9 +46,11 @@ with Classic, LP4, BP4 and Blend. Classic and all old patch mappings are preserv
 musical approval of the new live modes remains open.
 
 Holger reported a possible 0.8 distortion regression on 2026-10-30. The
-[current investigation](plugin/DISTORTION-INVESTIGATION.md) preserves that report:
-controlled actual-plugin renders match earlier builds, but the affected patch
-and FL playback context still need reproduction before proceeding to 0.9.
+[investigation](plugin/DISTORTION-INVESTIGATION.md) preserves that report and its
+limits: controlled actual-plugin renders match earlier builds. On November 1 he
+provisionally accepted playback with drives off and voice drive down/shared drive
+enabled after clarifying intentional clipping, and authorized continuing to 0.9.
+This is not a measured repair or a complete reconstruction of the earlier report.
 
 Installed version 0.3 adds editable amplitude and filter dAHDSR envelopes.
 Holger confirmed playing and enjoying it in FL Studio, including a 130 BPM

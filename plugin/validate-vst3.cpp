@@ -12,19 +12,21 @@ int capture(const char*bundle,const char*stem,const char*setting,const char*patc
  const std::string mode(setting);check(mode=="default"||mode=="clean"||mode=="stress"||mode=="single","unknown capture setting");
  if(patchFile){
   auto patch=juce::parseXML(juce::File(juce::String::fromUTF8(patchFile)));
-  check(patch&&patch->hasTagName("MemoryLabPatch")&&(patch->getIntAttribute("schemaVersion")==4||patch->getIntAttribute("schemaVersion")==5),"capture expects schema 4 or 5 patch");
+  check(patch&&patch->hasTagName("MemoryLabPatch")&&(patch->getIntAttribute("schemaVersion")==4||patch->getIntAttribute("schemaVersion")==5||patch->getIntAttribute("schemaVersion")==6),"capture expects schema 4, 5 or 6 patch");
   juce::MemoryBlock state;p->getStateInformation(state);auto outer=juce::AudioProcessor::getXmlFromBinary(state.getData(),int(state.getSize()));check(bool(outer),"capture host state XML");
   auto* component=outer->getChildByName("IComponent");check(component!=nullptr,"capture VST3 component state");
   juce::MemoryBlock componentState;check(componentState.fromBase64Encoding(component->getAllSubText()),"capture component decode");
   auto xml=juce::AudioProcessor::getXmlFromBinary(componentState.getData(),int(componentState.getSize()));check(bool(xml),"capture processor XML");
   int expected=0;for(auto*entry:xml->getChildIterator())if(entry->hasTagName("PARAM"))++expected;
-  check(expected==(patch->getIntAttribute("schemaVersion")==4?40:41),"capture patch schema does not match module controls");
+  const int patchCount=patch->getIntAttribute("schemaVersion")==4?40:patch->getIntAttribute("schemaVersion")==5?41:42;
+  check(expected==patchCount||(expected==42&&patchCount==41),"capture patch schema does not match module controls");
+  if(expected==42&&patchCount==41)for(auto*entry:xml->getChildIterator())if(entry->getStringAttribute("id")=="lfoShape")entry->setAttribute("value",0.);
   int applied=0;std::set<juce::String>seen;for(auto*entry:patch->getChildIterator()){
    check(entry->hasTagName("PARAM")&&entry->hasAttribute("value")&&std::isfinite(entry->getDoubleAttribute("value"))&&seen.insert(entry->getStringAttribute("id")).second,"capture invalid or repeated control");
    bool found=false;for(auto*target:xml->getChildIterator())if(target->getStringAttribute("id")==entry->getStringAttribute("id")){target->setAttribute("value",entry->getDoubleAttribute("value"));found=true;++applied;break;}
    check(found,"capture unknown patch ID");
   }
-  check(applied==expected,"capture incomplete patch");
+  check(applied==patchCount,"capture incomplete patch");
   if(mode=="clean")for(auto*entry:xml->getChildIterator()){const auto id=entry->getStringAttribute("id");if(id=="drive"||id=="depth"||id=="voiceDrive")entry->setAttribute("value",0.);}
   juce::AudioProcessor::copyXmlToBinary(*xml,componentState);component->deleteAllTextElements();component->addTextElement(componentState.toBase64Encoding());
   juce::AudioProcessor::copyXmlToBinary(*outer,state);p->setStateInformation(state.getData(),int(state.getSize()));

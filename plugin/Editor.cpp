@@ -18,13 +18,13 @@ const std::array<Control,8>voice{{
  {"recovery","RECOVERY","ms","How long the output drive takes to recover."}
 }};
 const std::array<Control,8>motion{{
- {"lfoRate","LFO RATE","Hz","One note-retriggered sine LFO per voice."},
- {"vibrato","VIBRATO","cents","Sine LFO pitch movement on both oscillators."},
- {"pwm","PULSE MOTION","","Sine LFO movement of pulse width."},
- {"filterLfo","FILTER MOTION","oct","Sine LFO movement of filter cutoff."},
+ {"lfoRate","LFO RATE","Hz","One note-retriggered LFO per voice."},
+ {"vibrato","VIBRATO","cents","Selected LFO pitch movement on both oscillators."},
+ {"pwm","PULSE MOTION","","Selected LFO movement of pulse width."},
+ {"filterLfo","FILTER MOTION","oct","Selected LFO movement of filter cutoff."},
  {"filterEnv","FILTER ENV","oct","Velocity-scaled envelope amount. Edit its stages on ENVELOPES / FILTER."},
  {"pressure","PRESSURE","oct","Channel pressure opens or closes cutoff. Zero disables this route."},
- {"depth","MEMORY","","Drive memory is shared by the summed voices."},
+ {"lfoShape","LFO SHAPE","","Sine, triangle, rising saw or 50% pulse. Shared shape for pitch, pulse-width and cutoff routes. Saw/pulse have intentional jumps."},
  {"recovery","RECOVERY","ms","Recovery time of the shared drive memory."}
 }};
 const std::array<Control,8>ampControls{{
@@ -73,7 +73,7 @@ const std::array<Control,8>oscControls{{
  {"osc2Interval","OSC 2 INTERVAL","semitones","Oscillator 2 interval. Changes glide over about 20 ms on held notes."},
  {"detune","OSC 2 DETUNE","cents","Fine detune added to oscillator 2 interval. Original: +7 cents."},
  {"width","PULSE WIDTH","","Width of oscillator 2 pulse wave."},
- {"pwm","PULSE MOTION","","Depth of the per-voice sine LFO on pulse width."},
+ {"pwm","PULSE MOTION","","Depth of the per-voice LFO on pulse width."},
  {"cutoff","CUTOFF","Hz","Filter after the oscillator mix."},
  {"noiseLevel","WHITE NOISE","","Noise before the envelope and filter. Zero is off. Mute saw/pulse for noise alone."}
 }};
@@ -178,7 +178,7 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
  }
  void motionGraph(juce::Graphics&g,juce::Rectangle<float>area){juce::Path curve;
   for(int i=0;i<=400;++i){double t=i/400.;double y;
-   y=.5+.42*std::sin(2*memorylab::pi*value("lfoRate")*t);
+   y=.5+.42*memorylab::lfoSample(value("lfoRate")*t,int(std::round(value("lfoShape"))));
    const float x=area.getX()+area.getWidth()*i/400.f,py=area.getBottom()-float(y)*area.getHeight();if(i==0)curve.startNewSubPath(x,py);else curve.lineTo(x,py);
   }g.setColour(amber);g.strokePath(curve,juce::PathStrokeType(2));
  }
@@ -232,7 +232,7 @@ public:
  }
  void paint(juce::Graphics&g)override{
   g.fillAll(ink);g.setColour(white);g.setFont(juce::Font(juce::FontOptions(27.f,juce::Font::bold)));g.drawText("MEMORY LAB",30,20,320,36,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.8 a2",240,29,90,20,juce::Justification::centredLeft);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.9",240,29,90,20,juce::Justification::centredLeft);
   g.setColour(panel);g.fillRoundedRectangle(28,82,866,236,12);g.fillRoundedRectangle(912,82,100,426,12);
   g.setColour(juce::Colour(0xff090f10));g.fillRoundedRectangle(40,94,842,212,7);
   const auto&c=controls()[std::size_t(selected)];g.setColour(isMotion?amber:mint);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawText(c.name,60,110,285,26,juce::Justification::centredLeft);
@@ -243,11 +243,12 @@ public:
   if(std::string(c.id)=="arpOn"||std::string(c.id)=="arpSync")text=value(c.id)>=.5f?"ON":"OFF";
   if(std::string(c.id)=="arpRate"){const char*names[]{"1/4","1/8","1/16","1/32","1/8 TRIPLET","1/16 TRIPLET"};text=names[juce::jlimit(0,5,int(value(c.id)))];}
   if(std::string(c.id)=="arpOrder"){const char*names[]{"UP","DOWN","UP / DOWN"};text=names[juce::jlimit(0,2,int(value(c.id)))];}
+  if(std::string(c.id)=="lfoShape"){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};text=names[juce::jlimit(0,3,int(std::round(value(c.id))))];}
   g.setColour(white);g.setFont(juce::Font(juce::FontOptions(38.f,juce::Font::bold)));g.drawText(text,58,145,290,54,juce::Justification::centredLeft);
   g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(13.f)));g.drawText(c.unit,61,197,260,20,juce::Justification::centredLeft);
   const bool profileInactive=std::string(c.id)=="profile"&&std::round(value("filterFamily"))!=0;
   g.drawFittedText(profileInactive?"Inactive in this family. Select CLASSIC to use high-pass / notch / low-pass profile.":c.help,60,229,285,61,juce::Justification::topLeft,3);
-  const bool env=isEnvelope||(isMotion&&std::string(c.id)=="filterEnv");g.setColour(muted);g.drawText(pageIndex==6?"OSCILLATOR MIX / SOURCE LEVELS":pageIndex==5?"PER-VOICE DRIVE / STATIC TRANSFER":pageIndex==4?"ARPEGGIATOR / 16-STEP RHYTHM PREVIEW":env?(pageIndex==2?"AMPLITUDE ENVELOPE / NEXT NOTE":"FILTER ENVELOPE / NEXT NOTE"):isMotion?"PER-VOICE SINE LFO / 1 SECOND":"STATIC FILTER RESPONSE / 30 Hz - 18 kHz",376,110,480,22,juce::Justification::centredLeft);
+  const bool env=isEnvelope||(isMotion&&std::string(c.id)=="filterEnv");g.setColour(muted);g.drawText(pageIndex==6?"OSCILLATOR MIX / SOURCE LEVELS":pageIndex==5?"PER-VOICE DRIVE / STATIC TRANSFER":pageIndex==4?"ARPEGGIATOR / 16-STEP RHYTHM PREVIEW":env?(pageIndex==2?"AMPLITUDE ENVELOPE / NEXT NOTE":"FILTER ENVELOPE / NEXT NOTE"):isMotion?"PER-VOICE LFO / 1 SECOND":"STATIC FILTER RESPONSE / 30 Hz - 18 kHz",376,110,480,22,juce::Justification::centredLeft);
   if(pageIndex==6)oscillatorGraph(g,{376,147,476,134});else if(pageIndex==5)driveGraph(g,{376,147,476,134});else if(pageIndex==4)arpGraph(g,{376,147,476,134});else if(env)envelopeGraph(g,{376,147,476,134});else if(isMotion)motionGraph(g,{376,147,476,134});else filterGraph(g,{376,147,476,134});
   g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("OUTPUT",916,108,94,24,juce::Justification::centred);g.drawText("LEVEL",916,471,94,20,juce::Justification::centred);
   g.setColour(juce::Colour(0xff30443b));g.fillRoundedRectangle(924,495,76,4,2);g.setColour(meter>.95f?amber:mint);g.fillRoundedRectangle(924,495,76*juce::jlimit(0.f,1.f,meter),4,2);
