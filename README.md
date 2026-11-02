@@ -1,5 +1,10 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.11 development adds [PATCH DICE](plugin/RANDOMIZER.md): bounded patch generation,
+four section locks and one-roll undo. Existing sound parameters, DSP and patch
+format are preserved. Holger confirmed 0.10's clock movement works musically.
+See [0.11 release notes](releases/v0.11.0-alpha.1.md) for validation and limits.
+
 0.10 development adds [MOTION / CLOCK](plugin/MOTION.md): BPM sync, six note
 divisions, fallback tempo and independent LFO note retrigger/free-running mode.
 Existing patches retain the approved 0.9 behaviour. New timing-mode listening

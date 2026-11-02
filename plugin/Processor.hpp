@@ -2,6 +2,7 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "../native/voice.hpp"
 #include "../native/arpeggiator.hpp"
+#include "RandomizerSession.hpp"
 #include <array>
 #include <limits>
 
@@ -26,6 +27,7 @@ public:
  void getStateInformation(juce::MemoryBlock&)override;
  void setStateInformation(const void*,int)override;
  juce::AudioProcessorValueTreeState state;
+ memorylab::RandomizerSession randomizerSession;
  juce::MidiKeyboardState keyboard;
  std::atomic<float> outputPeak{0};
  std::atomic<int> voiceCount{0};

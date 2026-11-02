@@ -1,0 +1,62 @@
+#pragma once
+#include "Randomizer.hpp"
+
+void randomizerChecks(){
+ auto p=std::make_unique<MemoryLabProcessor>();
+ set(*p,"volume",.17f);set(*p,"drive",7);set(*p,"depth",.3f);set(*p,"recovery",180);set(*p,"voiceDrive",6);set(*p,"arpOn",1);set(*p,"arpBpm",99);set(*p,"lfoBpm",111);set(*p,"phaseReset",0);
+ const auto original=memorylab::patch::encode(*p);
+ // Every lock combination: no writes to locked groups or protected controls.
+ const std::array<std::vector<juce::String>,4>groups{{
+  {"sawLevel","pulseLevel","noiseLevel","width","detune","osc2Interval"},
+  {"filterFamily","profile","resonance","cutoff"},
+  {"ampDelay","ampAttack","ampHold","ampDecay","ampSustain","ampRelease","fltDelay","fltAttack","fltHold","fltDecay","fltSustain","fltRelease","filterEnv"},
+  {"lfoShape","lfoRate","vibrato","pwm","filterLfo","pressure","lfoSync","lfoDivision","lfoRetrigger"}
+ }};
+ struct Monitor:juce::AudioProcessorParameter::Listener{
+  int writes=0;void parameterValueChanged(int,float)override{++writes;}void parameterGestureChanged(int,bool)override{}
+ }monitor;
+ for(int mask=0;mask<16;++mask){
+  check(memorylab::patch::apply(*p,original).wasOk(),"randomizer fixture restore");
+  std::vector<juce::AudioProcessorParameter*>protectedParams;std::vector<float>protectedValues;
+  for(int group=0;group<4;++group)p->randomizerSession.locked[std::size_t(group)]=(mask&(1<<group))!=0;
+  for(auto*base:p->getParameters()){
+   auto*parameter=dynamic_cast<juce::RangedAudioParameter*>(base);check(parameter,"randomizer parameter type");bool protectedValue=true;
+   for(int group=0;group<4;++group)if(std::find(groups[std::size_t(group)].begin(),groups[std::size_t(group)].end(),parameter->paramID)!=groups[std::size_t(group)].end())protectedValue=p->randomizerSession.locked[std::size_t(group)];
+   if(protectedValue){protectedParams.push_back(base);protectedValues.push_back(base->getValue());base->addListener(&monitor);}
+  }
+  monitor.writes=0;const bool rolled=memorylab::randomizer::roll(*p,100+unsigned(mask));
+  for(std::size_t i=0;i<protectedParams.size();++i){protectedParams[i]->removeListener(&monitor);check(protectedParams[i]->getValue()==protectedValues[i],"roll changed locked/protected parameter");}
+  check(monitor.writes==0,"roll notified a locked/protected parameter");check(rolled==(mask!=15),"all-locked roll handling");
+  if(rolled){check(memorylab::patch::encode(*p)!=original,"roll did not change sound");check(memorylab::randomizer::undo(*p),"roll undo unavailable");check(memorylab::patch::encode(*p)==original,"undo did not restore full previous patch");check(!memorylab::randomizer::undo(*p),"undo repeated");}
+ }
+ p->randomizerSession.locked.fill(false);auto second=std::make_unique<MemoryLabProcessor>();
+ check(memorylab::patch::apply(*second,original).wasOk(),"seeded second fixture restore");
+ memorylab::randomizer::roll(*p,12345);memorylab::randomizer::roll(*second,12345);check(memorylab::patch::encode(*p)==memorylab::patch::encode(*second),"seeded roll not reproducible");
+ auto saved=memorylab::patch::encode(*p);check(memorylab::patch::apply(*second,saved).wasOk(),"rolled patch roundtrip rejected");
+ memorylab::randomizer::roll(*p,54321);check(memorylab::randomizer::undo(*p)&&memorylab::patch::encode(*p)==saved,"undo did not restore immediately preceding roll");
+ memorylab::randomizer::roll(*p,13579);
+ set(*p,"cutoff",777);check(!memorylab::randomizer::undo(*p),"undo overwrote subsequent manual edit");check(p->state.getRawParameterValue("cutoff")->load()==777,"failed undo changed edits");
+ // UI controls, per-instance locks/history across editor reopen, and no editor writes.
+ auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
+ auto*dice=dynamic_cast<juce::Button*>(find(*editor,"dicePage"));check(dice&&bool(dice->onClick),"dice page missing");dice->onClick();
+ auto*lock=dynamic_cast<juce::ToggleButton*>(find(*editor,"lockOscillators"));check(lock&&bool(lock->onClick),"dice lock missing");lock->setToggleState(true,juce::dontSendNotification);lock->onClick();
+ check(p->randomizerSession.locked[0],"lock did not reach session");
+ auto*roll=dynamic_cast<juce::Button*>(find(*editor,"rollPatch"));check(roll&&bool(roll->onClick),"roll button missing");roll->onClick();const auto rolled=memorylab::patch::encode(*p);
+ editor.reset();editor.reset(p->createEditor());check(memorylab::patch::encode(*p)==rolled,"editor reopen changed patch");
+ lock=dynamic_cast<juce::ToggleButton*>(find(*editor,"lockOscillators"));check(lock&&lock->getToggleState(),"lock lost across editor reopen");check(memorylab::randomizer::canUndo(*p),"undo lost across editor reopen");
+ for(const char*id:{"lockFilter","lockEnvelopes","lockMotion"}){auto*b=dynamic_cast<juce::ToggleButton*>(find(*editor,id));check(b&&bool(b->onClick),"section lock missing");b->setToggleState(true,juce::dontSendNotification);b->onClick();}
+ roll=dynamic_cast<juce::Button*>(find(*editor,"rollPatch"));check(roll&&!roll->isEnabled(),"all-locked roll button active");
+ check(memorylab::randomizer::canUndo(*p)&&!memorylab::randomizer::roll(*p,99)&&memorylab::randomizer::canUndo(*p),"all-locked no-op discarded undo history");
+ // Render an ensemble of seeded patches with drive bypassed: finite, audible fixtures.
+ auto audioProcessor=std::make_unique<MemoryLabProcessor>();audioProcessor->prepareToPlay(48000,512);set(*audioProcessor,"drive",0);set(*audioProcessor,"depth",0);
+ double maxPeak=0;
+ for(unsigned seed=0;seed<32;++seed){
+  memorylab::randomizer::roll(*audioProcessor,seed);juce::AudioBuffer<float>a(2,512);juce::MidiBuffer midi;
+  for(int channel=1;channel<=16;++channel)midi.addEvent(juce::MidiMessage::controllerEvent(channel,120,0),0);
+  double energy=0;
+  for(int block=0;block<64;++block){if(block==0)for(int note:{48,50,52,53,55,57,59,60})midi.addEvent(juce::MidiMessage::noteOn(1,note,(juce::uint8)100),0);audioProcessor->processBlock(a,midi);
+   for(int i=0;i<512;++i){const float v=a.getSample(0,i);check(std::isfinite(v),"random patch nonfinite audio");energy+=v*v;maxPeak=std::max(maxPeak,double(std::abs(v)));}
+  }check(energy>1e-6,"unlocked random patch silent");
+ }
+ std::cout<<"PASS randomizer: 16 lock masks/protected no-writes, seeded repeatability, undo/invalidated undo, schema roundtrip, editor session persistence, 32 eight-voice renders; fixture peak="<<maxPeak<<" (not a universal loudness guarantee)\n";
+}

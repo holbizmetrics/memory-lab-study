@@ -115,12 +115,14 @@ public:
 };
 }
 
+#include "DicePanel.hpp"
+
 class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer {
- MemoryLabProcessor&processor;PanelLook look;
+ MemoryLabProcessor&processor;PanelLook look;DicePanel dicePanel;
  struct Knob{juce::Label label;juce::Slider slider;std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>attachment;};
  std::array<Knob,8>knobs;
  juce::Slider output;juce::ToggleButton phase{"RESET OSC PHASE"};
- juce::TextButton savePatch{"SAVE"},loadPatch{"LOAD"},initPatch{"INIT"};
+ juce::TextButton savePatch{"SAVE"},loadPatch{"LOAD"},initPatch{"INIT"},dicePage{"DICE"};
  std::unique_ptr<juce::FileChooser> patchChooser;
  memorylab::PatchLocation patchLocation;
  juce::File patchFile{patchLocation.initialFile()};
@@ -148,8 +150,8 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
  const auto&controls()const{return pageIndex==0?voice:pageIndex==8?motionClock:pageIndex==1?motion:pageIndex==2?ampControls:pageIndex==3?filterControls:pageIndex==4?arpControls:pageIndex==5?driveControls:pageIndex==6?oscControls:familyControls;}
  float value(const char*id)const{return processor.state.getRawParameterValue(id)->load();}
  void select(int index){selected=index;for(int i=0;i<8;++i){knobs[std::size_t(i)].slider.getProperties().set("selected",i==selected);knobs[std::size_t(i)].slider.repaint();}repaint();}
- void page(int next){pageIndex=next;isMotion=next==1||next==8;isEnvelope=next==2||next==3;binding=true;voicePage.setToggleState(next==0,juce::dontSendNotification);motionPage.setToggleState(isMotion,juce::dontSendNotification);envelopePage.setToggleState(isEnvelope,juce::dontSendNotification);arpPage.setToggleState(next==4,juce::dontSendNotification);drivePage.setToggleState(next==5,juce::dontSendNotification);oscPage.setToggleState(next==6,juce::dontSendNotification);familyPage.setToggleState(next==7,juce::dontSendNotification);ampPage.setToggleState(next==2,juce::dontSendNotification);filterPage.setToggleState(next==3,juce::dontSendNotification);ampPage.setVisible(isEnvelope);filterPage.setVisible(isEnvelope);motionControlsPage.setVisible(isMotion);motionClockPage.setVisible(isMotion);motionControlsPage.setToggleState(next==1,juce::dontSendNotification);motionClockPage.setToggleState(next==8,juce::dontSendNotification);
-  for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];const auto&c=controls()[std::size_t(i)];k.attachment.reset();k.label.setText(c.name,juce::dontSendNotification);k.slider.setName(c.name);k.slider.setTooltip(c.help);
+ void page(int next){pageIndex=next;dicePanel.setVisible(next==9);dicePage.setToggleState(next==9,juce::dontSendNotification);isMotion=next==1||next==8;isEnvelope=next==2||next==3;binding=true;voicePage.setToggleState(next==0,juce::dontSendNotification);motionPage.setToggleState(isMotion,juce::dontSendNotification);envelopePage.setToggleState(isEnvelope,juce::dontSendNotification);arpPage.setToggleState(next==4,juce::dontSendNotification);drivePage.setToggleState(next==5,juce::dontSendNotification);oscPage.setToggleState(next==6,juce::dontSendNotification);familyPage.setToggleState(next==7,juce::dontSendNotification);ampPage.setToggleState(next==2,juce::dontSendNotification);filterPage.setToggleState(next==3,juce::dontSendNotification);ampPage.setVisible(isEnvelope);filterPage.setVisible(isEnvelope);motionControlsPage.setVisible(isMotion);motionClockPage.setVisible(isMotion);motionControlsPage.setToggleState(next==1,juce::dontSendNotification);motionClockPage.setToggleState(next==8,juce::dontSendNotification);
+  for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];const auto&c=controls()[std::size_t(i)];k.attachment.reset();k.slider.setVisible(next!=9);k.label.setVisible(next!=9);k.label.setText(c.name,juce::dontSendNotification);k.slider.setName(c.name);k.slider.setTooltip(c.help);
    k.slider.setComponentID(c.id);k.attachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.state,c.id,k.slider);
    k.slider.setDoubleClickReturnValue(true,processor.state.getParameter(c.id)->convertFrom0to1(processor.state.getParameter(c.id)->getDefaultValue()));
   }binding=false;refreshProfileState();select(pageIndex>=5?0:isEnvelope?1:isMotion?0:2);
@@ -161,7 +163,7 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
    k.slider.setTooltip(inactive?(id=="profile"?"Select CLASSIC to edit profile.":id=="lfoRate"?"TEMPO SYNC uses DIVISION instead of FREE RATE.":"Enable TEMPO SYNC to use DIVISION."):c.help);
   }
  }
- void timerCallback()override{meter=juce::jmax(meter*.8f,processor.outputPeak.load());refreshProfileState();repaint();}
+ void timerCallback()override{meter=juce::jmax(meter*.8f,processor.outputPeak.load());refreshProfileState();if(dicePanel.isVisible())dicePanel.refresh();repaint();}
  void filterGraph(juce::Graphics&g,juce::Rectangle<float> area){
   const double q=value("resonance"),p=value("profile");juce::Path curve;
   g.setColour(juce::Colour(0xff263b38));for(int i=0;i<=4;++i){float x=area.getX()+area.getWidth()*i/4;g.drawVerticalLine(int(x),area.getY(),area.getBottom());}for(int i=0;i<=3;++i){float y=area.getY()+area.getHeight()*i/3;g.drawHorizontalLine(int(y),area.getX(),area.getRight());}
@@ -223,8 +225,9 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
   g.drawText(juce::String(tempo,1)+" BPM / "+(processor.arpHasHostTempo.load()?"HOST":"INTERNAL")+" / "+(enabled?"HOLD NOTES TO PLAY":"ARP OFF"),int(area.getX()),int(area.getBottom()-16),int(area.getWidth()),18,juce::Justification::centredLeft);
  }
 public:
- explicit Surface(MemoryLabProcessor&p):processor(p),keys(p.keyboard,juce::MidiKeyboardComponent::horizontalKeyboard){
+ explicit Surface(MemoryLabProcessor&p):processor(p),dicePanel(p),keys(p.keyboard,juce::MidiKeyboardComponent::horizontalKeyboard){
   setLookAndFeel(&look);setSize(1040,740);
+  addAndMakeVisible(dicePanel);addAndMakeVisible(dicePage);dicePage.setComponentID("dicePage");dicePage.setTooltip("Generate patches with section locks and one-roll undo.");dicePage.onClick=[this]{page(9);};
   addAndMakeVisible(savePatch);addAndMakeVisible(loadPatch);savePatch.setComponentID("savePatch");loadPatch.setComponentID("loadPatch");
   addAndMakeVisible(initPatch);initPatch.setComponentID("initPatch");initPatch.setTooltip("Restore factory sound controls, including output and drive defaults. Replaces current edits; save first to keep them. Play new notes afterwards. Does not change the patch folder.");initPatch.onClick=[this]{memorylab::patch::initialise(processor);};
   savePatch.setTooltip("Save all sound and arpeggiator controls as a patch.");loadPatch.setTooltip("Load a patch. Stop playback first; DAW automation can override its controls.");
@@ -242,7 +245,7 @@ public:
  ~Surface()override{stopTimer();for(auto&k:knobs)k.attachment.reset();outputAttachment.reset();phaseAttachment.reset();setLookAndFeel(nullptr);}
  void resized()override{
   savePatch.setBounds(912,25,47,32);loadPatch.setBounds(965,25,47,32);
-  initPatch.setBounds(864,25,42,32);
+  initPatch.setBounds(864,25,42,32);dicePage.setBounds(912,526,100,30);dicePanel.setBounds(28,82,866,426);
   voicePage.setBounds(340,25,68,32);oscPage.setBounds(414,25,52,32);motionPage.setBounds(472,25,70,32);envelopePage.setBounds(548,25,94,32);familyPage.setBounds(648,25,70,32);arpPage.setBounds(724,25,52,32);drivePage.setBounds(782,25,76,32);ampPage.setBounds(300,526,130,30);filterPage.setBounds(440,526,130,30);
   motionControlsPage.setBounds(300,526,130,30);motionClockPage.setBounds(440,526,130,30);
   for(int i=0;i<8;++i){auto&k=knobs[std::size_t(i)];k.label.setBounds(28+i*108,344,106,22);k.slider.setBounds(32+i*108,372,98,126);}
@@ -250,7 +253,7 @@ public:
  }
  void paint(juce::Graphics&g)override{
   g.fillAll(ink);g.setColour(white);g.setFont(juce::Font(juce::FontOptions(27.f,juce::Font::bold)));g.drawText("MEMORY LAB",30,20,320,36,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.10",240,29,90,20,juce::Justification::centredLeft);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("STUDY / 0.11",240,29,90,20,juce::Justification::centredLeft);
   g.setColour(panel);g.fillRoundedRectangle(28,82,866,236,12);g.fillRoundedRectangle(912,82,100,426,12);
   g.setColour(juce::Colour(0xff090f10));g.fillRoundedRectangle(40,94,842,212,7);
   const auto&c=controls()[std::size_t(selected)];g.setColour(isMotion?amber:mint);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawText(c.name,60,110,285,26,juce::Justification::centredLeft);
@@ -270,7 +273,7 @@ public:
   if(pageIndex==6)oscillatorGraph(g,{376,147,476,134});else if(pageIndex==5)driveGraph(g,{376,147,476,134});else if(pageIndex==4)arpGraph(g,{376,147,476,134});else if(env)envelopeGraph(g,{376,147,476,134});else if(isMotion)motionGraph(g,{376,147,476,134});else filterGraph(g,{376,147,476,134});
   g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("OUTPUT",916,108,94,24,juce::Justification::centred);g.drawText("LEVEL",916,471,94,20,juce::Justification::centred);
   g.setColour(juce::Colour(0xff30443b));g.fillRoundedRectangle(924,495,76,4,2);g.setColour(meter>.95f?amber:mint);g.fillRoundedRectangle(924,495,76*juce::jlimit(0.f,1.f,meter),4,2);
-  g.setColour(muted);g.drawText(pageIndex==6?"SAW + PULSE + NOISE / FILTER / DRIVE":pageIndex==5?"VOICE DRIVE / VOICE MIX / SHARED MEMORY DRIVE":pageIndex==4?"FIRST NOTE STARTS THE CLOCK / PEDAL HOLDS NOTES":isMotion?"LFO clock options on CLOCK":isEnvelope?"Times apply to the next note.":"SOURCES   /   FILTER   /   MEMORY DRIVE",(isEnvelope||isMotion)?600:320,531,(isEnvelope||isMotion)?290:570,22,juce::Justification::centredLeft);
+  g.setColour(muted);g.drawText(pageIndex==9?"DICE / LOCK SECTIONS / UNDO LAST ROLL":pageIndex==6?"SAW + PULSE + NOISE / FILTER / DRIVE":pageIndex==5?"VOICE DRIVE / VOICE MIX / SHARED MEMORY DRIVE":pageIndex==4?"FIRST NOTE STARTS THE CLOCK / PEDAL HOLDS NOTES":isMotion?"LFO clock options on CLOCK":isEnvelope?"Times apply to the next note.":"SOURCES   /   FILTER   /   MEMORY DRIVE",(isEnvelope||isMotion)?600:320,531,(isEnvelope||isMotion)?290:570,22,juce::Justification::centredLeft);
   g.drawText("Drag to edit    |    Double-click to restore a control    |    Click a value to type",40,567,970,20,juce::Justification::centredLeft);
   g.drawText(juce::String(processor.voiceCount.load())+" / 8 VOICES",34,704,180,20,juce::Justification::centredLeft);g.drawText("ORIGINAL SUBTRACTIVE INSTRUMENT STUDY",420,704,590,20,juce::Justification::centredRight);
  }

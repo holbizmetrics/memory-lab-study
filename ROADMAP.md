@@ -2,6 +2,14 @@
 
 ## Requested extension: patch randomizer (2026-11-01)
 
+0.11 implementation: DICE page with four section locks, protected output/drive/
+arp/fallback BPM settings and one-roll undo invalidated by subsequent sound edits.
+Per-instance UI session state only; no new sound parameters or patch schema.
+All eight plugin checks pass; actual default/clocked audio is unchanged, and
+generated-patch examples rendered through the VST3. Musical approval is pending.
+0.10 clock received Holger's musical confirmation; he also reports saving a
+clocked patch. Live recall of that particular file was not independently checked.
+
 Holger also requested INIT to restore the factory sound without needing a saved
 default patch. Include that small usability addition in 0.10. It restores sound
 parameters to their factory defaults and leaves the remembered patch folder alone.
