@@ -1,5 +1,44 @@
 # Memory Lab Study roadmap
 
+## Instrument project list (2026-11-02)
+
+Finish Memory Lab before starting another instrument. Current list:
+
+1. Memory Lab Study — active Relic-inspired hardware-to-VST3 experiment; not a
+   verified faithful Relic emulation. 0.11 dice is installed and technically
+   verified; its musical listening approval remains pending.
+2. Wordless hybrid vocal/choir synth — blend a directly controlled formant layer
+   with a physically modeled vocal source/tract and breath. One project with two
+   approaches, not two separate instruments.
+3. Genki Instruments Katla-inspired VST3 — previously recorded future idea.
+4. Con Brio ADS 200 recreation — possible future research/build, not committed.
+5. Technos 16pi / 16π recreation — possible future research/build, not committed.
+
+### Con Brio ADS 200 and Technos 16pi (2026-11-02)
+
+Holger explicitly requested retaining both as possible later instrument projects.
+Con Brio's additive/FM/phase-modulation architecture and segmented envelopes are
+the research interest. The 16pi's additive/resynthesis system and touch-console
+workflow are the research interest; its inventor reports missing original
+first-version hardware, making faithful reconstruction particularly uncertain.
+Do not confuse 16pi with the later Acxel, for which a software recreation was
+found during research. Search results do not prove the absence of other emulations.
+
+Sources for later investigation:
+- Con Brio original brochure: https://www.preservationsound.com/wp-content/uploads/2013/05/ConBrio_ADS_200.pdf
+- Technos inventor's history: https://idarca.com/pages/acxel-en_hist1.html
+- 16pi hardware history: https://idarca.com/pages/acxel-en_hist2b.html
+
+Implementation strategy is undecided. Record the distinction discussed with
+Holger: executing original firmware is different from independently implementing
+behaviour. A formal clean-room project needs controlled analysis/specification
+and implementation separation with records; merely using different AI assistants
+does not establish that process. No firmware permission, rights clearance, exact
+emulation feasibility or market demand has been established. Assess those before
+committing to either recreation or distributing protected material. Current
+Memory Lab work is independently written and hardware-inspired, not a documented
+formal clean-room reconstruction.
+
 ## Requested extension: patch randomizer (2026-11-01)
 
 0.11 implementation: DICE page with four section locks, protected output/drive/
@@ -53,8 +92,9 @@ Stay focused on completing the current Memory Lab project before starting it.
 
 0.10 is implemented and technically verified: MOTION/CLOCK adds BPM sync and
 retrigger/free-run, and INIT restores factory controls. Seven plugin checks pass;
-actual default/legacy modulation parity and clock comparisons pass. New timing
-musical approval remains pending. Holger approved 0.9's shapes in FL on November 1.
+actual default/legacy modulation parity and clock comparisons pass. Holger has
+since confirmed the CLOCK effect works musically and reports saving a patch.
+Holger also approved 0.9's shapes in FL on November 1.
 See releases/v0.10.0-alpha.1.md for precise limits and validation scope.
 
 2026-11-01: Holger provisionally accepts the current sound with drives off, and
@@ -67,12 +107,13 @@ and persistent successful patch-folder preference. Preserve sound/defaults.
 with triangle, saw and pulse waveforms alongside sine, update the waveform preview
 and append a stable host control with old patches restoring sine. Six plugin tests
 pass, with exact default and active sine-modulation VST3 audio parity against 0.8.
-Musical listening approval of the new shapes is pending. Waveform changes are
+Holger subsequently confirmed the new shapes work musically. Waveform changes are
 discrete and may cause intentional modulation jumps on held notes.
 This is an incremental motion feature, not the full four-LFO Relic modulation system.
 
 Tentative sequence discussed with Holger, not promised or frozen: 0.10 adds LFO
-tempo sync/retrigger options; 0.11 explores multiple LFOs and assignable modulation;
+tempo sync/retrigger options; the proposed multiple-LFO/modulation expansion was
+deferred when 0.11 became the requested patch-dice milestone;
 0.12 expression/keyboard tracking; 0.13 starting patches and browsing; later 0.x
 closes agreed gaps and performs compatibility/CPU/DAW validation. 1.0 is the
 stable, documented, musically approved completion point. 1.x refines it; a possible
