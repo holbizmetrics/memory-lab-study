@@ -3,9 +3,9 @@
 void automationChecks(){
  auto processor=std::make_unique<MemoryLabProcessor>();
  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
- const char*ids[]{"drive","depth","recovery","detune","width","cutoff","resonance","volume","profile","lfoRate","vibrato","pwm","filterLfo","filterEnv","pressure","phaseReset","ampDelay","ampAttack","ampHold","ampDecay","ampSustain","ampRelease","fltDelay","fltAttack","fltHold","fltDecay","fltSustain","fltRelease","arpOn","arpSync","arpBpm","arpRate","arpOrder","arpOctaves","arpGate","voiceDrive","sawLevel","pulseLevel","osc2Interval","noiseLevel","filterFamily","lfoShape","lfoSync","lfoDivision","lfoRetrigger","lfoBpm"};
- check(processor->getParameters().size()==46,"automation parameter count changed");
- for(int i=0;i<46;++i){auto*p=processor->state.getParameter(ids[i]);check(p&&p==processor->getParameters()[i],"automation ID/order changed");check(p->isAutomatable(),"parameter not automatable");}
+ const char*ids[]{"drive","depth","recovery","detune","width","cutoff","resonance","volume","profile","lfoRate","vibrato","pwm","filterLfo","filterEnv","pressure","phaseReset","ampDelay","ampAttack","ampHold","ampDecay","ampSustain","ampRelease","fltDelay","fltAttack","fltHold","fltDecay","fltSustain","fltRelease","arpOn","arpSync","arpBpm","arpRate","arpOrder","arpOctaves","arpGate","voiceDrive","sawLevel","pulseLevel","osc2Interval","noiseLevel","filterFamily","lfoShape","lfoSync","lfoDivision","lfoRetrigger","lfoBpm","keyTrack","ampVelocity","filterVelocity"};
+ check(processor->getParameters().size()==49,"automation parameter count changed");
+ for(int i=0;i<49;++i){auto*p=processor->state.getParameter(ids[i]);check(p&&p==processor->getParameters()[i],"automation ID/order changed");check(p->isAutomatable(),"parameter not automatable");}
  struct Monitor:juce::AudioProcessorParameter::Listener{
   std::string events;
   void parameterValueChanged(int,float)override{events+='V';}
@@ -23,7 +23,7 @@ void automationChecks(){
   check(hostEvents=="V","host update echoed an edit or gesture");
   check(std::abs(displayed-host)<.02,"host automation did not update knob");
  };
- exercise("cutoff",400,1800,2800);exercise("resonance",1,3,2);
+ page("expressionPage");exercise("keyTrack",.2,.6,.8);exercise("ampVelocity",.4,.7,1);exercise("filterVelocity",.3,.6,1);page("voicePage");exercise("cutoff",400,1800,2800);exercise("resonance",1,3,2);
  page("motionPage");exercise("vibrato",3,8,12);
  // A hidden parameter must retain host edits and rebind without host feedback.
  set(*processor,"cutoff",3300);page("voicePage");
@@ -36,5 +36,5 @@ void automationChecks(){
  check(std::abs(restored->state.getRawParameterValue("cutoff")->load()-3300)<1,"automation value state recall");
  check(restored->state.getRawParameterValue("arpGate")->load()==70,"arp automation value state recall");
  check(restored->state.getRawParameterValue("voiceDrive")->load()==12,"voice drive automation state recall");
- std::cout<<"PASS automation foundation: 46 stable automatable IDs/order, balanced knob gestures, parameter-to-editor updates without gesture echo, hidden-page rebinding and value recall. FL host recording/playback not covered.\n";
+ std::cout<<"PASS automation foundation: 49 stable automatable IDs/order, balanced knob gestures, parameter-to-editor updates without gesture echo, hidden-page rebinding and value recall. FL host recording/playback not covered.\n";
 }

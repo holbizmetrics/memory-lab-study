@@ -45,7 +45,9 @@ This is a message-thread action notifying the host of changed parameters, like
 patch loading. Stop conflicting automation before rolling; host automation may
 override generated settings. DAW undo grouping has not been verified.
 
-No DSP, default sound, 46 host IDs/order or schema-7 patch format changes.
+The 0.11 dice milestone changed no DSP, default sound, 46 host IDs/order or
+schema-7 patch format. In 0.12 the three new expression parameters are always
+preserved by dice rolls; current patch format is schema 8 with 49 controls.
 The random seed is an internal generator input for reproducible development
 checks; it is not a saved sound parameter. Generated parameter values are saved
 normally. This is a software extension, not a hardware Relic modelling claim.

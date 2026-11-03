@@ -34,6 +34,7 @@ struct Parameters {
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
+ double keyTrack=0,ampVelocity=1,filterVelocity=1;
  double pressureDepth=0,voiceDrive=0,sawLevel=.42,pulseLevel=.28,osc2Interval=0,noiseLevel=0;
  int filterFamily=0,lfoShape=0,lfoDivision=2;
  bool lfoSync=false,lfoRetrigger=true;double lfoBpm=130;
@@ -62,7 +63,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -204,6 +205,9 @@ class Synth {
     case Param::LfoDivision:target.lfoDivision=int(std::clamp(std::round(e.value),0.,5.));break;
     case Param::LfoRetrigger:target.lfoRetrigger=e.value>=.5;break;
     case Param::LfoBpm:target.lfoBpm=std::clamp(e.value,20.,400.);break;
+    case Param::KeyTrack:target.keyTrack=std::clamp(e.value,0.,1.);break;
+    case Param::AmpVelocity:target.ampVelocity=std::clamp(e.value,0.,1.);break;
+    case Param::FilterVelocity:target.filterVelocity=std::clamp(e.value,0.,1.);break;
    }return;
   }
   if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
@@ -249,10 +253,12 @@ class Synth {
   double pulse=bank.pulse(v.phase2,dt2,std::clamp(current.pulseWidth+current.pwmLfo*lfo,.1,.9));
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
   v.env=v.ampEnv.tick(sr);if(!v.gate&&v.env<1e-8){v.active=false;return 0;}
+  const double ampVelocity=current.ampVelocity==1?v.velocity:1-current.ampVelocity+current.ampVelocity*v.velocity;
+  const double filterVelocity=current.filterVelocity==1?v.velocity:1-current.filterVelocity+current.filterVelocity*v.velocity;
 #if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
-  double x=(studySawLevel*saw+studyPulseLevel*pulse)*v.env*v.velocity;
+  double x=(studySawLevel*saw+studyPulseLevel*pulse)*v.env*ampVelocity;
 #else
-  double x=(current.sawLevel*saw+current.pulseLevel*pulse)*v.env*v.velocity;
+  double x=(current.sawLevel*saw+current.pulseLevel*pulse)*v.env*ampVelocity;
 #endif
 #if MEMORYLAB_EXPERIMENTAL_NOISE
   const double noiseLevel=studyNoiseLevel;if(studyNoiseSolo)x=0;
@@ -261,9 +267,11 @@ class Synth {
 #endif
   if(noiseLevel>0){auto&state=v.noiseState;state^=state<<13;state^=state>>17;state^=state<<5;
    const double noise=double(state)/2147483648.-1.;
-   x+=noiseLevel*noise*v.env*v.velocity;
+   x+=noiseLevel*noise*v.env*ampVelocity;
   }
-  const double cutoff=std::clamp(current.cutoff*std::exp2(current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*v.velocity+current.pressureDepth*pressure[v.channel]),30.,std::min(18000.,sr*.4));
+  double cutoffExponent=current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*filterVelocity+current.pressureDepth*pressure[v.channel];
+  if(current.keyTrack!=0)cutoffExponent+=current.keyTrack*(v.note-60)/12.;
+  const double cutoff=std::clamp(current.cutoff*std::exp2(cutoffExponent),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
   const auto extended=v.extendedFilter.tickAll(x,sr,cutoff,current.q);
   const double modern=filterWeights[0]+filterWeights[1]+filterWeights[2];
@@ -326,6 +334,11 @@ public:
    current.pwmLfo+=(target.pwmLfo-current.pwmLfo)*smooth;current.cutoffLfo+=(target.cutoffLfo-current.cutoffLfo)*smooth;
    current.filterEnvelope+=(target.filterEnvelope-current.filterEnvelope)*smooth;
    current.pressureDepth+=(target.pressureDepth-current.pressureDepth)*smooth;
+   current.keyTrack+=(target.keyTrack-current.keyTrack)*smooth;
+   current.ampVelocity+=(target.ampVelocity-current.ampVelocity)*smooth;current.filterVelocity+=(target.filterVelocity-current.filterVelocity)*smooth;
+   if(target.keyTrack==0&&current.keyTrack<1e-8)current.keyTrack=0;
+   if(std::abs(current.ampVelocity-target.ampVelocity)<1e-8)current.ampVelocity=target.ampVelocity;
+   if(std::abs(current.filterVelocity-target.filterVelocity)<1e-8)current.filterVelocity=target.filterVelocity;
    current.voiceDrive+=(target.voiceDrive-current.voiceDrive)*smooth;
    current.sawLevel+=(target.sawLevel-current.sawLevel)*smooth;current.pulseLevel+=(target.pulseLevel-current.pulseLevel)*smooth;
    current.osc2Interval+=(target.osc2Interval-current.osc2Interval)*smooth;

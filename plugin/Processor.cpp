@@ -3,7 +3,7 @@
 
 namespace {
 struct Spec{const char* id;const char* name;float low,high,step;double initial;float skew;memorylab::Param parameter;};
-const std::array<Spec,39> specs{{
+const std::array<Spec,42> specs{{
  {"drive","Drive",0,12,.1f,5,1,memorylab::Param::Drive},
  {"depth","Memory depth",0,1.5f,.01f,.8,1,memorylab::Param::Depth},
  {"recovery","Memory recovery (ms)",50,400,1,250,.5f,memorylab::Param::Recovery},
@@ -42,7 +42,10 @@ const std::array<Spec,39> specs{{
  {"lfoSync","LFO tempo sync",0,1,1,0,1,memorylab::Param::LfoSync},
  {"lfoDivision","LFO note division",0,5,1,2,1,memorylab::Param::LfoDivision},
  {"lfoRetrigger","LFO note retrigger",0,1,1,1,1,memorylab::Param::LfoRetrigger},
- {"lfoBpm","LFO fallback BPM",20,400,.1f,130,1,memorylab::Param::LfoBpm}
+ {"lfoBpm","LFO fallback BPM",20,400,.1f,130,1,memorylab::Param::LfoBpm},
+ {"keyTrack","Filter keyboard tracking",0,1,.01f,0,1,memorylab::Param::KeyTrack},
+ {"ampVelocity","Amplitude velocity sensitivity",0,1,.01f,1,1,memorylab::Param::AmpVelocity},
+ {"filterVelocity","Filter envelope velocity sensitivity",0,1,.01f,1,1,memorylab::Param::FilterVelocity}
 }};
 struct ArpSpec{const char*id;const char*name;float low,high,step,initial;};
 const std::array<ArpSpec,7> arpSpecs{{
@@ -60,6 +63,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout()
  juce::AudioProcessorValueTreeState::ParameterLayout result;
  auto addSpec=[&](const Spec&s){
   auto attributes=juce::AudioParameterFloatAttributes();
+  if(juce::String(s.id)=="keyTrack"||juce::String(s.id)=="ampVelocity"||juce::String(s.id)=="filterVelocity")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v*100,0)+" %";}).withValueFromStringFunction([](const juce::String&t){return t.getFloatValue()*.01f;});
   if(juce::String(s.id)=="lfoSync"||juce::String(s.id)=="lfoRetrigger")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v>=.5f?"ON":"OFF");}).withValueFromStringFunction([](const juce::String&t){if(t.trim().toUpperCase()=="ON")return 1.f;if(t.trim().toUpperCase()=="OFF")return 0.f;return t.getFloatValue();});
   if(juce::String(s.id)=="lfoDivision")attributes=attributes.withStringFromValueFunction([](float v,int){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};return juce::String(n[juce::jlimit(0,5,int(std::round(v)))]);}).withValueFromStringFunction([](const juce::String&t){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};for(int i=0;i<6;++i)if(t.trim().toUpperCase()==n[i])return float(i);return t.getFloatValue();});
   if(juce::String(s.id)=="lfoShape")attributes=attributes.withStringFromValueFunction([](float value,int){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};return juce::String(names[juce::jlimit(0,3,int(std::round(value)))]);}).withValueFromStringFunction([](const juce::String&text){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};for(int i=0;i<4;++i)if(text.trim().toUpperCase()==names[i])return float(i);return text.getFloatValue();});
@@ -165,7 +169,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",9,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",10,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,

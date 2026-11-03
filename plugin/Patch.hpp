@@ -10,7 +10,7 @@ inline void initialise(MemoryLabProcessor& processor){
  processor.updateHostDisplay();
 }
 inline juce::String encode(MemoryLabProcessor& processor){
- juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",7);
+ juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",8);
  for(auto* base:processor.getParameters())if(auto* p=dynamic_cast<juce::RangedAudioParameter*>(base)){
   auto* entry=root.createNewChildElement("PARAM");entry->setAttribute("id",p->paramID);
   entry->setAttribute("value",double(p->convertFrom0to1(p->getValue())));
@@ -22,19 +22,20 @@ inline juce::String encode(MemoryLabProcessor& processor){
 // message-thread action; it is deliberately separate from host state migration.
 inline juce::Result apply(MemoryLabProcessor& processor,const juce::String& text){
  auto root=juce::parseXML(text);
- if(!root||!root->hasTagName("MemoryLabPatch")||(root->getStringAttribute("schemaVersion")!="1"&&root->getStringAttribute("schemaVersion")!="2"&&root->getStringAttribute("schemaVersion")!="3"&&root->getStringAttribute("schemaVersion")!="4"&&root->getStringAttribute("schemaVersion")!="5"&&root->getStringAttribute("schemaVersion")!="6"&&root->getStringAttribute("schemaVersion")!="7"))
+ if(!root||!root->hasTagName("MemoryLabPatch")||(root->getStringAttribute("schemaVersion")!="1"&&root->getStringAttribute("schemaVersion")!="2"&&root->getStringAttribute("schemaVersion")!="3"&&root->getStringAttribute("schemaVersion")!="4"&&root->getStringAttribute("schemaVersion")!="5"&&root->getStringAttribute("schemaVersion")!="6"&&root->getStringAttribute("schemaVersion")!="7"&&root->getStringAttribute("schemaVersion")!="8"))
   return juce::Result::fail("This is not a supported Memory Lab patch.");
  const bool legacy=root->getStringAttribute("schemaVersion")=="1";
  const bool oldOscillators=legacy||root->getStringAttribute("schemaVersion")=="2";
  const bool oldNoise=oldOscillators||root->getStringAttribute("schemaVersion")=="3";
- const bool oldClock=root->getStringAttribute("schemaVersion")!="7";
+ const bool oldExpression=root->getStringAttribute("schemaVersion")!="8";
+ const bool oldClock=oldExpression&&root->getStringAttribute("schemaVersion")!="7";
  const bool oldShape=oldClock&&root->getStringAttribute("schemaVersion")!="6";
  const bool oldFamily=oldShape&&root->getStringAttribute("schemaVersion")!="5";
  std::set<juce::String> seen;
  std::vector<std::pair<juce::RangedAudioParameter*,float>> values;
  for(auto* entry:root->getChildIterator()){
   const auto id=entry->getStringAttribute("id");auto* p=processor.state.getParameter(id);
-  if(!entry->hasTagName("PARAM")||!p||(legacy&&id=="voiceDrive")||(oldOscillators&&(id=="sawLevel"||id=="pulseLevel"||id=="osc2Interval"))||(oldNoise&&id=="noiseLevel")||(oldClock&&(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm"))||(oldShape&&id=="lfoShape")||(oldFamily&&id=="filterFamily")||!seen.insert(id).second)
+  if(!entry->hasTagName("PARAM")||!p||(legacy&&id=="voiceDrive")||(oldOscillators&&(id=="sawLevel"||id=="pulseLevel"||id=="osc2Interval"))||(oldNoise&&id=="noiseLevel")||(oldExpression&&(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity"))||(oldClock&&(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm"))||(oldShape&&id=="lfoShape")||(oldFamily&&id=="filterFamily")||!seen.insert(id).second)
    return juce::Result::fail("The patch contains an unknown or repeated control.");
   const auto raw=entry->getStringAttribute("value").trim();const auto* start=raw.toRawUTF8();char* end=nullptr;
   const double value=std::strtod(start,&end);
@@ -42,6 +43,7 @@ inline juce::Result apply(MemoryLabProcessor& processor,const juce::String& text
    return juce::Result::fail("The patch contains an invalid value for "+id+".");
   values.emplace_back(p,p->convertTo0to1(float(value)));
  }
+ if(oldExpression)for(const char*id:{"keyTrack","ampVelocity","filterVelocity"}){auto*p=processor.state.getParameter(id);values.emplace_back(p,p->getDefaultValue());}
  if(oldClock)for(const char*id:{"lfoSync","lfoDivision","lfoRetrigger","lfoBpm"}){auto*p=processor.state.getParameter(id);values.emplace_back(p,p->getDefaultValue());}
  if(oldShape)values.emplace_back(processor.state.getParameter("lfoShape"),0.f);
  if(oldFamily)values.emplace_back(processor.state.getParameter("filterFamily"),0.f);

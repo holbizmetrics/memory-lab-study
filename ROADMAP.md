@@ -1,5 +1,17 @@
 # Memory Lab Study roadmap
 
+## Current 0.12 work (2026-11-03)
+
+Holger explicitly authorized continuing before testing 0.11 alpha 2, intending
+to listen to the changes together. Keep its bypass-checkbox check pending.
+0.12 follows the planned expression milestone: filter note tracking around C4,
+independent amp/filter-envelope velocity sensitivities, neutral defaults and
+legacy migration. A VOICE/EXPRESSION subpage provides the new controls and
+response previews. Dice preserves expression settings. See plugin/EXPRESSION.md
+for the combined listening recipe and exact behaviour. Musical approval pending.
+All nine plugin checks pass. Actual default and migrated clocked-patch renders
+are byte-identical to prior captures; the expression UI was visually checked.
+
 ## Instrument project list (2026-11-02)
 
 2026-11-03: Holger reports loving the installed 0.11 dice results and approves them

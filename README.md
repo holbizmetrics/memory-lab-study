@@ -1,5 +1,12 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.12 development adds [VOICE / EXPRESSION](plugin/EXPRESSION.md): filter keyboard
+tracking and independent amplitude/filter-envelope velocity sensitivities, with
+neutral defaults for existing patches. Holger chose to batch its listening check
+with the pending dice-bypass interaction check; neither is approved by that decision.
+See [0.12 release notes](releases/v0.12.0-alpha.1.md) and the
+[combined listening guide](plugin/EXPRESSION.md).
+
 0.11 alpha 2 adds optional BYPASS DRIVES on the dice page: the next roll sets both
 drive controls to zero, and undo can restore them. Off preserves the original
 dice behaviour. Holger approved 0.11's generated sounds before requesting this option.

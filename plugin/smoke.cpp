@@ -16,6 +16,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "motion-clock-checks.hpp" // Clock modes, migration, and enabled-state coverage.
 #include "tab-switch-checks.hpp" // Includes live host-family enabled-state coverage.
 #include "randomizer-checks.hpp" // Section/bypass isolation, protected controls, history and renders.
+#include "expression-checks.hpp" // Tracking ratios, independent velocity response and migration.
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -56,6 +57,7 @@ int main(int argc,char**argv){try{
  if(argc==2&&std::string(argv[1])=="--motion-test"){motionChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--motion-clock-test"){motionClockChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--randomizer-test"){randomizerChecks();return 0;}
+ if(argc==2&&std::string(argv[1])=="--expression-test"){expressionChecks();return 0;}
  if(argc==3&&std::string(argv[1])=="--dice-patches"){
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"dice patch export folder");
   for(unsigned seed=0;seed<4;++seed){auto p=std::make_unique<MemoryLabProcessor>();set(*p,"drive",0);set(*p,"depth",0);check(memorylab::randomizer::roll(*p,seed),"dice sample generation");check(memorylab::patch::save(*p,folder.getChildFile("seed-"+juce::String(seed)+".mlpatch")).wasOk(),"dice sample save");}
@@ -71,6 +73,7 @@ int main(int argc,char**argv){try{
   auto*bypass=dynamic_cast<juce::ToggleButton*>(find(*editor,"diceBypassDrives"));check(bypass&&bool(bypass->onClick),"dice bypass checkbox missing");bypass->setToggleState(true,juce::dontSendNotification);bypass->onClick();roll->onClick();snapshot("dice-bypass.png");editor->setSize(832,592);snapshot("dice-bypass-compact.png");editor->setSize(1040,740);
   auto*init=dynamic_cast<juce::Button*>(find(*editor,"initPatch"));check(init&&bool(init->onClick),"INIT missing on dice");init->onClick();auto*voice=dynamic_cast<juce::Button*>(find(*editor,"voicePage"));check(voice&&bool(voice->onClick),"voice navigation missing");voice->onClick();
   snapshot("voice.png");
+  auto*expression=dynamic_cast<juce::Button*>(find(*editor,"expressionPage"));check(expression&&bool(expression->onClick),"expression page missing");expression->onClick();snapshot("expression.png");set(*processor,"ampVelocity",0);set(*processor,"filterVelocity",.5f);snapshot("expression-velocity.png");set(*processor,"keyTrack",1);snapshot("expression-tracking.png");editor->setSize(832,592);snapshot("expression-compact.png");editor->setSize(1040,740);init->onClick();voice->onClick();
   auto*cutoff=dynamic_cast<juce::Slider*>(find(*editor,"cutoff"));check(cutoff,"cutoff control missing");cutoff->setValue(2000,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("cutoff")->load()-2000)<1,"cutoff attachment");
   auto*motion=dynamic_cast<juce::Button*>(find(*editor,"motionPage"));check(motion&&bool(motion->onClick),"motion page missing");motion->onClick();snapshot("motion.png");
   set(*processor,"lfoShape",1);snapshot("motion-triangle.png");set(*processor,"lfoShape",2);snapshot("motion-saw.png");set(*processor,"lfoShape",3);snapshot("motion-pulse.png");set(*processor,"lfoShape",0);
