@@ -2,11 +2,16 @@
 
 ## Instrument project list (2026-11-02)
 
+2026-11-03: Holger reports loving the installed 0.11 dice results and approves them
+for now. He requested an extra drive-bypass option. 0.11 alpha 2 adds BYPASS DRIVES,
+off by default, applying only on the next roll; undo restores the prior drives.
+The new checkbox still needs its own live listening/interaction confirmation.
+
 Finish Memory Lab before starting another instrument. Current list:
 
 1. Memory Lab Study — active Relic-inspired hardware-to-VST3 experiment; not a
-   verified faithful Relic emulation. 0.11 dice is installed and technically
-   verified; its musical listening approval remains pending.
+   verified faithful Relic emulation. Holger approved 0.11 dice; its new alpha-2
+   bypass checkbox is technically verified and awaits live confirmation.
 2. Wordless hybrid vocal/choir synth — blend a directly controlled formant layer
    with a physically modeled vocal source/tract and breath. One project with two
    approaches, not two separate instruments.
@@ -45,7 +50,8 @@ formal clean-room reconstruction.
 arp/fallback BPM settings and one-roll undo invalidated by subsequent sound edits.
 Per-instance UI session state only; no new sound parameters or patch schema.
 All eight plugin checks pass; actual default/clocked audio is unchanged, and
-generated-patch examples rendered through the VST3. Musical approval is pending.
+generated-patch examples rendered through the VST3. Holger subsequently approved
+the dice sounds; the alpha-2 checkbox remains to be checked live.
 0.10 clock received Holger's musical confirmation; he also reports saving a
 clocked patch. Live recall of that particular file was not independently checked.
 

@@ -15,21 +15,24 @@ void randomizerChecks(){
  struct Monitor:juce::AudioProcessorParameter::Listener{
   int writes=0;void parameterValueChanged(int,float)override{++writes;}void parameterGestureChanged(int,bool)override{}
  }monitor;
- for(int mask=0;mask<16;++mask){
+ for(bool bypass:{false,true})for(int mask=0;mask<16;++mask){
   check(memorylab::patch::apply(*p,original).wasOk(),"randomizer fixture restore");
+  p->randomizerSession.bypassDrives=bypass;
   std::vector<juce::AudioProcessorParameter*>protectedParams;std::vector<float>protectedValues;
   for(int group=0;group<4;++group)p->randomizerSession.locked[std::size_t(group)]=(mask&(1<<group))!=0;
   for(auto*base:p->getParameters()){
    auto*parameter=dynamic_cast<juce::RangedAudioParameter*>(base);check(parameter,"randomizer parameter type");bool protectedValue=true;
    for(int group=0;group<4;++group)if(std::find(groups[std::size_t(group)].begin(),groups[std::size_t(group)].end(),parameter->paramID)!=groups[std::size_t(group)].end())protectedValue=p->randomizerSession.locked[std::size_t(group)];
+   if(bypass&&(parameter->paramID=="drive"||parameter->paramID=="voiceDrive"))protectedValue=false;
    if(protectedValue){protectedParams.push_back(base);protectedValues.push_back(base->getValue());base->addListener(&monitor);}
   }
   monitor.writes=0;const bool rolled=memorylab::randomizer::roll(*p,100+unsigned(mask));
   for(std::size_t i=0;i<protectedParams.size();++i){protectedParams[i]->removeListener(&monitor);check(protectedParams[i]->getValue()==protectedValues[i],"roll changed locked/protected parameter");}
-  check(monitor.writes==0,"roll notified a locked/protected parameter");check(rolled==(mask!=15),"all-locked roll handling");
+  check(monitor.writes==0,"roll notified a locked/protected parameter");check(rolled==(mask!=15||bypass),"all-locked roll handling");
+  if(bypass)check(p->state.getRawParameterValue("drive")->load()==0&&p->state.getRawParameterValue("voiceDrive")->load()==0,"bypass roll did not zero both drives");
   if(rolled){check(memorylab::patch::encode(*p)!=original,"roll did not change sound");check(memorylab::randomizer::undo(*p),"roll undo unavailable");check(memorylab::patch::encode(*p)==original,"undo did not restore full previous patch");check(!memorylab::randomizer::undo(*p),"undo repeated");}
  }
- p->randomizerSession.locked.fill(false);auto second=std::make_unique<MemoryLabProcessor>();
+ p->randomizerSession.bypassDrives=false;p->randomizerSession.locked.fill(false);auto second=std::make_unique<MemoryLabProcessor>();
  check(memorylab::patch::apply(*second,original).wasOk(),"seeded second fixture restore");
  memorylab::randomizer::roll(*p,12345);memorylab::randomizer::roll(*second,12345);check(memorylab::patch::encode(*p)==memorylab::patch::encode(*second),"seeded roll not reproducible");
  auto saved=memorylab::patch::encode(*p);check(memorylab::patch::apply(*second,saved).wasOk(),"rolled patch roundtrip rejected");
@@ -47,6 +50,14 @@ void randomizerChecks(){
  for(const char*id:{"lockFilter","lockEnvelopes","lockMotion"}){auto*b=dynamic_cast<juce::ToggleButton*>(find(*editor,id));check(b&&bool(b->onClick),"section lock missing");b->setToggleState(true,juce::dontSendNotification);b->onClick();}
  roll=dynamic_cast<juce::Button*>(find(*editor,"rollPatch"));check(roll&&!roll->isEnabled(),"all-locked roll button active");
  check(memorylab::randomizer::canUndo(*p)&&!memorylab::randomizer::roll(*p,99)&&memorylab::randomizer::canUndo(*p),"all-locked no-op discarded undo history");
+ // Checking is passive. With all sections locked, a bypass roll changes only drives.
+ auto*bypass=dynamic_cast<juce::ToggleButton*>(find(*editor,"diceBypassDrives"));check(bypass&&bool(bypass->onClick)&&!bypass->getToggleState(),"bypass checkbox default");
+ const auto beforeBypass=memorylab::patch::encode(*p);std::vector<float>beforeValues;for(auto*base:p->getParameters())beforeValues.push_back(base->getValue());
+ bypass->setToggleState(true,juce::dontSendNotification);bypass->onClick();check(memorylab::patch::encode(*p)==beforeBypass,"checkbox changed audio before a roll");check(roll->isEnabled(),"all-locked bypass roll not enabled");roll->onClick();
+ for(int i=0;i<p->getParameters().size();++i){auto*parameter=dynamic_cast<juce::RangedAudioParameter*>(p->getParameters()[i]);check(parameter,"bypass parameter type");if(parameter->paramID=="drive"||parameter->paramID=="voiceDrive")check(parameter->getValue()==0,"bypass button did not zero drive");else check(parameter->getValue()==beforeValues[std::size_t(i)],"all-locked bypass changed another control");}
+ check(!roll->isEnabled()&&!memorylab::randomizer::roll(*p,99)&&memorylab::randomizer::canUndo(*p),"already bypassed all-locked roll should be a no-op");
+ check(memorylab::randomizer::undo(*p)&&memorylab::patch::encode(*p)==beforeBypass,"undo did not restore drives and prior patch");
+ editor.reset();editor.reset(p->createEditor());bypass=dynamic_cast<juce::ToggleButton*>(find(*editor,"diceBypassDrives"));check(bypass&&bypass->getToggleState(),"bypass choice lost across editor reopen");
  // Render an ensemble of seeded patches with drive bypassed: finite, audible fixtures.
  auto audioProcessor=std::make_unique<MemoryLabProcessor>();audioProcessor->prepareToPlay(48000,512);set(*audioProcessor,"drive",0);set(*audioProcessor,"depth",0);
  double maxPeak=0;
@@ -58,5 +69,5 @@ void randomizerChecks(){
    for(int i=0;i<512;++i){const float v=a.getSample(0,i);check(std::isfinite(v),"random patch nonfinite audio");energy+=v*v;maxPeak=std::max(maxPeak,double(std::abs(v)));}
   }check(energy>1e-6,"unlocked random patch silent");
  }
- std::cout<<"PASS randomizer: 16 lock masks/protected no-writes, seeded repeatability, undo/invalidated undo, schema roundtrip, editor session persistence, 32 eight-voice renders; fixture peak="<<maxPeak<<" (not a universal loudness guarantee)\n";
+ std::cout<<"PASS randomizer: 32 lock/bypass combinations, protected no-writes, passive checkbox and drive-only roll, drive undo/no-op/history, seeded repeatability, schema roundtrip, editor session persistence, 32 eight-voice renders; fixture peak="<<maxPeak<<" (not a universal loudness guarantee)\n";
 }

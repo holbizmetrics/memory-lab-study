@@ -15,7 +15,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "motion-checks.hpp"
 #include "motion-clock-checks.hpp" // Clock modes, migration, and enabled-state coverage.
 #include "tab-switch-checks.hpp" // Includes live host-family enabled-state coverage.
-#include "randomizer-checks.hpp" // Section isolation, protected controls, history and renders.
+#include "randomizer-checks.hpp" // Section/bypass isolation, protected controls, history and renders.
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -68,6 +68,7 @@ int main(int argc,char**argv){try{
   auto*dice=dynamic_cast<juce::Button*>(find(*editor,"dicePage"));check(dice&&bool(dice->onClick),"dice navigation missing");dice->onClick();snapshot("dice.png");
   auto*lock=dynamic_cast<juce::ToggleButton*>(find(*editor,"lockMotion"));check(lock&&bool(lock->onClick),"dice motion lock missing");lock->setToggleState(true,juce::dontSendNotification);lock->onClick();
   auto*roll=dynamic_cast<juce::Button*>(find(*editor,"rollPatch"));check(roll&&bool(roll->onClick),"dice roll missing");roll->onClick();snapshot("dice-rolled.png");editor->setSize(832,592);snapshot("dice-compact.png");editor->setSize(1040,740);
+  auto*bypass=dynamic_cast<juce::ToggleButton*>(find(*editor,"diceBypassDrives"));check(bypass&&bool(bypass->onClick),"dice bypass checkbox missing");bypass->setToggleState(true,juce::dontSendNotification);bypass->onClick();roll->onClick();snapshot("dice-bypass.png");editor->setSize(832,592);snapshot("dice-bypass-compact.png");editor->setSize(1040,740);
   auto*init=dynamic_cast<juce::Button*>(find(*editor,"initPatch"));check(init&&bool(init->onClick),"INIT missing on dice");init->onClick();auto*voice=dynamic_cast<juce::Button*>(find(*editor,"voicePage"));check(voice&&bool(voice->onClick),"voice navigation missing");voice->onClick();
   snapshot("voice.png");
   auto*cutoff=dynamic_cast<juce::Slider*>(find(*editor,"cutoff"));check(cutoff,"cutoff control missing");cutoff->setValue(2000,juce::sendNotificationSync);check(std::abs(processor->state.getRawParameterValue("cutoff")->load()-2000)<1,"cutoff attachment");

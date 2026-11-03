@@ -3,6 +3,12 @@
 #include <random>
 
 namespace memorylab::randomizer {
+inline bool needsDriveBypass(MemoryLabProcessor&p){
+ return p.randomizerSession.bypassDrives&&(p.state.getRawParameterValue("drive")->load()>0||p.state.getRawParameterValue("voiceDrive")->load()>0);
+}
+inline bool canRoll(MemoryLabProcessor&p){
+ return !std::all_of(p.randomizerSession.locked.begin(),p.randomizerSession.locked.end(),[](bool v){return v;})||needsDriveBypass(p);
+}
 inline bool canUndo(MemoryLabProcessor&p){
  auto&s=p.randomizerSession;
  if(s.beforeRoll.isEmpty())return false;
@@ -18,13 +24,14 @@ inline bool undo(MemoryLabProcessor&p){
 // Only explicit UI/offline calls. No random generation or XML work on audio thread.
 inline bool roll(MemoryLabProcessor&p,std::uint32_t seed){
  const auto locks=p.randomizerSession.locked;
- if(std::all_of(locks.begin(),locks.end(),[](bool v){return v;}))return false;
+ if(!canRoll(p))return false;
  std::mt19937 rng(seed);
  auto unit=[&]{return double(rng())/4294967296.;};
  auto range=[&](double lo,double hi){return float(lo+(hi-lo)*unit());};
  auto pick=[&](int count){return int(rng()%unsigned(count));};
  std::vector<std::pair<juce::RangedAudioParameter*,float>> values;
  auto add=[&](const char*id,float value){auto*parameter=p.state.getParameter(id);jassert(parameter);if(parameter)values.emplace_back(parameter,parameter->convertTo0to1(value));};
+ if(p.randomizerSession.bypassDrives)for(const char*id:{"drive","voiceDrive"})if(p.state.getRawParameterValue(id)->load()!=0)add(id,0);
  if(!locks[0]){
   add("sawLevel",range(.18,.42));add("pulseLevel",range(.08,.25));
   add("noiseLevel",pick(4)==0?range(0,.06):0);add("width",range(.22,.78));add("detune",range(-12,12));

@@ -1,5 +1,10 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.11 alpha 2 adds optional BYPASS DRIVES on the dice page: the next roll sets both
+drive controls to zero, and undo can restore them. Off preserves the original
+dice behaviour. Holger approved 0.11's generated sounds before requesting this option.
+See [0.11 alpha 2 release notes](releases/v0.11.0-alpha.2.md).
+
 0.11 development adds [PATCH DICE](plugin/RANDOMIZER.md): bounded patch generation,
 four section locks and one-roll undo. Existing sound parameters, DSP and patch
 format are preserved. Holger confirmed 0.10's clock movement works musically.

@@ -5,6 +5,7 @@ namespace memorylab {
 // Per-instance UI session state: not a sound parameter or saved project setting.
 struct RandomizerSession {
  std::array<bool,4> locked{};
+ bool bypassDrives=false;
  juce::String beforeRoll,afterRoll;
 };
 }
