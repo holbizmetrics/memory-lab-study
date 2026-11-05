@@ -29,7 +29,7 @@ and successful build before reporting the site as published.
 
 ## Behavior and verification
 
-- Five editor buttons switch real screenshots with descriptive captions.
+- Eleven editor buttons switch real screenshots with descriptive captions.
 - Single-note/chord selection switches all three audio examples and resets playback.
 - Only one example plays at a time; changing the phrase does not autoplay.
 - Native audio controls and keyboard-operable buttons; visible focus styles,
@@ -41,8 +41,14 @@ and successful build before reporting the site as published.
 
 ## Assets
 
-Editor PNGs: outputs/patch-editor-preview (development build, including SAVE/LOAD).
+Editor PNGs: outputs/expression-0.12-preview (v0.12 development build).
 Matched WAVs: outputs/voice-drive-study-2, verified against verification.json.
-Three-second mono 48 kHz float WAVs, matched to -24 dBFS RMS. The experimental
-drive stage is not compiled into the installed plugin. Raw measurement artifacts
+Three-second mono 48 kHz float WAVs, matched to -24 dBFS RMS. These historical clips predate the current release; per-voice drive is now implemented. Raw measurement artifacts
 remain ignored under outputs/ and are not published by this site.
+
+## Current content
+
+Updated for v0.12.0-alpha.1: 49 controls, current editor captures, expression,
+oscillator mixing/noise, filter families, motion shapes/clock, INIT and dice.
+Historical audio retains its original study provenance. New expression and dice
+drive-bypass musical approval remains pending; technical checks are distinguished.

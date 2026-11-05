@@ -1,10 +1,49 @@
 "use strict";
 const views = {
-  voice: ["Voice editor", "Shape two oscillators, sweep the classic filter, and explore shared drive, memory and recovery."],
-  motion: ["Motion editor", "Bring in vibrato, pulse-width movement, cutoff motion and filter-envelope depth."],
-  amplitude: ["Amplitude envelope editor", "Set the amplitude contour from delay and attack through sustain and release. Stages latch on the next note."],
-  "filter-envelope": ["Filter envelope editor", "Shape a separate filter contour and its contribution to cutoff."],
-  arp: ["Arpeggiator editor", "Hold notes to explore rhythm, direction, octave range and gate. The first note starts the clock."]
+  "voice": [
+    "Voice sound editor",
+    "Shape two oscillators, sweep the classic filter, and explore shared drive, memory and recovery."
+  ],
+  "expression": [
+    "Voice expression editor",
+    "Set filter key tracking and independent amplitude/filter-envelope velocity sensitivities. Response curves preview the mappings."
+  ],
+  "osc": [
+    "Oscillator editor",
+    "Mix independent saw and pulse sources, tune oscillator two, and blend per-voice white noise before the filter and drive."
+  ],
+  "motion": [
+    "Motion editor",
+    "Choose sine, triangle, saw or pulse movement for pitch, pulse width and cutoff."
+  ],
+  "motion-clock": [
+    "Motion clock editor",
+    "Sync movement to host tempo or use an internal fallback, with rhythmic divisions and note-retrigger or free-running phase."
+  ],
+  "amplitude": [
+    "Amplitude envelope editor",
+    "Set delay, attack, hold, decay, sustain and release. Envelope stages latch on the next note."
+  ],
+  "filter-envelope": [
+    "Filter envelope editor",
+    "Shape an independent six-stage filter contour and its contribution to cutoff."
+  ],
+  "filter-classic": [
+    "Filter editor",
+    "Explore Classic, LP4, BP4 and Blend families. Classic profile operates in the Classic family."
+  ],
+  "arp": [
+    "Arpeggiator editor",
+    "Explore rhythmic rates, up/down/up-down order, octave layers and gate length."
+  ],
+  "drive": [
+    "Drive editor",
+    "Intentional distortion: per-voice clipping after the filter, followed by shared memory drive after the voices mix. Zero bypasses each drive."
+  ],
+  "dice-bypass": [
+    "Preset randomizer editor",
+    "Roll bounded sounds, lock sections, undo the last roll, or bypass both drives on the next roll. Output and expression settings are preserved."
+  ]
 };
 const image = document.querySelector("#editor-image");
 document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => {
