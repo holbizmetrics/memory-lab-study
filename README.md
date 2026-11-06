@@ -1,5 +1,12 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.14 adds [an independent second LFO](plugin/LFO2.md), with LFO 1 / CLOCK 1 /
+LFO 2 / CLOCK 2 pages and inactive defaults for old patches. It includes 0.13's
+eight [starting sounds](plugin/PRESETS.md). Holger requested their combined
+listening test before any four-LFO expansion. The [local interactive route map](roadmap/index.html)
+and [milestone checklist](MILESTONES.md) show what exists and what remains.
+See [0.14 source prerelease notes](releases/v0.14.0-alpha.1.md).
+
 2026-11-06: Holger confirmed all three 0.12 expression controls with his keyboard,
 and DICE drive bypass plus Undo. 0.13 starting sounds/browser is in development.
 See [visible milestones and remaining Relic-inspired gaps](MILESTONES.md) and

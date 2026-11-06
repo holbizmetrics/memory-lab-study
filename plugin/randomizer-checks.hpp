@@ -5,6 +5,7 @@ void randomizerChecks(){
  auto p=std::make_unique<MemoryLabProcessor>();
  set(*p,"volume",.17f);set(*p,"drive",7);set(*p,"depth",.3f);set(*p,"recovery",180);set(*p,"voiceDrive",6);set(*p,"arpOn",1);set(*p,"arpBpm",99);set(*p,"lfoBpm",111);set(*p,"phaseReset",0);
  set(*p,"keyTrack",.5f);set(*p,"ampVelocity",.4f);set(*p,"filterVelocity",.6f);
+ set(*p,"lfo2Pitch",7);set(*p,"lfo2Cutoff",.3f);set(*p,"lfo2Sync",1);set(*p,"lfo2Bpm",99);
  const auto original=memorylab::patch::encode(*p);
  // Every lock combination: no writes to locked groups or protected controls.
  const std::array<std::vector<juce::String>,4>groups{{

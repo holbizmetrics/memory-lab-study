@@ -13,18 +13,18 @@ four-part voice architecture can be more work than several UI milestones.
 | Oscillators | Saw source + pulse source, levels, interval/detune, pulse width/PWM, phase reset, per-voice noise | Not two fully equipped hardware VCO models; oscillator sync/wider capabilities remain | OSC/noise listening and general instrument playing |
 | Filters | Classic HP/notch/LP profile, LP4, BP4, BP4/LP2 Blend | Full documented family/profile/bandwidth behaviour and measured hardware matching remain | Family/drive listening; Profile clarified as Classic-only |
 | Envelopes | Two independent dAHDSR contours: amplitude and filter | Four envelopes and broader routing; stage values latch on note-on | Existing contours played; filter velocity confirmed |
-| LFOs | One per-voice LFO, four shapes, tempo division, retrigger/free-run, pitch/PWM/cutoff depths | Four independent LFOs and full shape/destination coverage | 0.9 shapes and 0.10 clock confirmed |
+| LFOs | Two per-voice LFOs in 0.14, each with four shapes, timing and pitch/PWM/cutoff depths | Third/fourth LFOs and full shape/destination coverage | LFO 1 shapes/clock confirmed; LFO 2 awaits its own test |
 | Expression | Independent amp/filter-env velocity response, note-to-cutoff tracking, channel pressure | Full performance/modulation architecture and MPE remain | Three 0.12 expression controls confirmed with keyboard |
 | Drive | Per-voice clipping and original shared memory drive, independent bypass at zero | Original design; no hardware distortion match established | Purpose clarified; clean/bypass comparisons and dice bypass confirmed |
 | Patch workflow | File save/load, INIT, host state, Dice/locks/undo | Full FL recording/undo/project-reload checks remain | Save/load used; Dice, bypass and Undo confirmed |
-| Starting sounds | 0.13 browser/eight presets being built and verified | Musical approval pending | Not yet tested by Holger |
+| Starting sounds | 0.13 browser/eight presets technically verified | Musical approval pending | Holger chose to test them in 0.14 |
 
 ## Proposed next checkpoints — scope can split when needed
 
 | Version | Concrete next goal | What it advances |
 | --- | --- | --- |
 | 0.13 | Starting presets, category browser, explicit load and undo | Workflow; no major synthesis architecture gap closed |
-| 0.14 | Second independent LFO with its own timing, shape and depths | Independent simultaneous modulation |
+| 0.14 | Second independent LFO technically verified and installed; musical approval pending | Independent simultaneous modulation; stop for Holger's test |
 | 0.15 | Four independent LFOs, with remaining shape coverage scoped from evidence | Documented LFO-count gap |
 | 0.16 | Third/fourth envelopes and useful modulation destinations | Documented envelope-count gap |
 | 0.17 | Broader explicit modulation routing | Source/destination flexibility |
@@ -38,6 +38,9 @@ The next synthesis milestones take priority over additional convenience features
 after the already-started 0.13. Keep the approved sound, stable parameter IDs and
 old-patch defaults throughout. Matching hardware tone/control behaviour requires
 reference measurements; feature count alone cannot establish it.
+
+Holger explicitly requested a combined 0.13/0.14 listening round, followed by a
+stop before the four-LFO expansion. Do not proceed to 0.15 on technical checks alone.
 
 Evidence: [recorded voice architecture](VOICE-EVIDENCE.md),
 [interview evidence](RELIC-INTERVIEW-EVIDENCE.md), [roadmap/history](ROADMAP.md).

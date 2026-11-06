@@ -1,5 +1,21 @@
 # Memory Lab Study roadmap
 
+## Active 0.14 checkpoint (2026-11-06)
+
+0.14 is now technically verified and installed after closed-host backup/hash
+verification of 0.12. All 11 plugin and six native checks pass; musical approval
+of LFO 2 and starting sounds remains pending.
+
+0.13 is preserved as v0.13.0-alpha.1 after 10 plugin checks, actual VST3 validation,
+unchanged default/legacy-clock captures and inspected editor screenshots. It was
+not installed separately; the combined update went directly from 0.12 to 0.14. Holger chose to test its starting sounds with 0.14.
+
+0.14 adds one independent second LFO, not four: own rate/shape, sync/division,
+retrigger/free-run/fallback and pitch/PWM/cutoff depths. Nine controls append to
+the existing 49, with inactive-depth defaults and schema-9 migration. Verify and
+install with closed hosts, then STOP for Holger's requested musical test before
+any 0.15/four-LFO expansion. See plugin/LFO2.md and the offline roadmap/index.html.
+
 See [the current milestone checklist](MILESTONES.md) for synthesis coverage,
 musical approval and the proposed 0.13-0.20 sequence. Historical entries below
 are a development log, not a statement that every old limitation remains current.

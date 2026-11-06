@@ -1,5 +1,9 @@
 # Starting sounds — 0.13
 
+0.14 compatibility update: the bank now emits schema 9 with 58 controls and
+initializes LFO 2 to its inactive defaults. Original sounds and output policy
+are preserved. The 49-control/schema-8 description below records 0.13's format.
+
 SOUNDS below DICE opens an internal starting-sound browser. Choose a category
 and sound, then LOAD SOUND. Selecting, browsing or reopening the editor does
 not load anything. SAVE/LOAD at the top retain their separate native-file role.

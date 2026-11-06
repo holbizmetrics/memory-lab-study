@@ -155,3 +155,14 @@ Investigate the unexpected FL exit; repeat project save/reload/playback. Then
 verify recorded knob performances, undo gestures, automation for the remaining
 control families, page/display following, and bounded/smooth fast parameter ramps.
 Envelope-stage automation retains the existing next-note latch behavior.
+
+## Additional requested host check (2026-11-06)
+
+Holger asked about FL Studio wrapper Randomize/Hybridize. These are host-side
+operations on published parameters/preset settings; the internal SOUNDS browser
+and .mlpatch loader do not automatically invoke FL's hybrid-preset workflow.
+Our Dice locks/protected output/drive-bypass policy applies only to Dice, not to
+arbitrary host writes. Expected parameter support is not live verification of
+these two FL functions. Add a separate controlled manual host check later; do
+not expand or delay the bounded second-LFO musical test for this convenience.
+Reference: https://www.image-line.com/fl-studio-learning/fl-studio-online-manual/html/plugins/wrapper.htm

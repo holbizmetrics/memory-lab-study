@@ -22,7 +22,7 @@ void patchChecks(){
   check(memorylab::patch::encode(*target)==unchanged,"invalid patch partially changed sound");
  };
  reject("not XML");
- auto root=juce::parseXML(encoded);root->setAttribute("schemaVersion",9);reject(root->toString());
+ auto root=juce::parseXML(encoded);root->setAttribute("schemaVersion",10);reject(root->toString());
  root=juce::parseXML(encoded);root->getChildElement(root->getNumChildElements()-1)->setAttribute("value","nan");reject(root->toString());
  root=juce::parseXML(encoded);root->getChildElement(root->getNumChildElements()-1)->setAttribute("value","15garbage");reject(root->toString());
  root=juce::parseXML(encoded);root->getChildElement(root->getNumChildElements()-1)->setAttribute("value",1000000);reject(root->toString());
@@ -30,6 +30,7 @@ void patchChecks(){
  root=juce::parseXML(encoded);root->getChildElement(root->getNumChildElements()-1)->setAttribute("id","drive");reject(root->toString());
  root=juce::parseXML(encoded);root->removeChildElement(root->getChildElement(root->getNumChildElements()-1),true);reject(root->toString());
  root=juce::parseXML(encoded);root->setAttribute("schemaVersion",1);
+ for(int n=root->getNumChildElements()-1;n>=0;--n)if(root->getChildElement(n)->getStringAttribute("id").startsWith("lfo2"))root->removeChildElement(root->getChildElement(n),true);
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i)if(root->getChildElement(i)->getStringAttribute("id")=="lfoShape"||root->getChildElement(i)->getStringAttribute("id")=="filterFamily"||root->getChildElement(i)->getStringAttribute("id")=="noiseLevel"||root->getChildElement(i)->getStringAttribute("id")=="voiceDrive"||root->getChildElement(i)->getStringAttribute("id")=="sawLevel"||root->getChildElement(i)->getStringAttribute("id")=="pulseLevel"||root->getChildElement(i)->getStringAttribute("id")=="osc2Interval")root->removeChildElement(root->getChildElement(i),true);
@@ -37,6 +38,7 @@ void patchChecks(){
  check(target->state.getRawParameterValue("voiceDrive")->load()==0,"legacy patch did not bypass voice drive");
  check(memorylab::patch::apply(*target,encoded).wasOk(),"restore current patch failed");
  root=juce::parseXML(encoded);root->setAttribute("schemaVersion",2);
+ for(int n=root->getNumChildElements()-1;n>=0;--n)if(root->getChildElement(n)->getStringAttribute("id").startsWith("lfo2"))root->removeChildElement(root->getChildElement(n),true);
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="lfoShape"||id=="filterFamily"||id=="noiseLevel"||id=="sawLevel"||id=="pulseLevel"||id=="osc2Interval")root->removeChildElement(root->getChildElement(i),true);}
@@ -46,6 +48,7 @@ void patchChecks(){
  check(std::abs(target->state.getRawParameterValue("voiceDrive")->load()-source->state.getRawParameterValue("voiceDrive")->load())<1e-6,"schema 2 drive lost");
  check(memorylab::patch::apply(*target,encoded).wasOk(),"restore after schema 2 failed");
  root=juce::parseXML(encoded);root->setAttribute("schemaVersion",3);
+ for(int n=root->getNumChildElements()-1;n>=0;--n)if(root->getChildElement(n)->getStringAttribute("id").startsWith("lfo2"))root->removeChildElement(root->getChildElement(n),true);
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i)if(root->getChildElement(i)->getStringAttribute("id")=="lfoShape"||root->getChildElement(i)->getStringAttribute("id")=="filterFamily"||root->getChildElement(i)->getStringAttribute("id")=="noiseLevel")root->removeChildElement(root->getChildElement(i),true);
@@ -54,6 +57,7 @@ void patchChecks(){
  check(target->state.getRawParameterValue("osc2Interval")->load()==source->state.getRawParameterValue("osc2Interval")->load(),"schema 3 interval lost");
  check(memorylab::patch::apply(*target,encoded).wasOk(),"restore after schema 3 failed");
  root=juce::parseXML(encoded);root->setAttribute("schemaVersion",4);
+ for(int n=root->getNumChildElements()-1;n>=0;--n)if(root->getChildElement(n)->getStringAttribute("id").startsWith("lfo2"))root->removeChildElement(root->getChildElement(n),true);
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i)if(root->getChildElement(i)->getStringAttribute("id")=="lfoShape"||root->getChildElement(i)->getStringAttribute("id")=="filterFamily")root->removeChildElement(root->getChildElement(i),true);
@@ -62,6 +66,7 @@ void patchChecks(){
  check(target->state.getRawParameterValue("noiseLevel")->load()==source->state.getRawParameterValue("noiseLevel")->load(),"schema 4 noise lost");
  check(memorylab::patch::apply(*target,encoded).wasOk(),"restore after schema 4 failed");
  root=juce::parseXML(encoded);root->setAttribute("schemaVersion",5);
+ for(int n=root->getNumChildElements()-1;n>=0;--n)if(root->getChildElement(n)->getStringAttribute("id").startsWith("lfo2"))root->removeChildElement(root->getChildElement(n),true);
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i)if(root->getChildElement(i)->getStringAttribute("id")=="lfoShape")root->removeChildElement(root->getChildElement(i),true);
@@ -69,12 +74,14 @@ void patchChecks(){
  check(target->state.getRawParameterValue("lfoShape")->load()==0,"legacy patch did not restore sine");
  check(memorylab::patch::apply(*target,encoded).wasOk(),"restore after schema 5 failed");
  root=juce::parseXML(encoded);root->setAttribute("schemaVersion",6);
+ for(int n=root->getNumChildElements()-1;n>=0;--n)if(root->getChildElement(n)->getStringAttribute("id").startsWith("lfo2"))root->removeChildElement(root->getChildElement(n),true);
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity")root->removeChildElement(root->getChildElement(i),true);}
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm")root->removeChildElement(root->getChildElement(i),true);}
  set(*target,"lfoSync",1);set(*target,"lfoRetrigger",0);check(memorylab::patch::apply(*target,root->toString()).wasOk(),"schema 6 patch rejected");
  check(target->state.getRawParameterValue("lfoSync")->load()==0&&target->state.getRawParameterValue("lfoRetrigger")->load()==1,"legacy clock defaults lost");
  check(memorylab::patch::apply(*target,encoded).wasOk(),"restore after schema 6 failed");
  root=juce::parseXML(encoded);root->setAttribute("schemaVersion",7);
+ for(int n=root->getNumChildElements()-1;n>=0;--n)if(root->getChildElement(n)->getStringAttribute("id").startsWith("lfo2"))root->removeChildElement(root->getChildElement(n),true);
  for(int i=root->getNumChildElements()-1;i>=0;--i){const auto id=root->getChildElement(i)->getStringAttribute("id");if(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity")root->removeChildElement(root->getChildElement(i),true);}
  set(*target,"keyTrack",1);set(*target,"ampVelocity",0);set(*target,"filterVelocity",0);check(memorylab::patch::apply(*target,root->toString()).wasOk(),"schema 7 patch rejected");
  check(target->state.getRawParameterValue("keyTrack")->load()==0&&target->state.getRawParameterValue("ampVelocity")->load()==1&&target->state.getRawParameterValue("filterVelocity")->load()==1,"legacy expression defaults lost");
@@ -85,5 +92,5 @@ void patchChecks(){
  check(memorylab::patch::encode(*target)==unchanged,"patch file roundtrip changed controls");
  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(target->createEditor());auto*init=dynamic_cast<juce::Button*>(find(*editor,"initPatch"));check(init&&bool(init->onClick),"INIT button missing");init->onClick();
  auto factory=std::make_unique<MemoryLabProcessor>();check(memorylab::patch::encode(*target)==memorylab::patch::encode(*factory),"INIT did not restore every factory control");
- std::cout<<"PASS patches: all 49 controls roundtrip, atomic file save/load, malformed/unsupported/incomplete/duplicate/unknown/out-of-range values rejected without partial edits.\n";
+ std::cout<<"PASS patches: all 58 controls roundtrip, atomic file save/load, malformed/unsupported/incomplete/duplicate/unknown/out-of-range values rejected without partial edits.\n";
 }

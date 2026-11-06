@@ -3,9 +3,9 @@
 void automationChecks(){
  auto processor=std::make_unique<MemoryLabProcessor>();
  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
- const char*ids[]{"drive","depth","recovery","detune","width","cutoff","resonance","volume","profile","lfoRate","vibrato","pwm","filterLfo","filterEnv","pressure","phaseReset","ampDelay","ampAttack","ampHold","ampDecay","ampSustain","ampRelease","fltDelay","fltAttack","fltHold","fltDecay","fltSustain","fltRelease","arpOn","arpSync","arpBpm","arpRate","arpOrder","arpOctaves","arpGate","voiceDrive","sawLevel","pulseLevel","osc2Interval","noiseLevel","filterFamily","lfoShape","lfoSync","lfoDivision","lfoRetrigger","lfoBpm","keyTrack","ampVelocity","filterVelocity"};
- check(processor->getParameters().size()==49,"automation parameter count changed");
- for(int i=0;i<49;++i){auto*p=processor->state.getParameter(ids[i]);check(p&&p==processor->getParameters()[i],"automation ID/order changed");check(p->isAutomatable(),"parameter not automatable");}
+ const char*ids[]{"drive","depth","recovery","detune","width","cutoff","resonance","volume","profile","lfoRate","vibrato","pwm","filterLfo","filterEnv","pressure","phaseReset","ampDelay","ampAttack","ampHold","ampDecay","ampSustain","ampRelease","fltDelay","fltAttack","fltHold","fltDecay","fltSustain","fltRelease","arpOn","arpSync","arpBpm","arpRate","arpOrder","arpOctaves","arpGate","voiceDrive","sawLevel","pulseLevel","osc2Interval","noiseLevel","filterFamily","lfoShape","lfoSync","lfoDivision","lfoRetrigger","lfoBpm","keyTrack","ampVelocity","filterVelocity","lfo2Rate","lfo2Pitch","lfo2Pwm","lfo2Cutoff","lfo2Shape","lfo2Sync","lfo2Division","lfo2Retrigger","lfo2Bpm"};
+ check(processor->getParameters().size()==58,"automation parameter count changed");
+ for(int i=0;i<58;++i){auto*p=processor->state.getParameter(ids[i]);check(p&&p==processor->getParameters()[i],"automation ID/order changed");check(p->isAutomatable(),"parameter not automatable");}
  struct Monitor:juce::AudioProcessorParameter::Listener{
   std::string events;
   void parameterValueChanged(int,float)override{events+='V';}
@@ -31,10 +31,10 @@ void automationChecks(){
  page("envelopePage");exercise("ampAttack",20,80,120);
  page("filterEnvelopePage");exercise("fltDecay",100,200,300);
  page("arpPage");exercise("arpGate",20,40,70);exercise("arpOrder",1,2,0);
- page("motionPage");exercise("lfoShape",1,2,3);page("motionClockPage");exercise("lfoSync",1,0,1);exercise("lfoDivision",1,3,4);exercise("lfoRetrigger",0,1,0);exercise("lfoBpm",90,110,140);page("drivePage");exercise("voiceDrive",8,24,12);page("oscPage");exercise("sawLevel",.1,.8,.42);exercise("pulseLevel",.2,.9,.28);exercise("osc2Interval",-12,7,12);exercise("noiseLevel",.08,.35,.1);page("familyPage");exercise("filterFamily",1,2,3);juce::MemoryBlock state;processor->getStateInformation(state);
+ page("motionPage");exercise("lfoShape",1,2,3);page("motionClockPage");exercise("lfoSync",1,0,1);exercise("lfoDivision",1,3,4);exercise("lfoRetrigger",0,1,0);exercise("lfoBpm",90,110,140);page("motion2Page");exercise("lfo2Rate",.5,2,3);exercise("lfo2Pitch",5,12,8);exercise("lfo2Pwm",.05,.1,.15);exercise("lfo2Cutoff",.2,.8,1);exercise("lfo2Shape",1,2,3);page("motion2ClockPage");exercise("lfo2Sync",1,0,1);exercise("lfo2Division",1,3,4);exercise("lfo2Retrigger",0,1,0);exercise("lfo2Bpm",90,110,140);page("drivePage");exercise("voiceDrive",8,24,12);page("oscPage");exercise("sawLevel",.1,.8,.42);exercise("pulseLevel",.2,.9,.28);exercise("osc2Interval",-12,7,12);exercise("noiseLevel",.08,.35,.1);page("familyPage");exercise("filterFamily",1,2,3);juce::MemoryBlock state;processor->getStateInformation(state);
  auto restored=std::make_unique<MemoryLabProcessor>();restored->setStateInformation(state.getData(),int(state.getSize()));
  check(std::abs(restored->state.getRawParameterValue("cutoff")->load()-3300)<1,"automation value state recall");
  check(restored->state.getRawParameterValue("arpGate")->load()==70,"arp automation value state recall");
  check(restored->state.getRawParameterValue("voiceDrive")->load()==12,"voice drive automation state recall");
- std::cout<<"PASS automation foundation: 49 stable automatable IDs/order, balanced knob gestures, parameter-to-editor updates without gesture echo, hidden-page rebinding and value recall. FL host recording/playback not covered.\n";
+ std::cout<<"PASS automation foundation: 58 stable automatable IDs/order, balanced knob gestures, parameter-to-editor updates without gesture echo, hidden-page rebinding and value recall. FL host recording/playback not covered.\n";
 }

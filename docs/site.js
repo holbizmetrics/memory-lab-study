@@ -1,5 +1,8 @@
 "use strict";
 const views = {
+  "motion2": ["Second LFO editor", "An independent second LFO adds pitch, pulse-width and cutoff movement. All depths default to zero."],
+  "motion2-clock": ["Second LFO clock editor", "LFO 2 has its own tempo division, note reset/free run and fallback BPM."],
+  "presets": ["Starting sounds browser", "Browse eight original sounds without changing audio. LOAD preserves output and bypasses both drives; UNDO restores the previous sound."],
   "voice": [
     "Voice sound editor",
     "Shape two oscillators, sweep the classic filter, and explore shared drive, memory and recovery."
