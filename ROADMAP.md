@@ -1,5 +1,27 @@
 # Memory Lab Study roadmap
 
+See [the current milestone checklist](MILESTONES.md) for synthesis coverage,
+musical approval and the proposed 0.13-0.20 sequence. Historical entries below
+are a development log, not a statement that every old limitation remains current.
+
+## Listening approval and next milestone (2026-11-06)
+
+Holger confirmed 0.12 AMP VELOCITY with his MIDI keyboard, then FILTER ENV VEL
+and KEY TRACK in guided comparisons. He also confirmed DICE BYPASS DRIVES sets
+both drives to zero and UNDO restores the pre-roll sound and drive values.
+This closes that combined listening/interaction round, not the separate full
+FL automation/undo/project-reload or saved-file migration verification.
+
+0.13 in progress: eight original starting sounds with a category/sound browser,
+explicit LOAD and one-step UNDO LOAD. Browsing is passive, output is preserved,
+and starting sounds bypass both drives. No DSP, host-ID or schema change.
+Holger wants progress toward the complete Relic-inspired instrument; preset
+browsing is this bounded milestone, not completion of the hardware architecture.
+Multiple independent LFOs/envelopes, wider modulation routing and multitimbral
+voice organisation remain substantial separate work. Do not call this a faithful
+Relic conversion or measured hardware match. Older entries below retain their
+historical pending status; the confirmation above supersedes that status.
+
 ## Current 0.12 work (2026-11-03)
 
 Holger explicitly authorized continuing before testing 0.11 alpha 2, intending

@@ -17,6 +17,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "tab-switch-checks.hpp" // Includes live host-family enabled-state coverage.
 #include "randomizer-checks.hpp" // Section/bypass isolation, protected controls, history and renders.
 #include "expression-checks.hpp" // Tracking ratios, independent velocity response and migration.
+#include "preset-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -58,6 +59,12 @@ int main(int argc,char**argv){try{
  if(argc==2&&std::string(argv[1])=="--motion-clock-test"){motionClockChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--randomizer-test"){randomizerChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--expression-test"){expressionChecks();return 0;}
+ if(argc==2&&std::string(argv[1])=="--preset-test"){presetChecks();return 0;}
+ if(argc==3&&std::string(argv[1])=="--factory-patches"){
+  juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"factory patch export folder");
+  auto p=std::make_unique<MemoryLabProcessor>();
+  for(int i=0;i<int(memorylab::presets::bank().size());++i){check(memorylab::presets::load(*p,i),"factory patch load");check(memorylab::patch::save(*p,folder.getChildFile(juce::String(i+1)+".mlpatch")).wasOk(),"factory patch export");}return 0;
+ }
  if(argc==3&&std::string(argv[1])=="--dice-patches"){
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"dice patch export folder");
   for(unsigned seed=0;seed<4;++seed){auto p=std::make_unique<MemoryLabProcessor>();set(*p,"drive",0);set(*p,"depth",0);check(memorylab::randomizer::roll(*p,seed),"dice sample generation");check(memorylab::patch::save(*p,folder.getChildFile("seed-"+juce::String(seed)+".mlpatch")).wasOk(),"dice sample save");}
@@ -67,6 +74,7 @@ int main(int argc,char**argv){try{
   auto processor=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
   const juce::File folder{juce::String::fromUTF8(argv[1])};folder.createDirectory();check(folder.isDirectory(),"snapshot folder");
   auto snapshot=[&](const char*name){juce::Thread::sleep(40);juce::Timer::callPendingTimersSynchronously();auto image=editor->createComponentSnapshot(editor->getLocalBounds(),true,1);auto stream=folder.getChildFile(name).createOutputStream();check(bool(stream),"snapshot stream");stream->setPosition(0);stream->truncate();juce::PNGImageFormat png;check(png.writeImageToStream(image,*stream),"snapshot encoding");};
+  auto*sounds=dynamic_cast<juce::Button*>(find(*editor,"presetPage"));check(sounds&&bool(sounds->onClick),"SOUNDS page missing");sounds->onClick();snapshot("presets.png");editor->setSize(832,592);snapshot("presets-compact.png");editor->setSize(1040,740);
   auto*dice=dynamic_cast<juce::Button*>(find(*editor,"dicePage"));check(dice&&bool(dice->onClick),"dice navigation missing");dice->onClick();snapshot("dice.png");
   auto*lock=dynamic_cast<juce::ToggleButton*>(find(*editor,"lockMotion"));check(lock&&bool(lock->onClick),"dice motion lock missing");lock->setToggleState(true,juce::dontSendNotification);lock->onClick();
   auto*roll=dynamic_cast<juce::Button*>(find(*editor,"rollPatch"));check(roll&&bool(roll->onClick),"dice roll missing");roll->onClick();snapshot("dice-rolled.png");editor->setSize(832,592);snapshot("dice-compact.png");editor->setSize(1040,740);

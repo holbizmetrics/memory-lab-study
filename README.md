@@ -1,5 +1,11 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+2026-11-06: Holger confirmed all three 0.12 expression controls with his keyboard,
+and DICE drive bypass plus Undo. 0.13 starting sounds/browser is in development.
+See [visible milestones and remaining Relic-inspired gaps](MILESTONES.md) and
+[starting-sound workflow](plugin/PRESETS.md). Historical release notes below
+retain the listening status at the time each milestone was delivered.
+
 0.12 development adds [VOICE / EXPRESSION](plugin/EXPRESSION.md): filter keyboard
 tracking and independent amplitude/filter-envelope velocity sensitivities, with
 neutral defaults for existing patches. Holger chose to batch its listening check

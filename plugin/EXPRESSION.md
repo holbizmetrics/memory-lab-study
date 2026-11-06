@@ -51,5 +51,9 @@ Holger explicitly chose to combine the pending 0.11 alpha-2 checkbox check with
    clocked patch: new expression values should reset to 0/100/100, preserving
    the old response. Save under a new filename if keeping an old-version copy.
 
-Musical approval of 0.12 and live confirmation of the bypass checkbox remain
-pending. A full hardware Relic modulation/MPE architecture is not claimed.
+2026-11-06: Holger confirmed AMP VELOCITY with his MIDI keyboard, FILTER ENV VEL,
+KEY TRACK, DICE setting both drives to zero, and UNDO restoring the previous
+sound/drives. This completes steps 1-4 of this guided listening round. Step 5's
+specific live file-recall/migration checks were not confirmed in this round;
+automated patch/host migration checks had already passed. A full hardware Relic
+modulation/MPE architecture is not claimed.
