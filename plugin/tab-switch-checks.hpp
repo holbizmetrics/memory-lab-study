@@ -6,7 +6,7 @@ void tabSwitchChecks(){
   struct Monitor:juce::AudioProcessorParameter::Listener{int writes=0;void parameterValueChanged(int,float)override{++writes;}void parameterGestureChanged(int,bool)override{}}monitor;
   for(auto*parameter:p->getParameters())parameter->addListener(&monitor);
   auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
-  for(int cycle=0;cycle<4;++cycle)for(const char*id:{"voicePage","expressionPage","voiceSoundPage","oscPage","motionPage","motionClockPage","motion2Page","motion2ClockPage","envelopePage","filterEnvelopePage","familyPage","arpPage","dicePage","presetPage","drivePage"}){auto*b=dynamic_cast<juce::Button*>(find(*editor,id));check(b&&bool(b->onClick),"tab missing");b->onClick();}
+  for(int cycle=0;cycle<4;++cycle)for(const char*id:{"voicePage","expressionPage","voiceSoundPage","oscPage","motionPage","motionClockPage","motion2Page","motion2ClockPage","motion3Page","motion3ClockPage","motion4Page","motion4ClockPage","envelopePage","filterEnvelopePage","familyPage","arpPage","dicePage","presetPage","drivePage"}){auto*b=dynamic_cast<juce::Button*>(find(*editor,id));check(b&&bool(b->onClick),"tab missing");b->onClick();}
   auto*profile=dynamic_cast<juce::Slider*>(find(*editor,"profile"));check(profile&&profile->isEnabled()==(family==0),"Classic Profile active in wrong family");
   set(*p,"filterFamily",family==0?3.f:0.f);
   const auto deadline=juce::Time::getMillisecondCounterHiRes()+1000.;
@@ -24,5 +24,5 @@ void tabSwitchChecks(){
   editor.reset();for(auto*parameter:p->getParameters())parameter->removeListener(&monitor);
   check(monitor.writes==0,"opening editor or switching tabs wrote a parameter");for(int i=0;i<p->getParameters().size();++i)check(p->getParameters()[i]->getValue()==before[std::size_t(i)],"tab switch changed sound settings");
  }
- std::cout<<"PASS: opening/closing editor and 240 page switches preserve every parameter, with zero parameter writes, across all four families\n";
+ std::cout<<"PASS: opening/closing editor and 304 page switches preserve every parameter, with zero parameter writes, across all four families\n";
 }

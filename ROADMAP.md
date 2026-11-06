@@ -1,5 +1,21 @@
 # Memory Lab Study roadmap
 
+## Active 0.15 checkpoint
+
+Holger approved all eight 0.13 starting sounds and the 0.14 LFO 2 listening round:
+filter, pitch and PWM, combined sources, tempo sync, retrigger/free run and recall
+of Slow Wah, Fast Heart after edits/Dice. He explicitly approved keeping Dice
+independent of ARP and continuing development. Preserve that scope; new LFO 3/4
+also stay as set during Dice rolls.
+
+0.15 implements four independent LFOs with the four existing shapes per source,
+own timing/clock/retrigger and fixed pitch/PWM/cutoff routes. New depths default
+inactive; 18 host controls append, 76 total, patch schema 10. All 12 plugin and six native checks passed; actual-module default/clocked and
+user-patch audio preservation passed. The verified build is installed with a
+0.14 backup. Holger's new-source musical approval remains pending. Extra waveform/range/routing coverage
+remains an explicit gap rather than an implied part of the LFO-count milestone.
+Use a copy of Holger's saved two-LFO patch for actual-VST3 sound preservation.
+
 ## Active 0.14 checkpoint (2026-11-06)
 
 0.14 is now technically verified and installed after closed-host backup/hash

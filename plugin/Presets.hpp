@@ -19,11 +19,11 @@ inline const std::vector<Entry>& bank(){
  };
  return entries;
 }
-// Build a complete schema-9 patch without changing the live processor. Every
+// Build a complete schema-10 patch without changing the live processor. Every
 // preset starts from factory defaults, not the previously selected sound.
 inline juce::String encode(MemoryLabProcessor&p,int index){
  if(index<0||index>=int(bank().size()))return {};
- juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",9);
+ juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",10);
  for(auto*base:p.getParameters())if(auto*parameter=dynamic_cast<juce::RangedAudioParameter*>(base)){
   float value=parameter->convertFrom0to1(parameter->getDefaultValue());
   const auto&id=parameter->paramID;

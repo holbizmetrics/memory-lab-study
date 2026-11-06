@@ -2,6 +2,7 @@
 #include "Patch.hpp"
 void lfo2Checks(){
  using P=memorylab::Param;
+ auto newerLfo=[](const juce::String&id){return id.startsWith("lfo2")||id.startsWith("lfo3")||id.startsWith("lfo4");};
  auto render=[](double sr,int block,int source,int route,int shape,bool sync,bool retrigger,int delay,int division=2,double bpm=120){
   auto synth=std::make_unique<memorylab::Synth>();synth->prepare(sr);
   auto param=[&](P id,double value){synth->dispatch({0,memorylab::EventKind::Parameter,0,value,0,id});};
@@ -36,7 +37,7 @@ void lfo2Checks(){
  }
  auto p=std::make_unique<MemoryLabProcessor>();set(*p,"lfo2Pitch",17);set(*p,"lfo2Pwm",.07f);set(*p,"lfo2Cutoff",.8f);set(*p,"lfo2Sync",1);set(*p,"lfo2Bpm",97);
  const auto encoded=memorylab::patch::encode(*p);auto root=juce::parseXML(encoded);root->setAttribute("schemaVersion",8);
- for(int i=root->getNumChildElements()-1;i>=0;--i)if(root->getChildElement(i)->getStringAttribute("id").startsWith("lfo2"))root->removeChildElement(root->getChildElement(i),true);
+ for(int i=root->getNumChildElements()-1;i>=0;--i)if(newerLfo(root->getChildElement(i)->getStringAttribute("id")))root->removeChildElement(root->getChildElement(i),true);
  check(memorylab::patch::apply(*p,root->toString()).wasOk(),"schema 8 patch migration failed");
  // JUCE's bipolar PWM range roundtrip yields ~2.98e-8 at displayed zero.
  // The wrapper already canonicalizes defaults within step*.001. Verify the
@@ -51,7 +52,7 @@ void lfo2Checks(){
   for(int i=0;i<512;++i)check(migrated.getSample(0,i)==reference.getSample(0,i),"legacy patch zero depths changed actual audio");
  }
  check(memorylab::patch::apply(*p,encoded).wasOk(),"schema 9 restore failed");auto legacy=p->state.copyState();
- for(int i=legacy.getNumChildren()-1;i>=0;--i)if(legacy.getChild(i).getProperty("id").toString().startsWith("lfo2"))legacy.removeChild(i,nullptr);
+ for(int i=legacy.getNumChildren()-1;i>=0;--i)if(newerLfo(legacy.getChild(i).getProperty("id").toString()))legacy.removeChild(i,nullptr);
  auto xml=legacy.createXml();juce::MemoryBlock state;juce::AudioProcessor::copyXmlToBinary(*xml,state);p->setStateInformation(state.getData(),int(state.getSize()));
  check(p->state.getRawParameterValue("lfo2Pitch")->load()==0&&p->state.getRawParameterValue("lfo2Cutoff")->load()==0,"legacy host retained LFO 2");
  struct Host:juce::AudioPlayHead{double bpm=137;bool available=true;juce::Optional<PositionInfo>getPosition()const override{PositionInfo pos;if(available)pos.setBpm(bpm);return pos;}}host;

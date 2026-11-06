@@ -1,5 +1,10 @@
 # Starting sounds — 0.13
 
+Listening update: Holger checked all eight starting sounds and reported all fit.
+Round Bass was confirmed around C3, resolving his earlier high-register concern.
+0.15 emits schema 10 / 76 controls with LFO 3/4 inactive. Original starting
+sounds and output policy are preserved; the format notes below are historical.
+
 0.14 compatibility update: the bank now emits schema 9 with 58 controls and
 initializes LFO 2 to its inactive defaults. Original sounds and output policy
 are preserved. The 49-control/schema-8 description below records 0.13's format.
@@ -43,4 +48,4 @@ both drives read zero. UNDO LOAD restores the complete pre-load sound. SAVE an
 edited starting sound and LOAD that file to confirm the ordinary patch workflow.
 
 Technical validation and musical approval are recorded separately in the release
-notes. These starting sounds have not yet received Holger's listening approval.
+notes. Holger has now confirmed all eight starting sounds.

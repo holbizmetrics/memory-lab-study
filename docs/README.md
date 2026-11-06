@@ -29,7 +29,7 @@ and successful build before reporting the site as published.
 
 ## Behavior and verification
 
-- Fourteen editor buttons switch real screenshots with descriptive captions.
+- Eighteen editor buttons switch real screenshots with descriptive captions.
 - Single-note/chord selection switches all three audio examples and resets playback.
 - Only one example plays at a time; changing the phrase does not autoplay.
 - Native audio controls and keyboard-operable buttons; visible focus styles,
@@ -41,16 +41,16 @@ and successful build before reporting the site as published.
 
 ## Assets
 
-Editor PNGs: outputs/lfo2-0.14-preview (v0.14 development build).
+Editor PNGs: outputs/four-lfo-0.15-preview (v0.15 development build).
 Matched WAVs: outputs/voice-drive-study-2, verified against verification.json.
 Three-second mono 48 kHz float WAVs, matched to -24 dBFS RMS. These historical clips predate the current release; per-voice drive is now implemented. Raw measurement artifacts
 remain ignored under outputs/ and are not published by this site.
 
 ## Current content
 
-Updated for v0.14.0-alpha.1: 58 controls, current editor captures, two independent
+Updated for v0.15.0-alpha.1: 76 controls, current editor captures, four independent
 LFOs and clocks, expression, oscillator mixing/noise, filter families, INIT, Dice
 and the starting-sound browser. Historical audio retains its study provenance.
-0.12 expression and Dice bypass/Undo are now confirmed; LFO 2 and starting-sound
-musical approval remains pending. The separate local route map lives outside the
+0.12 expression, Dice bypass/Undo, LFO 2 and all starting sounds are now confirmed;
+LFO 3/4 musical approval remains pending. The separate local route map lives outside the
 Pages root at roadmap/index.html; it is not a second hosted site.

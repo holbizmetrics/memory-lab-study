@@ -34,8 +34,8 @@ public:
  std::atomic<float> outputPeak{0};
  std::atomic<int> voiceCount{0};
  std::atomic<float> arpTempo{130};
- std::atomic<float> lfoTempo{130},lfo2Tempo{130};
- std::atomic<bool> lfo2HasHostTempo{false};
+ std::atomic<float> lfoTempo{130},lfo2Tempo{130},lfo3Tempo{130},lfo4Tempo{130};
+ std::atomic<bool> lfo2HasHostTempo{false},lfo3HasHostTempo{false},lfo4HasHostTempo{false};
  std::atomic<bool> lfoHasHostTempo{false};
  std::atomic<int> arpStep{0};
  std::atomic<bool> arpHasHostTempo{false};
@@ -51,7 +51,7 @@ private:
  double clockBpm=130;
  double renderSampleRate=48000;
  bool ready=false;
- static constexpr std::size_t parameterCount=51;
+ static constexpr std::size_t parameterCount=69;
  std::array<std::atomic<float>*,parameterCount> values{};
  std::array<float,parameterCount> previous{};
  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MemoryLabProcessor)

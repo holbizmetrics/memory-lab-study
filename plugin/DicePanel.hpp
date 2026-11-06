@@ -34,7 +34,7 @@ public:
   g.setColour(panel);g.fillRoundedRectangle(getLocalBounds().toFloat(),12);
   g.setColour(white);g.setFont(juce::Font(juce::FontOptions(26.f,juce::Font::bold)));g.drawText("PATCH DICE",40,22,650,36,juce::Justification::centredLeft);
   g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawFittedText("Vary unlocked sound sections. Output, arpeggiator, oscillator phase reset and fallback BPM stay as set. Drives stay as set unless BYPASS DRIVES is on.",40,68,680,55,juce::Justification::topLeft,3);
-  const char*descriptions[]{"Source mix, noise, pulse width, detune and interval.","Family, cutoff, moderate resonance and Classic profile.","Amplitude and filter stages, plus filter-envelope amount.","LFO 1 shape, rate, clock and depths. LFO 2 stays as set."};
+  const char*descriptions[]{"Source mix, noise, pulse width, detune and interval.","Family, cutoff, moderate resonance and Classic profile.","Amplitude and filter stages, plus filter-envelope amount.","LFO 1 shape, rate, clock and depths. LFO 2-4 stay as set."};
   g.setFont(juce::Font(juce::FontOptions(13.f)));for(int i=0;i<4;++i)g.drawFittedText(descriptions[i],40+196*i,188,170,72,juce::Justification::topLeft,4);
   g.setColour(amber);g.drawRoundedRectangle(762,26,62,62,10,2);
   for(auto point:{juce::Point<float>{778,42},{808,42},{793,57},{778,72},{808,72}})g.fillEllipse(point.x-3,point.y-3,6,6);

@@ -40,6 +40,10 @@ struct Parameters {
  bool lfoSync=false,lfoRetrigger=true;double lfoBpm=130;
  double lfo2Rate=.7,lfo2Pitch=0,lfo2Pwm=0,lfo2Cutoff=0,lfo2Bpm=130;
  int lfo2Shape=0,lfo2Division=2;bool lfo2Sync=false,lfo2Retrigger=true;
+ double lfo3Rate=.35,lfo3Pitch=0,lfo3Pwm=0,lfo3Cutoff=0,lfo3Bpm=130;
+ int lfo3Shape=0,lfo3Division=2;bool lfo3Sync=false,lfo3Retrigger=true;
+ double lfo4Rate=1.1,lfo4Pitch=0,lfo4Pwm=0,lfo4Cutoff=0,lfo4Bpm=130;
+ int lfo4Shape=0,lfo4Division=2;bool lfo4Sync=false,lfo4Retrigger=true;
  EnvelopeSettings ampEnvelope{0,.012,0,.18,.65,.5},filterEnvelopeShape{};
 };
 class MemoryDrive {
@@ -65,7 +69,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -103,7 +107,7 @@ struct Voice {
 #if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
  StudyFilterFamily studyFilter;
 #endif
- FilterEnvelope filterEnv,ampEnv;double lfoPhase=0,lfo2Phase=0;
+ FilterEnvelope filterEnv,ampEnv;double lfoPhase=0,lfo2Phase=0,lfo3Phase=0,lfo4Phase=0;
  bool keyDown=false;double lastOutput=0,transitionValue=0;int transitionLeft=0;
 };
 inline double blep(double t,double dt){
@@ -157,7 +161,7 @@ class Synth {
 #if MEMORYLAB_EXPERIMENTAL_VOICE_DRIVE
  bool studyDriveEnabled=false;double studyDriveGain=1;std::uint64_t studyClipped=0;
 #endif
- double sr=48000,freeLfoPhase=0,freeLfo2Phase=0;std::uint64_t clock=0;std::array<Voice,8> voices{};MemoryDrive memory;
+ double sr=48000,freeLfoPhase=0,freeLfo2Phase=0,freeLfo3Phase=0,freeLfo4Phase=0;std::uint64_t clock=0;std::array<Voice,8> voices{};MemoryDrive memory;
  Parameters target{},current{};OscillatorBank bank;
  double voiceDriveGain=1,voiceDriveMix=0;
  std::array<double,3> filterWeights{};
@@ -219,6 +223,24 @@ class Synth {
     case Param::Lfo2Division:target.lfo2Division=int(std::clamp(std::round(e.value),0.,5.));break;
     case Param::Lfo2Retrigger:target.lfo2Retrigger=e.value>=.5;break;
     case Param::Lfo2Bpm:target.lfo2Bpm=std::clamp(e.value,20.,400.);break;
+    case Param::Lfo3Rate:target.lfo3Rate=std::clamp(e.value,.05,20.);break;
+    case Param::Lfo3Pitch:target.lfo3Pitch=std::clamp(e.value,-50.,50.);break;
+    case Param::Lfo3Pwm:target.lfo3Pwm=std::clamp(e.value,-.35,.35);break;
+    case Param::Lfo3Cutoff:target.lfo3Cutoff=std::clamp(e.value,-2.,2.);break;
+    case Param::Lfo3Shape:target.lfo3Shape=int(std::clamp(std::round(e.value),0.,3.));break;
+    case Param::Lfo3Sync:target.lfo3Sync=e.value>=.5;break;
+    case Param::Lfo3Division:target.lfo3Division=int(std::clamp(std::round(e.value),0.,5.));break;
+    case Param::Lfo3Retrigger:target.lfo3Retrigger=e.value>=.5;break;
+    case Param::Lfo3Bpm:target.lfo3Bpm=std::clamp(e.value,20.,400.);break;
+    case Param::Lfo4Rate:target.lfo4Rate=std::clamp(e.value,.05,20.);break;
+    case Param::Lfo4Pitch:target.lfo4Pitch=std::clamp(e.value,-50.,50.);break;
+    case Param::Lfo4Pwm:target.lfo4Pwm=std::clamp(e.value,-.35,.35);break;
+    case Param::Lfo4Cutoff:target.lfo4Cutoff=std::clamp(e.value,-2.,2.);break;
+    case Param::Lfo4Shape:target.lfo4Shape=int(std::clamp(std::round(e.value),0.,3.));break;
+    case Param::Lfo4Sync:target.lfo4Sync=e.value>=.5;break;
+    case Param::Lfo4Division:target.lfo4Division=int(std::clamp(std::round(e.value),0.,5.));break;
+    case Param::Lfo4Retrigger:target.lfo4Retrigger=e.value>=.5;break;
+    case Param::Lfo4Bpm:target.lfo4Bpm=std::clamp(e.value,20.,400.);break;
    }return;
   }
   if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
@@ -258,7 +280,15 @@ class Synth {
   const bool active2=current.lfo2Pitch!=0||current.lfo2Pwm!=0||current.lfo2Cutoff!=0;
   const double lfo2=active2?lfoSample(phase2,target.lfo2Shape):0;
   v.lfo2Phase+=(target.lfo2Sync?syncedLfoHz(target.lfo2Bpm,target.lfo2Division):current.lfo2Rate)/sr;v.lfo2Phase-=std::floor(v.lfo2Phase);
-  double pitch=current.pitchLfo*lfo+200*bend[v.channel];if(current.lfo2Pitch!=0)pitch+=current.lfo2Pitch*lfo2;
+  const double phase3=target.lfo3Retrigger?v.lfo3Phase:freeLfo3Phase;
+  const bool active3=current.lfo3Pitch!=0||current.lfo3Pwm!=0||current.lfo3Cutoff!=0;
+  const double lfo3=active3?lfoSample(phase3,target.lfo3Shape):0;
+  v.lfo3Phase+=(target.lfo3Sync?syncedLfoHz(target.lfo3Bpm,target.lfo3Division):current.lfo3Rate)/sr;v.lfo3Phase-=std::floor(v.lfo3Phase);
+  const double phase4=target.lfo4Retrigger?v.lfo4Phase:freeLfo4Phase;
+  const bool active4=current.lfo4Pitch!=0||current.lfo4Pwm!=0||current.lfo4Cutoff!=0;
+  const double lfo4=active4?lfoSample(phase4,target.lfo4Shape):0;
+  v.lfo4Phase+=(target.lfo4Sync?syncedLfoHz(target.lfo4Bpm,target.lfo4Division):current.lfo4Rate)/sr;v.lfo4Phase-=std::floor(v.lfo4Phase);
+  double pitch=current.pitchLfo*lfo+200*bend[v.channel];if(current.lfo2Pitch!=0)pitch+=current.lfo2Pitch*lfo2;if(current.lfo3Pitch!=0)pitch+=current.lfo3Pitch*lfo3;if(current.lfo4Pitch!=0)pitch+=current.lfo4Pitch*lfo4;
   const double f=440*std::exp2((v.note-69)/12.)*std::exp2(pitch/1200),dt=std::min(.45,f/sr);
 #if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
   const double dt2=std::min(.45,f*std::exp2(studyInterval/12.+current.detune/1200)/sr);
@@ -266,7 +296,7 @@ class Synth {
   const double dt2=std::min(.45,f*std::exp2(current.osc2Interval/12.+current.detune/1200)/sr);
 #endif
   double saw=bank.saw(v.phase1,dt);
-  double width=current.pulseWidth+current.pwmLfo*lfo;if(current.lfo2Pwm!=0)width+=current.lfo2Pwm*lfo2;
+  double width=current.pulseWidth+current.pwmLfo*lfo;if(current.lfo2Pwm!=0)width+=current.lfo2Pwm*lfo2;if(current.lfo3Pwm!=0)width+=current.lfo3Pwm*lfo3;if(current.lfo4Pwm!=0)width+=current.lfo4Pwm*lfo4;
   double pulse=bank.pulse(v.phase2,dt2,std::clamp(width,.1,.9));
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
   v.env=v.ampEnv.tick(sr);if(!v.gate&&v.env<1e-8){v.active=false;return 0;}
@@ -288,6 +318,8 @@ class Synth {
   }
   double cutoffExponent=current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*filterVelocity+current.pressureDepth*pressure[v.channel];
   if(current.lfo2Cutoff!=0)cutoffExponent+=current.lfo2Cutoff*lfo2;
+  if(current.lfo3Cutoff!=0)cutoffExponent+=current.lfo3Cutoff*lfo3;
+  if(current.lfo4Cutoff!=0)cutoffExponent+=current.lfo4Cutoff*lfo4;
   if(current.keyTrack!=0)cutoffExponent+=current.keyTrack*(v.note-60)/12.;
   const double cutoff=std::clamp(current.cutoff*std::exp2(cutoffExponent),30.,std::min(18000.,sr*.4));
   double output=v.filter.tick(x,sr,cutoff,current.q,current.profile);
@@ -330,7 +362,7 @@ public:
  std::uint64_t studyClippedVoiceSamples()const{return studyClipped;}
 #endif
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
- void reset(){voices={};clock=0;freeLfoPhase=freeLfo2Phase=0;target=current=Parameters{};voiceDriveGain=1;voiceDriveMix=0;filterWeights={};memory.prepare(sr);sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
+ void reset(){voices={};clock=0;freeLfoPhase=freeLfo2Phase=freeLfo3Phase=freeLfo4Phase=0;target=current=Parameters{};voiceDriveGain=1;voiceDriveMix=0;filterWeights={};memory.prepare(sr);sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
  std::size_t heldVoices(int channel=-1)const{std::size_t n=0;for(const auto&v:voices)if(v.active&&v.keyDown&&(channel<0||v.channel==channel))++n;return n;}
  bool sounding(int note,int channel)const{for(const auto&v:voices)if(v.active&&v.note==note&&v.channel==channel)return true;return false;}
@@ -355,6 +387,16 @@ public:
    if(target.lfo2Pitch==0&&std::abs(current.lfo2Pitch)<1e-8)current.lfo2Pitch=0;
    if(target.lfo2Pwm==0&&std::abs(current.lfo2Pwm)<1e-8)current.lfo2Pwm=0;
    if(target.lfo2Cutoff==0&&std::abs(current.lfo2Cutoff)<1e-8)current.lfo2Cutoff=0;
+   current.lfo3Rate+=(target.lfo3Rate-current.lfo3Rate)*smooth;
+   current.lfo3Pitch+=(target.lfo3Pitch-current.lfo3Pitch)*smooth;current.lfo3Pwm+=(target.lfo3Pwm-current.lfo3Pwm)*smooth;current.lfo3Cutoff+=(target.lfo3Cutoff-current.lfo3Cutoff)*smooth;
+   if(target.lfo3Pitch==0&&std::abs(current.lfo3Pitch)<1e-8)current.lfo3Pitch=0;
+   if(target.lfo3Pwm==0&&std::abs(current.lfo3Pwm)<1e-8)current.lfo3Pwm=0;
+   if(target.lfo3Cutoff==0&&std::abs(current.lfo3Cutoff)<1e-8)current.lfo3Cutoff=0;
+   current.lfo4Rate+=(target.lfo4Rate-current.lfo4Rate)*smooth;
+   current.lfo4Pitch+=(target.lfo4Pitch-current.lfo4Pitch)*smooth;current.lfo4Pwm+=(target.lfo4Pwm-current.lfo4Pwm)*smooth;current.lfo4Cutoff+=(target.lfo4Cutoff-current.lfo4Cutoff)*smooth;
+   if(target.lfo4Pitch==0&&std::abs(current.lfo4Pitch)<1e-8)current.lfo4Pitch=0;
+   if(target.lfo4Pwm==0&&std::abs(current.lfo4Pwm)<1e-8)current.lfo4Pwm=0;
+   if(target.lfo4Cutoff==0&&std::abs(current.lfo4Cutoff)<1e-8)current.lfo4Cutoff=0;
    current.filterEnvelope+=(target.filterEnvelope-current.filterEnvelope)*smooth;
    current.pressureDepth+=(target.pressureDepth-current.pressureDepth)*smooth;
    current.keyTrack+=(target.keyTrack-current.keyTrack)*smooth;
@@ -378,6 +420,8 @@ public:
    output[i]=static_cast<float>(memory.tick(sum,target)*current.volume);
    freeLfoPhase+=(target.lfoSync?syncedLfoHz(target.lfoBpm,target.lfoDivision):current.lfoRate)/sr;freeLfoPhase-=std::floor(freeLfoPhase);
    freeLfo2Phase+=(target.lfo2Sync?syncedLfoHz(target.lfo2Bpm,target.lfo2Division):current.lfo2Rate)/sr;freeLfo2Phase-=std::floor(freeLfo2Phase);
+   freeLfo3Phase+=(target.lfo3Sync?syncedLfoHz(target.lfo3Bpm,target.lfo3Division):current.lfo3Rate)/sr;freeLfo3Phase-=std::floor(freeLfo3Phase);
+   freeLfo4Phase+=(target.lfo4Sync?syncedLfoHz(target.lfo4Bpm,target.lfo4Division):current.lfo4Rate)/sr;freeLfo4Phase-=std::floor(freeLfo4Phase);
   }return true;
  }
 };

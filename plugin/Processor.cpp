@@ -3,7 +3,7 @@
 
 namespace {
 struct Spec{const char* id;const char* name;float low,high,step;double initial;float skew;memorylab::Param parameter;};
-const std::array<Spec,51> specs{{
+const std::array<Spec,69> specs{{
  {"drive","Drive",0,12,.1f,5,1,memorylab::Param::Drive},
  {"depth","Memory depth",0,1.5f,.01f,.8,1,memorylab::Param::Depth},
  {"recovery","Memory recovery (ms)",50,400,1,250,.5f,memorylab::Param::Recovery},
@@ -54,7 +54,25 @@ const std::array<Spec,51> specs{{
  {"lfo2Sync","LFO 2 tempo sync",0,1,1,0,1,memorylab::Param::Lfo2Sync},
  {"lfo2Division","LFO 2 note division",0,5,1,2,1,memorylab::Param::Lfo2Division},
  {"lfo2Retrigger","LFO 2 note retrigger",0,1,1,1,1,memorylab::Param::Lfo2Retrigger},
- {"lfo2Bpm","LFO 2 fallback BPM",20,400,.1f,130,1,memorylab::Param::Lfo2Bpm}
+ {"lfo2Bpm","LFO 2 fallback BPM",20,400,.1f,130,1,memorylab::Param::Lfo2Bpm},
+ {"lfo3Rate","LFO 3 rate (Hz)",.05f,20,.01f,.35,.4f,memorylab::Param::Lfo3Rate},
+ {"lfo3Pitch","LFO 3 pitch (cents)",-50,50,.1f,0,1,memorylab::Param::Lfo3Pitch},
+ {"lfo3Pwm","LFO 3 pulse width depth",-.35f,.35f,.001f,0,1,memorylab::Param::Lfo3Pwm},
+ {"lfo3Cutoff","LFO 3 cutoff (octaves)",-2,2,.01f,0,1,memorylab::Param::Lfo3Cutoff},
+ {"lfo3Shape","LFO 3 shape",0,3,1,0,1,memorylab::Param::Lfo3Shape},
+ {"lfo3Sync","LFO 3 tempo sync",0,1,1,0,1,memorylab::Param::Lfo3Sync},
+ {"lfo3Division","LFO 3 note division",0,5,1,2,1,memorylab::Param::Lfo3Division},
+ {"lfo3Retrigger","LFO 3 note retrigger",0,1,1,1,1,memorylab::Param::Lfo3Retrigger},
+ {"lfo3Bpm","LFO 3 fallback BPM",20,400,.1f,130,1,memorylab::Param::Lfo3Bpm},
+ {"lfo4Rate","LFO 4 rate (Hz)",.05f,20,.01f,1.1,.4f,memorylab::Param::Lfo4Rate},
+ {"lfo4Pitch","LFO 4 pitch (cents)",-50,50,.1f,0,1,memorylab::Param::Lfo4Pitch},
+ {"lfo4Pwm","LFO 4 pulse width depth",-.35f,.35f,.001f,0,1,memorylab::Param::Lfo4Pwm},
+ {"lfo4Cutoff","LFO 4 cutoff (octaves)",-2,2,.01f,0,1,memorylab::Param::Lfo4Cutoff},
+ {"lfo4Shape","LFO 4 shape",0,3,1,0,1,memorylab::Param::Lfo4Shape},
+ {"lfo4Sync","LFO 4 tempo sync",0,1,1,0,1,memorylab::Param::Lfo4Sync},
+ {"lfo4Division","LFO 4 note division",0,5,1,2,1,memorylab::Param::Lfo4Division},
+ {"lfo4Retrigger","LFO 4 note retrigger",0,1,1,1,1,memorylab::Param::Lfo4Retrigger},
+ {"lfo4Bpm","LFO 4 fallback BPM",20,400,.1f,130,1,memorylab::Param::Lfo4Bpm}
 }};
 struct ArpSpec{const char*id;const char*name;float low,high,step,initial;};
 const std::array<ArpSpec,7> arpSpecs{{
@@ -73,9 +91,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout()
  auto addSpec=[&](const Spec&s){
   auto attributes=juce::AudioParameterFloatAttributes();
   if(juce::String(s.id)=="keyTrack"||juce::String(s.id)=="ampVelocity"||juce::String(s.id)=="filterVelocity")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v*100,0)+" %";}).withValueFromStringFunction([](const juce::String&t){return t.getFloatValue()*.01f;});
-  if(juce::String(s.id)=="lfoSync"||juce::String(s.id)=="lfoRetrigger"||juce::String(s.id)=="lfo2Sync"||juce::String(s.id)=="lfo2Retrigger")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v>=.5f?"ON":"OFF");}).withValueFromStringFunction([](const juce::String&t){if(t.trim().toUpperCase()=="ON")return 1.f;if(t.trim().toUpperCase()=="OFF")return 0.f;return t.getFloatValue();});
-  if(juce::String(s.id)=="lfoDivision"||juce::String(s.id)=="lfo2Division")attributes=attributes.withStringFromValueFunction([](float v,int){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};return juce::String(n[juce::jlimit(0,5,int(std::round(v)))]);}).withValueFromStringFunction([](const juce::String&t){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};for(int i=0;i<6;++i)if(t.trim().toUpperCase()==n[i])return float(i);return t.getFloatValue();});
-  if(juce::String(s.id)=="lfoShape"||juce::String(s.id)=="lfo2Shape")attributes=attributes.withStringFromValueFunction([](float value,int){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};return juce::String(names[juce::jlimit(0,3,int(std::round(value)))]);}).withValueFromStringFunction([](const juce::String&text){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};for(int i=0;i<4;++i)if(text.trim().toUpperCase()==names[i])return float(i);return text.getFloatValue();});
+  if(juce::String(s.id)=="lfoSync"||juce::String(s.id)=="lfoRetrigger"||juce::String(s.id)=="lfo2Sync"||juce::String(s.id)=="lfo3Sync"||juce::String(s.id)=="lfo4Sync"||juce::String(s.id)=="lfo2Retrigger"||juce::String(s.id)=="lfo3Retrigger"||juce::String(s.id)=="lfo4Retrigger")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v>=.5f?"ON":"OFF");}).withValueFromStringFunction([](const juce::String&t){if(t.trim().toUpperCase()=="ON")return 1.f;if(t.trim().toUpperCase()=="OFF")return 0.f;return t.getFloatValue();});
+  if(juce::String(s.id)=="lfoDivision"||juce::String(s.id)=="lfo2Division"||juce::String(s.id)=="lfo3Division"||juce::String(s.id)=="lfo4Division")attributes=attributes.withStringFromValueFunction([](float v,int){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};return juce::String(n[juce::jlimit(0,5,int(std::round(v)))]);}).withValueFromStringFunction([](const juce::String&t){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};for(int i=0;i<6;++i)if(t.trim().toUpperCase()==n[i])return float(i);return t.getFloatValue();});
+  if(juce::String(s.id)=="lfoShape"||juce::String(s.id)=="lfo2Shape"||juce::String(s.id)=="lfo3Shape"||juce::String(s.id)=="lfo4Shape")attributes=attributes.withStringFromValueFunction([](float value,int){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};return juce::String(names[juce::jlimit(0,3,int(std::round(value)))]);}).withValueFromStringFunction([](const juce::String&text){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};for(int i=0;i<4;++i)if(text.trim().toUpperCase()==names[i])return float(i);return text.getFloatValue();});
   if(juce::String(s.id)=="filterFamily")attributes=attributes.withStringFromValueFunction([](float value,int){const char*names[]{"CLASSIC","LP4","BP4","BLEND"};return juce::String(names[juce::jlimit(0,3,int(std::round(value)))]);}).withValueFromStringFunction([](const juce::String&text){const char*names[]{"CLASSIC","LP4","BP4","BLEND"};for(int i=0;i<4;++i)if(text.trim().toUpperCase()==names[i])return float(i);return text.getFloatValue();});
   result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{s.id,1},s.name,
    juce::NormalisableRange<float>{s.low,s.high,s.step,s.skew},float(s.initial),attributes));
@@ -164,6 +182,10 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  synth.dispatch({0,memorylab::EventKind::Parameter,0,motionBpm,0,memorylab::Param::LfoBpm});
  const double secondBpm=hostBpm>0?hostBpm:values[50]->load();lfo2Tempo=float(secondBpm);lfo2HasHostTempo=hostBpm>0;
  synth.dispatch({0,memorylab::EventKind::Parameter,0,secondBpm,0,memorylab::Param::Lfo2Bpm});
+ const double fourthBpm=hostBpm>0?hostBpm:values[68]->load();lfo4Tempo=float(fourthBpm);lfo4HasHostTempo=hostBpm>0;
+ synth.dispatch({0,memorylab::EventKind::Parameter,0,fourthBpm,0,memorylab::Param::Lfo4Bpm});
+ const double thirdBpm=hostBpm>0?hostBpm:values[59]->load();lfo3Tempo=float(thirdBpm);lfo3HasHostTempo=hostBpm>0;
+ synth.dispatch({0,memorylab::EventKind::Parameter,0,thirdBpm,0,memorylab::Param::Lfo3Bpm});
  if(arpEnabled&&playing!=wasPlaying){
   auto emit=[this](auto k,int note,double v,int c){arpEmit(k,note,v,c);};
   if(playing)arp.restart(emit);else{arp.stop(emit);arp.reset();}
@@ -180,7 +202,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",11,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",12,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,

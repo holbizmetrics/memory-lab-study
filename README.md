@@ -1,5 +1,11 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.15 development adds [four independent LFOs](plugin/FOUR-LFOS.md), preserving
+the existing first two sources and appending inactive LFO 3/4 defaults. Holger
+approved the starting sounds and second-LFO listening round, including saved
+patch recall after Dice. ARP and LFO 2-4 remain unchanged by Dice. New-source
+technical verification and musical approval are tracked separately.
+
 0.14 adds [an independent second LFO](plugin/LFO2.md), with LFO 1 / CLOCK 1 /
 LFO 2 / CLOCK 2 pages and inactive defaults for old patches. It includes 0.13's
 eight [starting sounds](plugin/PRESETS.md). Holger requested their combined

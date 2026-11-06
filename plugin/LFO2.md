@@ -1,5 +1,11 @@
 # Independent second LFO — 0.14
 
+Listening update: Holger confirmed the three LFO 2 routes (PWM reported working),
+combined LFO 1/2 movement, tempo sync and retrigger/free run. He saved Slow Wah,
+Fast Heart and confirmed LOAD restores it after both a knob change and a Dice
+roll. He then approved proceeding to four LFOs. This supersedes pending listening
+status below, which records the original delivery/test recipe.
+
 MOTION now has LFO 1 / CLOCK 1 / LFO 2 / CLOCK 2 subpages. The first two keep
 the existing controls and IDs. LFO 2 is a second per-voice source with independent
 rate (0.05-20 Hz), sine/triangle/saw/pulse shape, pitch (-50..50 cents), pulse-width
