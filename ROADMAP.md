@@ -1,6 +1,15 @@
 # Memory Lab Study roadmap
 
-## Active 0.15 checkpoint
+## Active 0.16 checkpoint (2026-11-07)
+
+ENV 3/4 add independent per-voice dAHDSR contours and pitch/cutoff depths.
+All 13 plugin and six native checks pass; nine actual VST3 audio fixtures and
+exact older-sound preservation pass. The first 76 IDs remain stable, 92 total;
+patch schema 11 and host state 13. Holger confirmed 0.15 combined LFO 3/4,
+patch recall and full FL restart/project recall. New-envelope listening is next.
+See [four-envelope scope and validation](plugin/FOUR-ENVELOPES.md).
+
+## Historical 0.15 checkpoint
 
 Holger approved all eight 0.13 starting sounds and the 0.14 LFO 2 listening round:
 filter, pitch and PWM, combined sources, tempo sync, retrigger/free run and recall

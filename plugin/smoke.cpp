@@ -20,6 +20,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "preset-checks.hpp"
 #include "lfo2-checks.hpp"
 #include "four-lfo-checks.hpp"
+#include "four-envelope-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -50,6 +51,7 @@ void arpWrapperTests(){
  std::cout<<"PASS arp wrapper: audio block parity, host BPM/internal/fallback, stop/disable cleanup, state recall and legacy bypass\n";
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::string(argv[1])=="--four-envelope-test"){juce::ScopedJuceInitialiser_GUI gui;fourEnvelopeChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--tab-test"){juce::ScopedJuceInitialiser_GUI gui;tabSwitchChecks();return 0;}
  juce::ScopedJuceInitialiser_GUI gui;
 #if JUCE_WINDOWS
@@ -99,7 +101,8 @@ int main(int argc,char**argv){try{
   auto*arpPage=dynamic_cast<juce::Button*>(find(*editor,"arpPage"));check(arpPage&&bool(arpPage->onClick),"arp page missing");arpPage->onClick();snapshot("arp-compact.png");
   auto*gate=dynamic_cast<juce::Slider*>(find(*editor,"arpGate"));check(gate,"arp gate missing");gate->setValue(30,juce::sendNotificationSync);check(processor->state.getRawParameterValue("arpGate")->load()==30,"arp gate attachment");
   auto*on=dynamic_cast<juce::Slider*>(find(*editor,"arpOn"));check(on,"arp on missing");on->setValue(1,juce::sendNotificationSync);
-  processor->prepareToPlay(48000,512);for(int note:{60,63,67})processor->keyboard.noteOn(1,note,.8f);
+  for(int source:{3,4}){auto*b=dynamic_cast<juce::Button*>(find(*editor,"env"+juce::String(source)+"Page"));b->onClick();snapshot(("env"+std::to_string(source)+".png").c_str());editor->setSize(832,592);snapshot(("env"+std::to_string(source)+"-compact.png").c_str());editor->setSize(1040,740);}
+  arpPage->onClick();processor->prepareToPlay(48000,512);for(int note:{60,63,67})processor->keyboard.noteOn(1,note,.8f);
   juce::AudioBuffer<float>arpAudio(2,512);juce::MidiBuffer arpMidi;double arpEnergy=0;
   for(int block=0;block<8;++block){processor->processBlock(arpAudio,arpMidi);arpEnergy+=power(arpAudio);}
   if(arpEnergy<=1e-6)throw std::runtime_error("arp screen keyboard silent: energy="+std::to_string(arpEnergy)+" on="+std::to_string(processor->state.getRawParameterValue("arpOn")->load())+" voices="+std::to_string(processor->voiceCount.load()));

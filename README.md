@@ -1,5 +1,10 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.16 adds [two additional modulation envelopes](plugin/FOUR-ENVELOPES.md), with
+independent pitch/filter depths and contour previews. All 92 controls preserve
+the previous IDs and old-patch defaults. Technical checks pass; new-envelope
+listening approval is pending. See [0.16 prerelease notes](releases/v0.16.0-alpha.1.md).
+
 0.15 development adds [four independent LFOs](plugin/FOUR-LFOS.md), preserving
 the existing first two sources and appending inactive LFO 3/4 defaults. Holger
 approved the starting sounds and second-LFO listening round, including saved

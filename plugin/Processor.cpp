@@ -3,7 +3,7 @@
 
 namespace {
 struct Spec{const char* id;const char* name;float low,high,step;double initial;float skew;memorylab::Param parameter;};
-const std::array<Spec,69> specs{{
+const std::array<Spec,85> specs{{
  {"drive","Drive",0,12,.1f,5,1,memorylab::Param::Drive},
  {"depth","Memory depth",0,1.5f,.01f,.8,1,memorylab::Param::Depth},
  {"recovery","Memory recovery (ms)",50,400,1,250,.5f,memorylab::Param::Recovery},
@@ -72,7 +72,23 @@ const std::array<Spec,69> specs{{
  {"lfo4Sync","LFO 4 tempo sync",0,1,1,0,1,memorylab::Param::Lfo4Sync},
  {"lfo4Division","LFO 4 note division",0,5,1,2,1,memorylab::Param::Lfo4Division},
  {"lfo4Retrigger","LFO 4 note retrigger",0,1,1,1,1,memorylab::Param::Lfo4Retrigger},
- {"lfo4Bpm","LFO 4 fallback BPM",20,400,.1f,130,1,memorylab::Param::Lfo4Bpm}
+ {"lfo4Bpm","LFO 4 fallback BPM",20,400,.1f,130,1,memorylab::Param::Lfo4Bpm},
+ {"env3Delay","Envelope 3 delay (ms)",0,5000,1,0,.3,memorylab::Param::Env3Delay},
+ {"env3Attack","Envelope 3 attack (ms)",0,10000,1,500,.3,memorylab::Param::Env3Attack},
+ {"env3Hold","Envelope 3 hold (ms)",0,5000,1,0,.3,memorylab::Param::Env3Hold},
+ {"env3Decay","Envelope 3 decay (ms)",0,10000,1,350,.3,memorylab::Param::Env3Decay},
+ {"env3Sustain","Envelope 3 sustain",0,1,.001f,0.5,1,memorylab::Param::Env3Sustain},
+ {"env3Release","Envelope 3 release (ms)",0,10000,1,500,.3,memorylab::Param::Env3Release},
+ {"env3Pitch","Envelope 3 pitch (cents)",-1200,1200,.01f,0,1,memorylab::Param::Env3Pitch},
+ {"env3Cutoff","Envelope 3 cutoff (octaves)",-4,4,.01f,0,1,memorylab::Param::Env3Cutoff},
+ {"env4Delay","Envelope 4 delay (ms)",0,5000,1,0,.3,memorylab::Param::Env4Delay},
+ {"env4Attack","Envelope 4 attack (ms)",0,10000,1,500,.3,memorylab::Param::Env4Attack},
+ {"env4Hold","Envelope 4 hold (ms)",0,5000,1,0,.3,memorylab::Param::Env4Hold},
+ {"env4Decay","Envelope 4 decay (ms)",0,10000,1,350,.3,memorylab::Param::Env4Decay},
+ {"env4Sustain","Envelope 4 sustain",0,1,.001f,0.5,1,memorylab::Param::Env4Sustain},
+ {"env4Release","Envelope 4 release (ms)",0,10000,1,500,.3,memorylab::Param::Env4Release},
+ {"env4Pitch","Envelope 4 pitch (cents)",-1200,1200,.01f,0,1,memorylab::Param::Env4Pitch},
+ {"env4Cutoff","Envelope 4 cutoff (octaves)",-4,4,.01f,0,1,memorylab::Param::Env4Cutoff}
 }};
 struct ArpSpec{const char*id;const char*name;float low,high,step,initial;};
 const std::array<ArpSpec,7> arpSpecs{{
@@ -202,7 +218,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",12,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",13,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,

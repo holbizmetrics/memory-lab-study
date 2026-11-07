@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(MemoryLabPlugin VERSION 0.15.0 LANGUAGES C CXX)
+project(MemoryLabPlugin VERSION 0.16.0 LANGUAGES C CXX)
 set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../outputs/deps/JUCE" CACHE PATH "Pinned JUCE source checkout")
 add_subdirectory("${JUCE_PATH}" "${CMAKE_BINARY_DIR}/juce")
 juce_add_plugin(MemoryLab
@@ -9,6 +9,15 @@ juce_add_plugin(MemoryLab
  IS_SYNTH TRUE NEEDS_MIDI_INPUT TRUE NEEDS_MIDI_OUTPUT FALSE
  IS_MIDI_EFFECT FALSE EDITOR_WANTS_KEYBOARD_FOCUS FALSE
  COPY_PLUGIN_AFTER_BUILD FALSE VST3_CATEGORIES Instrument Synth)
+# JUCE's generated RC rule omits the input info-file dependency. Ensure that
+# incremental version changes regenerate the Windows version resource.
+if(WIN32)
+ get_target_property(memorylab_info MemoryLab JUCE_INFO_FILE)
+ get_target_property(memorylab_generated MemoryLab JUCE_GENERATED_SOURCES_DIRECTORY)
+ add_custom_command(OUTPUT "${memorylab_generated}/MemoryLab_resources.rc"
+  APPEND DEPENDS "${memorylab_info}")
+endif()
+
 target_sources(MemoryLab PRIVATE Processor.cpp Processor.hpp Editor.cpp Editor.hpp)
 target_compile_features(MemoryLab PUBLIC cxx_std_17)
 target_compile_definitions(MemoryLab PUBLIC JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0)
@@ -28,6 +37,7 @@ add_test(NAME expression COMMAND MemoryLabSmoke --expression-test)
 add_test(NAME starting_presets COMMAND MemoryLabSmoke --preset-test)
 add_test(NAME second_lfo COMMAND MemoryLabSmoke --lfo2-test)
 add_test(NAME four_lfos COMMAND MemoryLabSmoke --four-lfo-test)
+add_test(NAME four_envelopes COMMAND MemoryLabSmoke --four-envelope-test)
 if(WIN32)
  target_link_libraries(MemoryLabSmoke PRIVATE ole32 oleaut32)
  add_test(NAME uia_editor_lifecycle COMMAND MemoryLabSmoke --uia-lifecycle-test)

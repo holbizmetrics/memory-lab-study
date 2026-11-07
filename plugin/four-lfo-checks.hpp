@@ -40,7 +40,7 @@ void fourLfoChecks(){
   }
  }
  auto p=std::make_unique<MemoryLabProcessor>();set(*p,"lfo2Pitch",7);set(*p,"lfo2Rate",3);
- auto added=[](const juce::String&id){return id.startsWith("lfo3")||id.startsWith("lfo4");};
+ auto added=[](const juce::String&id){return id.startsWith("lfo3")||id.startsWith("lfo4")||id.startsWith("env3")||id.startsWith("env4");};
  auto defaults=[&]{for(auto*base:p->getParameters())if(auto*v=dynamic_cast<juce::RangedAudioParameter*>(base))if(added(v->paramID))check(std::abs(v->getValue()-v->getDefaultValue())<1e-6,"legacy load retained LFO 3/4 edits");};
  for(int source:{3,4}){const auto prefix="lfo"+std::to_string(source);set(*p,(prefix+"Pitch").c_str(),11);set(*p,(prefix+"Cutoff").c_str(),.6f);set(*p,(prefix+"Sync").c_str(),1);set(*p,(prefix+"Bpm").c_str(),95);}
  const auto encoded=memorylab::patch::encode(*p);auto root=juce::parseXML(encoded);root->setAttribute("schemaVersion",9);

@@ -10,7 +10,7 @@ void presetChecks(){
   check(!memorylab::presets::encode(*p,i).isEmpty(),"preset encoding empty");
   check(memorylab::patch::encode(*p)==original,"building preset changed controls");
   check(memorylab::presets::load(*p,i),"preset failed full patch validation");
-  check(p->getParameters().size()==76,"preset changed parameter count");
+  check(p->getParameters().size()==92,"preset changed parameter count");
   check(std::abs(p->state.getRawParameterValue("volume")->load()-.137f)<1e-6,"preset changed output");
   check(p->state.getRawParameterValue("drive")->load()==0&&p->state.getRawParameterValue("voiceDrive")->load()==0,"preset drive not bypassed");
   auto fresh=std::make_unique<MemoryLabProcessor>();set(*fresh,"volume",.137f);check(memorylab::presets::load(*fresh,i),"fresh preset load");check(memorylab::patch::encode(*fresh)==memorylab::patch::encode(*p),"preset depends on previous sound");

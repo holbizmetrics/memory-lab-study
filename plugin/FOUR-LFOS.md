@@ -63,3 +63,21 @@ fixture. His original file is not changed or published.
 6. Dice should leave ARP and all LFO 2-4 controls untouched.
 
 Technical validation and Holger's musical approval of LFO 3/4 remain separate.
+
+## Completed live listening and recall checks
+
+Holger confirmed LFO 3 cutoff modulation alone, LFO 4 pitch modulation alone,
+and both together on a fresh 0.15 instance: LFO 3 at 0.5 Hz / 1 octave cutoff
+depth, LFO 4 at 5 Hz / 25 cents pitch depth, both unsynced. The fast vibrato
+was audible but subtle. He saved `Slow Sweep, Fast Vibrato.mlpatch`, loaded
+Clean Foundation, and restored both movements by reloading the patch. He then
+saved the FL project, closed FL completely, reopened the project and confirmed
+that the sound survived. These are listening and recall approvals of the tested
+configuration, not coverage of every route, waveform or clock setting.
+
+Read-only FPSDK inspection after the restart showed the existing project
+instance exposing Bypass at index 58, while a fresh second instance exposed
+LFO 3 at 58, LFO 4 at 67 and Bypass at 76 as expected. No indices were shifted
+and no host parameter writes were used to work around the mismatch. Its exact
+cause remains unresolved; it must not be described as a proven old binary or
+a proven cache defect. Use the verified fresh instance for subsequent testing.
