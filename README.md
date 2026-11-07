@@ -1,9 +1,16 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.17 adds [eight explicit modulation routes and optional preset auto-load](plugin/MODULATION-ROUTES.md).
+There are 100 sound parameters, with previous IDs and compatible defaults preserved; preset
+auto-load is a separate local preference, off by default. Technical checks pass;
+new-route and auto-load listening/UI approval is pending. See the
+[0.17 source prerelease notes](releases/v0.17.0-alpha.1.md).
+
 0.16 adds [two additional modulation envelopes](plugin/FOUR-ENVELOPES.md), with
 independent pitch/filter depths and contour previews. All 92 controls preserve
-the previous IDs and old-patch defaults. Technical checks pass; new-envelope
-listening approval is pending. See [0.16 prerelease notes](releases/v0.16.0-alpha.1.md).
+the previous IDs and old-patch defaults. Holger confirmed the new contours,
+patch recall and FL-project recall after restart. See
+[0.16 prerelease notes](releases/v0.16.0-alpha.1.md) for its delivery-time status.
 
 0.15 development adds [four independent LFOs](plugin/FOUR-LFOS.md), preserving
 the existing first two sources and appending inactive LFO 3/4 defaults. Holger

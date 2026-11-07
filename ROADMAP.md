@@ -1,6 +1,29 @@
 # Memory Lab Study roadmap
 
-## Active 0.16 checkpoint (2026-11-07)
+## Active 0.17 checkpoint (2026-11-07)
+
+Eight additional routes are implemented: tremolo from each LFO, pitch from the
+amplitude/filter contours, and PWM from ENV 3/4. SOUNDS offers optional auto-load.
+All 14 plugin and six native suites pass; 19 real VST3 captures and exact
+0.16 active-envelope/older-sound preservation pass. The first 92 host IDs
+are unchanged, 100 total; patch schema 12, host state 14. New listening/UI
+approval and installation are separate from this technical/source milestone.
+See [routing scope and validation](plugin/MODULATION-ROUTES.md).
+
+## Agreed addition for 0.17: optional preset auditioning
+
+Add an "Auto-load on selection" checkbox to SOUNDS, off by default. When off,
+keep passive browsing and the explicit LOAD SOUND action. When on, choosing a
+sound loads it immediately through the same load path. Changing categories
+only filters the list: repopulating the sound selector must not trigger a load.
+Enabling the checkbox itself must not load the currently highlighted sound.
+Preserve existing output and drive policy; UNDO LOAD restores the sound before
+the most recent load. Remember the checkbox as a local browsing preference,
+not a host sound parameter or part of .mlpatch/project state. Keep broader
+modulation routing as 0.17's synthesis milestone; this is a bounded workflow
+addition approved by Holger and implemented in 0.17, not in 0.16.
+
+## Historical 0.16 checkpoint (2026-11-07)
 
 ENV 3/4 add independent per-voice dAHDSR contours and pitch/cutoff depths.
 All 13 plugin and six native checks pass; nine actual VST3 audio fixtures and

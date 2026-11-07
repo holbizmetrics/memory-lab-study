@@ -1,12 +1,15 @@
 "use strict";
 const views = {
+"env3": ["Envelope 3 editor","Independent dAHDSR stages with pitch and filter depths."],
+"env4": ["Envelope 4 editor","Independent dAHDSR stages with pitch and filter depths."],
+"envelope-routes": ["Envelope routing editor","Pitch from amplitude/filter contours and pulse-width movement from ENV 3/4. Zero disables each route."],
 "motion3": ["LFO 3 editor","An independent modulation source for pitch, pulse width and filter cutoff. Added depths default to zero."],
 "motion3-clock": ["Clock 3 editor","Independent tempo division, note reset/free run and fallback BPM for LFO 3."],
 "motion4": ["LFO 4 editor","An independent modulation source for pitch, pulse width and filter cutoff. Added depths default to zero."],
 "motion4-clock": ["Clock 4 editor","Independent tempo division, note reset/free run and fallback BPM for LFO 4."],
   "motion2": ["Second LFO editor", "An independent second LFO adds pitch, pulse-width and cutoff movement. All depths default to zero."],
   "motion2-clock": ["Second LFO clock editor", "LFO 2 has its own tempo division, note reset/free run and fallback BPM."],
-  "presets": ["Starting sounds browser", "Browse eight original sounds without changing audio. LOAD preserves output and bypasses both drives; UNDO restores the previous sound."],
+  "presets": ["Starting sounds browser", "Browse passively or enable optional auto-load on selection. Categories stay passive; loads preserve output and bypass drives. UNDO restores the previous sound."],
   "voice": [
     "Voice sound editor",
     "Shape two oscillators, sweep the classic filter, and explore shared drive, memory and recovery."

@@ -66,6 +66,8 @@ set both new routes to zero; Dice preserves these new settings as it does LFOs
 2-4. Schema 11 stores all 92 controls; schemas 1-10 migrate to inactive routes.
 Host state version is 13. New files require a compatible newer plugin.
 
-Holger's next musical test should isolate a slow pitch contour, then a filter
-swell, combine them and verify patch/project recall. Do not infer these future
-approvals from the completed 0.15 checks.
+Holger confirmed the ENV 3 pitch contour and ENV 4 filter swell. He identified
+the brightness movement clearly with ENV 3 pitch depth zeroed, then confirmed
+restoring the saved sound after Clean Foundation and restoring the FL project
+after a complete restart. These are musical and recall approvals of the tested
+0.16 configuration; broader 0.17 routing requires its own check.

@@ -2,7 +2,7 @@
 #include "Patch.hpp"
 void lfo2Checks(){
  using P=memorylab::Param;
- auto newerLfo=[](const juce::String&id){return id.startsWith("lfo2")||id.startsWith("lfo3")||id.startsWith("lfo4")||id.startsWith("env3")||id.startsWith("env4");};
+ auto newerLfo=[](const juce::String&id){return id.startsWith("lfo2")||id.startsWith("lfo3")||id.startsWith("lfo4")||id.startsWith("env3")||id.startsWith("env4")||id=="lfoAmp"||id=="lfo2Amp"||id=="lfo3Amp"||id=="lfo4Amp"||id=="ampPitch"||id=="fltPitch"||id=="env3Pwm"||id=="env4Pwm";};
  auto render=[](double sr,int block,int source,int route,int shape,bool sync,bool retrigger,int delay,int division=2,double bpm=120){
   auto synth=std::make_unique<memorylab::Synth>();synth->prepare(sr);
   auto param=[&](P id,double value){synth->dispatch({0,memorylab::EventKind::Parameter,0,value,0,id});};

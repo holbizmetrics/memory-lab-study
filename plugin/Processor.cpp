@@ -3,7 +3,7 @@
 
 namespace {
 struct Spec{const char* id;const char* name;float low,high,step;double initial;float skew;memorylab::Param parameter;};
-const std::array<Spec,85> specs{{
+const std::array<Spec,93> specs{{
  {"drive","Drive",0,12,.1f,5,1,memorylab::Param::Drive},
  {"depth","Memory depth",0,1.5f,.01f,.8,1,memorylab::Param::Depth},
  {"recovery","Memory recovery (ms)",50,400,1,250,.5f,memorylab::Param::Recovery},
@@ -88,7 +88,15 @@ const std::array<Spec,85> specs{{
  {"env4Sustain","Envelope 4 sustain",0,1,.001f,0.5,1,memorylab::Param::Env4Sustain},
  {"env4Release","Envelope 4 release (ms)",0,10000,1,500,.3,memorylab::Param::Env4Release},
  {"env4Pitch","Envelope 4 pitch (cents)",-1200,1200,.01f,0,1,memorylab::Param::Env4Pitch},
- {"env4Cutoff","Envelope 4 cutoff (octaves)",-4,4,.01f,0,1,memorylab::Param::Env4Cutoff}
+ {"env4Cutoff","Envelope 4 cutoff (octaves)",-4,4,.01f,0,1,memorylab::Param::Env4Cutoff},
+ {"lfoAmp","LFO 1 amplitude depth",-1,1,.001f,0,1,memorylab::Param::LfoAmp},
+ {"lfo2Amp","LFO 2 amplitude depth",-1,1,.001f,0,1,memorylab::Param::Lfo2Amp},
+ {"lfo3Amp","LFO 3 amplitude depth",-1,1,.001f,0,1,memorylab::Param::Lfo3Amp},
+ {"lfo4Amp","LFO 4 amplitude depth",-1,1,.001f,0,1,memorylab::Param::Lfo4Amp},
+ {"ampPitch","Amplitude envelope pitch (cents)",-1200,1200,.001f,0,1,memorylab::Param::AmpPitch},
+ {"fltPitch","Filter envelope pitch (cents)",-1200,1200,.001f,0,1,memorylab::Param::FltPitch},
+ {"env3Pwm","Envelope 3 pulse width depth",-0.35f,0.35f,.001f,0,1,memorylab::Param::Env3Pwm},
+ {"env4Pwm","Envelope 4 pulse width depth",-0.35f,0.35f,.001f,0,1,memorylab::Param::Env4Pwm}
 }};
 struct ArpSpec{const char*id;const char*name;float low,high,step,initial;};
 const std::array<ArpSpec,7> arpSpecs{{
@@ -218,7 +226,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",13,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",14,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,

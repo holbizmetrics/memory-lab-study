@@ -10,7 +10,7 @@ void presetChecks(){
   check(!memorylab::presets::encode(*p,i).isEmpty(),"preset encoding empty");
   check(memorylab::patch::encode(*p)==original,"building preset changed controls");
   check(memorylab::presets::load(*p,i),"preset failed full patch validation");
-  check(p->getParameters().size()==92,"preset changed parameter count");
+  check(p->getParameters().size()==100,"preset changed parameter count");
   check(std::abs(p->state.getRawParameterValue("volume")->load()-.137f)<1e-6,"preset changed output");
   check(p->state.getRawParameterValue("drive")->load()==0&&p->state.getRawParameterValue("voiceDrive")->load()==0,"preset drive not bypassed");
   auto fresh=std::make_unique<MemoryLabProcessor>();set(*fresh,"volume",.137f);check(memorylab::presets::load(*fresh,i),"fresh preset load");check(memorylab::patch::encode(*fresh)==memorylab::patch::encode(*p),"preset depends on previous sound");
@@ -28,7 +28,7 @@ void presetChecks(){
  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
  auto*page=dynamic_cast<juce::Button*>(find(*editor,"presetPage"));check(page&&bool(page->onClick),"SOUNDS button missing");page->onClick();
  auto*category=dynamic_cast<juce::ComboBox*>(find(*editor,"presetCategory"));auto*sound=dynamic_cast<juce::ComboBox*>(find(*editor,"presetSound"));
- check(category&&sound,"preset browser controls missing");const auto beforeBrowse=memorylab::patch::encode(*p);
+ check(category&&sound,"preset browser controls missing");auto*autoLoad=dynamic_cast<juce::Button*>(find(*editor,"presetAutoLoad"));check(autoLoad,"auto-load missing");autoLoad->setToggleState(false,juce::dontSendNotification);const auto beforeBrowse=memorylab::patch::encode(*p);
  for(int id=1;id<=9;++id){category->setSelectedId(id,juce::dontSendNotification);category->onChange();check(sound->getNumItems()>0,"empty category");sound->onChange();check(memorylab::patch::encode(*p)==beforeBrowse,"browsing changed sound");}
  auto*load=dynamic_cast<juce::Button*>(find(*editor,"loadFactoryPreset"));auto*undo=dynamic_cast<juce::Button*>(find(*editor,"undoFactoryPreset"));check(load&&undo,"preset actions missing");
  load->onClick();check(p->state.getRawParameterValue("arpOn")->load()==1,"selected rhythm preset not loaded");undo->onClick();check(memorylab::patch::encode(*p)==beforeBrowse,"UI undo changed sound");editor.reset();

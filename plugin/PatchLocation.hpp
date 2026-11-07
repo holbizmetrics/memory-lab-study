@@ -22,5 +22,7 @@ public:
   const auto folder=file.getParentDirectory();if(!folder.isDirectory())return false;
   settings.reload();settings.setValue("patchFolder",folder.getFullPathName());return settings.saveIfNeeded();
  }
+ bool autoLoadPresets(){settings.reload();return settings.getBoolValue("autoLoadPresets",false);}
+ bool rememberAutoLoadPresets(bool enabled){settings.reload();settings.setValue("autoLoadPresets",enabled);return settings.saveIfNeeded();}
 };
 }

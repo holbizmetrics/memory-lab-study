@@ -8,6 +8,7 @@ void randomizerChecks(){
  set(*p,"lfo2Pitch",7);set(*p,"lfo2Cutoff",.3f);set(*p,"lfo2Sync",1);set(*p,"lfo2Bpm",99);
  set(*p,"lfo3Pitch",9);set(*p,"lfo3Cutoff",.25f);set(*p,"lfo3Bpm",103);set(*p,"lfo4Pwm",.07f);set(*p,"lfo4Sync",1);set(*p,"lfo4Bpm",109);
  set(*p,"env3Pitch",123);set(*p,"env4Cutoff",.75f);set(*p,"env3Attack",1200);
+ set(*p,"lfoAmp",.4f);set(*p,"env3Pwm",.1f);set(*p,"ampPitch",123);
  const auto original=memorylab::patch::encode(*p);
  // Every lock combination: no writes to locked groups or protected controls.
  const std::array<std::vector<juce::String>,4>groups{{
