@@ -1,5 +1,11 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.18 adds [complementary waveforms on both oscillator cores](plugin/VCO-MIX.md):
+OSC 1 pulse, OSC 2 saw, separate OSC 1 width and a MIX page. There are 103
+controls, with inactive added sources preserving older sounds. All technical
+checks pass; new-source listening is pending. Modern filter expansion remains
+a separate step. See [0.18 prerelease notes](releases/v0.18.0-alpha.1.md).
+
 0.17 adds [eight explicit modulation routes and optional preset auto-load](plugin/MODULATION-ROUTES.md).
 There are 100 sound parameters, with previous IDs and compatible defaults preserved; preset
 auto-load is a separate local preference, off by default. Technical checks pass;

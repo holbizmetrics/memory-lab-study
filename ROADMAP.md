@@ -1,6 +1,43 @@
 # Memory Lab Study roadmap
 
-## Active 0.17 checkpoint (2026-11-07)
+## Active 0.18 first oscillator checkpoint (2026-11-08)
+
+OSC / MIX adds OSC 1 pulse, OSC 2 saw and independent static OSC 1 width.
+All 15 plugin and six native suites pass; eight actual VST3 fixtures and five
+exact old-sound comparisons pass. 103 parameters, patch schema 13, host state 15.
+New-source musical approval is pending. Modern filter gradient/bandwidth work
+remains a separate follow-up in this series; hard sync and oscillator-1 PWM
+routing are not part of this delivery. See [scope and validation](plugin/VCO-MIX.md).
+
+## Future software extra: readable sound recipes (2026-11-08)
+
+Holger requested recording this idea and delegated implementation timing. Keep
+the core Relic-inspired oscillator/filter work ahead of it; revisit after that
+checkpoint rather than interrupting the current 0.17 listening round. No fixed
+release number yet. This is a software convenience, not a hardware feature.
+
+People should be able to jot down settings away from the DAW, exchange them as
+plain text and paste them into the instrument. Accept human-readable labels and
+tab paths, for example `Voice -> Sound -> Classic Profile = 0.5` or
+`Envelopes -> ENV 3 -> Attack = 2000 ms`. Internal parameter IDs may remain an
+optional exact form, but must not be required. Accept short names only when
+unambiguous; explain unknown or ambiguous names without guessing.
+
+Provide both directions: Copy settings as text and Paste recipe. Distinguish a
+tweak recipe (only named controls change) from a complete recipe (all sound
+settings, or an explicitly identified/versioned foundation plus overrides).
+Partial tweaks are not guaranteed to reproduce the same sound on different
+starting patches. Include a format/version marker and readable units for durable
+exchange; resolve aliases to existing stable host IDs without changing them.
+
+Parse and validate the entire recipe before changing anything. Preview matched
+controls and values, with Apply / Cancel and one-action Undo. Reject unsupported
+versions, conflicting repeated assignments, unknown names, invalid units and
+out-of-range values without partial application. Treat pasted content strictly
+as settings data, never executable commands or automatic file/network requests.
+Full sound exchange should retain .mlpatch as the existing precise alternative.
+
+## Historical 0.17 checkpoint (2026-11-07)
 
 Eight additional routes are implemented: tremolo from each LFO, pitch from the
 amplitude/filter contours, and PWM from ENV 3/4. SOUNDS offers optional auto-load.

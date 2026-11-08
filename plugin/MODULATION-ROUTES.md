@@ -53,7 +53,21 @@ after Clean Foundation plus FL-project recall after a complete restart. New
 0.17 destinations and auto-load interaction still need their own listening/UI
 confirmation. Preserve that distinction when reporting validation.
 
-## Technical validation
+## Holger's completed 0.17 checks
+
+Holger confirmed auto-load on sound selection and restored manual loading when
+disabled. LFO 1 AMP DEPTH at 2 Hz produced two volume pulses per second; zero
+removed them. ENV 3 pulse-width movement was audible with a steady pitch and
+disappeared at zero depth. Filter-envelope pitch and amplitude-envelope pitch
+routes produced their expected rises, with zero removing each pitch movement;
+the amplitude-envelope pitch route also fell during audible release as expected.
+He saved the active amplitude-envelope pitch route, loaded Clean Foundation and
+restored it from `Envelope Pitch Sweep.mlpatch`. After saving the FL project,
+closing FL completely and reopening it, he confirmed the sound and remembered
+auto-load checkbox setting. These approve the tested routes and recall paths,
+not every source, polarity, combination or automation scenario.
+
+## Automated validation results
 
 Windows VST3 and standalone builds pass. All 14 plugin CTest checks pass
 (100.99 s), including 100 stable IDs/order/bindings and gestures, 352 passive

@@ -1,5 +1,6 @@
 "use strict";
 const views = {
+"osc-mix": ["Two-core oscillator mixer","Mix saw and pulse from each core, with separate base widths. Added sources default off; existing PWM affects oscillator 2."],
 "env3": ["Envelope 3 editor","Independent dAHDSR stages with pitch and filter depths."],
 "env4": ["Envelope 4 editor","Independent dAHDSR stages with pitch and filter depths."],
 "envelope-routes": ["Envelope routing editor","Pitch from amplitude/filter contours and pulse-width movement from ENV 3/4. Zero disables each route."],
