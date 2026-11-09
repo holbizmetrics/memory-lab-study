@@ -53,7 +53,9 @@ sources at modest levels. Save/reload and verify project recall separately.
 Holger confirmed oscillator-1 width tone differences and oscillator-2 saw
 octave-up/back tuning. Blend patch recall failed in alpha.1: a valid 0.1 width
 was rejected after decimal formatting. Alpha.2 fixes endpoint validation;
-live recall of that original file remains pending.
+Holger then confirmed both original-file recall with the correct sound and FL
+project close/reopen recall in alpha.2. These are the tested listening/recall
+checks; no hardware equivalence is inferred.
 
 ## Validation
 

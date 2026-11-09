@@ -5,9 +5,14 @@
 OSC / MIX adds OSC 1 pulse, OSC 2 saw and independent static OSC 1 width.
 All 15 plugin and six native suites pass; eight actual VST3 fixtures and five
 exact old-sound comparisons pass. 103 parameters, patch schema 13, host state 15.
-New-source musical approval is pending. Modern filter gradient/bandwidth work
+Holger confirmed width/tuning, repaired blend patch recall and FL project
+recall in alpha.2. Modern filter gradient/bandwidth work
 remains a separate follow-up in this series; hard sync and oscillator-1 PWM
 routing are not part of this delivery. See [scope and validation](plugin/VCO-MIX.md).
+
+Modern filter groundwork now exists as an independent native study, outside
+the released signal path. See [design and limits](native/MODERN-FILTER-RESEARCH.md).
+It is not yet a new plugin feature or a delivered numbered version.
 
 ## Future software extra: readable sound recipes (2026-11-08)
 

@@ -49,6 +49,13 @@ if(MSVC)
 endif()
 add_test(NAME filter_family_study COMMAND memorylab_filter_family --test)
 
+add_executable(memorylab_modern_filter modern-filter-study.cpp)
+target_compile_features(memorylab_modern_filter PRIVATE cxx_std_17)
+if(MSVC)
+ target_compile_options(memorylab_modern_filter PRIVATE /W4 /fp:precise)
+endif()
+add_test(NAME modern_filter_research COMMAND memorylab_modern_filter)
+
 add_executable(memorylab_filter_family_diagnostic filter-family-diagnostic.cpp)
 target_compile_features(memorylab_filter_family_diagnostic PRIVATE cxx_std_17)
 if(MSVC)

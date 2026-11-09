@@ -57,3 +57,7 @@ recall and auto-load preference. No blanket approval of every new route implied.
 0.18 complementary-waveform listening is next.
 
 0.18 alpha.2: patch endpoint recall fix and VOICE hint spacing; oscillator width and OSC 2 octave listening confirmed. Original blend patch now passes read-only loader checks; live recall pending. No DSP or parameter-layout changes.
+
+0.18 alpha.2 listening update: Holger confirmed the unchanged Four Wave Blend
+file loads, sounds correct, and survives FL project close/reopen without manual
+patch loading. Patch endpoint repair and project recall are now human-confirmed.
