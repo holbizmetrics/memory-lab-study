@@ -4,7 +4,7 @@
 OSC 1 pulse, OSC 2 saw, separate OSC 1 width and a MIX page. There are 103
 controls, with inactive added sources preserving older sounds. All technical
 checks pass; new-source listening is pending. Modern filter expansion remains
-a separate step. See [0.18 prerelease notes](releases/v0.18.0-alpha.1.md).
+a separate step. See [0.18 prerelease notes](releases/v0.18.0-alpha.2.md).
 
 0.17 adds [eight explicit modulation routes and optional preset auto-load](plugin/MODULATION-ROUTES.md).
 There are 100 sound parameters, with previous IDs and compatible defaults preserved; preset

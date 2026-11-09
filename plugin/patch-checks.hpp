@@ -10,6 +10,15 @@ void patchChecks(){
  {memorylab::PatchLocation location(preferences.getFile());check(location.initialFile().getParentDirectory()==documents,"patch folder initial fallback");check(location.rememberSuccess(chosen),"patch folder preference write");}
  {memorylab::PatchLocation reopened(preferences.getFile());check(reopened.initialFile().getParentDirectory()==chosen.getParentDirectory(),"patch folder not persisted across reopen");check(!reopened.rememberSuccess(juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile(juce::Uuid().toString()).getChildFile("missing.mlpatch")),"missing patch folder accepted");check(reopened.initialFile().getParentDirectory()==chosen.getParentDirectory(),"failed folder preference changed prior selection");}
  auto source=std::make_unique<MemoryLabProcessor>(),target=std::make_unique<MemoryLabProcessor>();
+ // Decimal XML formatting must roundtrip every float range endpoint.
+ for(float endpoint:{0.f,1.f}){
+  for(auto* p:source->getParameters())p->setValueNotifyingHost(endpoint);
+  juce::TemporaryFile boundaryFile;
+  check(memorylab::patch::save(*source,boundaryFile.getFile()).wasOk(),"endpoint save failed");
+  check(memorylab::patch::load(*target,boundaryFile.getFile()).wasOk(),"endpoint file roundtrip rejected");
+  for(int i=0;i<source->getParameters().size();++i)
+   check(source->getParameters()[i]->getValue()==target->getParameters()[i]->getValue(),"endpoint changed on recall");
+ }
  int index=0;
  for(auto* p:source->getParameters())p->setValueNotifyingHost(float(++index)/float(source->getParameters().size()+1));
  const auto encoded=memorylab::patch::encode(*source);
@@ -22,6 +31,16 @@ void patchChecks(){
   check(memorylab::patch::encode(*target)==unchanged,"invalid patch partially changed sound");
  };
  reject("not XML");
+ for(auto* base:source->getParameters())if(auto* p=dynamic_cast<juce::RangedAudioParameter*>(base)){
+  for(float boundary:{0.f,1.f}){
+   auto outside=juce::parseXML(encoded);
+   const float bound=p->convertFrom0to1(boundary);
+   const float invalid=std::nextafter(bound,boundary==0.f?-std::numeric_limits<float>::infinity():std::numeric_limits<float>::infinity());
+   for(auto* entry:outside->getChildIterator())if(entry->getStringAttribute("id")==p->paramID)
+    entry->setAttribute("value",double(invalid));
+   reject(outside->toString());
+  }
+ }
  auto root=juce::parseXML(encoded);root->setAttribute("schemaVersion",14);reject(root->toString());
  root=juce::parseXML(encoded);root->getChildElement(root->getNumChildElements()-1)->setAttribute("value","nan");reject(root->toString());
  root=juce::parseXML(encoded);root->getChildElement(root->getNumChildElements()-1)->setAttribute("value","15garbage");reject(root->toString());

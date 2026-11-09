@@ -50,7 +50,10 @@ turn up OSC 1 PULSE. Compare OSC 1 WIDTH at 0.2 and 0.5 on fresh held notes.
 Mute it and try OSC 2 SAW alone. OSC / TUNING / OSC 2 INTERVAL should transpose
 that saw; it should not transpose oscillator 1's pulse. Then blend the four
 sources at modest levels. Save/reload and verify project recall separately.
-New-source musical approval remains pending until Holger confirms these checks.
+Holger confirmed oscillator-1 width tone differences and oscillator-2 saw
+octave-up/back tuning. Blend patch recall failed in alpha.1: a valid 0.1 width
+was rejected after decimal formatting. Alpha.2 fixes endpoint validation;
+live recall of that original file remains pending.
 
 ## Validation
 

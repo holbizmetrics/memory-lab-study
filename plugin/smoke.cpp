@@ -63,6 +63,15 @@ int main(int argc,char**argv){try{
 #endif
  if(argc==2&&std::string(argv[1])=="--automation-test"){automationChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--patch-test"){patchChecks();return 0;}
+ if(argc==3&&std::string(argv[1])=="--check-patch-file"){
+  auto p=std::make_unique<MemoryLabProcessor>();
+  auto result=memorylab::patch::load(*p,juce::File(juce::String::fromUTF8(argv[2])));
+  if(result.failed())throw std::runtime_error(result.getErrorMessage().toStdString());
+  auto recalled=std::make_unique<MemoryLabProcessor>();
+  check(memorylab::patch::apply(*recalled,memorylab::patch::encode(*p)).wasOk(),"loaded patch cannot roundtrip");
+  check(memorylab::patch::encode(*recalled)==memorylab::patch::encode(*p),"loaded patch values changed on roundtrip");
+  std::cout<<"PASS read-only patch file validation and recall roundtrip\n";return 0;
+ }
  if(argc==2&&std::string(argv[1])=="--motion-test"){motionChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--motion-clock-test"){motionClockChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--randomizer-test"){randomizerChecks();return 0;}

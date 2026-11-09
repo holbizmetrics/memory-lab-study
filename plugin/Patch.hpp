@@ -1,6 +1,7 @@
 #pragma once
 #include "Processor.hpp"
 #include <cstdlib>
+#include <limits>
 #include <set>
 
 namespace memorylab::patch {
@@ -44,9 +45,14 @@ inline juce::Result apply(MemoryLabProcessor& processor,const juce::String& text
    return juce::Result::fail("The patch contains an unknown or repeated control.");
   const auto raw=entry->getStringAttribute("value").trim();const auto* start=raw.toRawUTF8();char* end=nullptr;
   const double value=std::strtod(start,&end);
-  if(end==start||*end!='\0'||!std::isfinite(value)||value<p->convertFrom0to1(0)||value>p->convertFrom0to1(1))
+  const double minimum=p->convertFrom0to1(0),maximum=p->convertFrom0to1(1);
+  // XML's decimal representation can round a float endpoint just outside its
+  // exact double value. Admit only double-formatting error, not a float ULP
+  // or parameter-step tolerance. Zero remains exact; all checks precede edits.
+  const auto rounding=[](double bound){return 8*std::numeric_limits<double>::epsilon()*std::abs(bound);};
+  if(end==start||*end!='\0'||!std::isfinite(value)||value<minimum-rounding(minimum)||value>maximum+rounding(maximum))
    return juce::Result::fail("The patch contains an invalid value for "+id+".");
-  values.emplace_back(p,p->convertTo0to1(float(value)));
+  values.emplace_back(p,p->convertTo0to1(float(juce::jlimit(minimum,maximum,value))));
  }
  if(oldVcos)for(const char*id:{"osc1PulseLevel","osc2SawLevel","osc1Width"}){auto*p=processor.state.getParameter(id);values.emplace_back(p,p->getDefaultValue());}
  if(oldRoutes)for(const char*id:{"lfoAmp","lfo2Amp","lfo3Amp","lfo4Amp","ampPitch","fltPitch","env3Pwm","env4Pwm"}){auto*p=processor.state.getParameter(id);values.emplace_back(p,p->getDefaultValue());}
