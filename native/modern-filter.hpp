@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <complex>
 
 namespace memorylab {
-// Independent research path. Not yet connected to Voice or host parameters.
 // Behavioural approximation of the documented profile sequence, not a Relic
 // circuit model. Keep the released FilterFamily arithmetic untouched.
 class ModernFilter {
@@ -23,6 +23,17 @@ class ModernFilter {
   return std::tan(3.14159265358979323846*std::clamp(fc,5.,sr*.4)/sr);
  }
 public:
+ static std::complex<double> response(double sr,double cutoff,double q,double bandwidth,double profile,double frequency){
+  using C=std::complex<double>;
+  const double w=std::tan(3.14159265358979323846*std::min(frequency,sr*.49)/sr);
+  const auto lp=[&](double corner,double resonance){const double r=w/g(sr,corner);return 1./C(1-r*r,r/resonance);};
+  const auto hp=[&](double corner,double resonance){const double r=w/g(sr,corner);return -r*r/C(1-r*r,r/resonance);};
+  q=std::clamp(q,.5,8.);bandwidth=std::clamp(bandwidth,.25,4.);
+  const C low=lp(cutoff,q),band=hp(cutoff/std::exp2(bandwidth*.5),std::sqrt(q))*lp(cutoff*std::exp2(bandwidth*.5),std::sqrt(q));
+  const std::array<C,5> anchors{band,.5*(band+low),low,low/C(1,w/g(sr,cutoff)),low*lp(cutoff,.7071067811865475244)};
+  const double position=4*std::clamp(profile,0.,1.);const int left=std::min(3,int(position));
+  return anchors[left]+(position-left)*(anchors[left+1]-anchors[left]);
+ }
  void reset(){*this=ModernFilter{};}
  // bandwidth: octave separation of the BP4 lower/upper corner frequencies.
  // Resonance controls one low-pass section; the extra poles use fixed damping.

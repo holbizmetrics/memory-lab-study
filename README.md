@@ -1,10 +1,11 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
-0.18 adds [complementary waveforms on both oscillator cores](plugin/VCO-MIX.md):
-OSC 1 pulse, OSC 2 saw, separate OSC 1 width and a MIX page. There are 103
-controls, with inactive added sources preserving older sounds. All technical
-checks pass; new-source listening is pending. Modern filter expansion remains
-a separate step. See [0.18 prerelease notes](releases/v0.18.0-alpha.2.md).
+0.18 adds [complementary waveforms](plugin/VCO-MIX.md) and a
+[continuous modern filter profile with bandwidth](plugin/MODERN-FILTER.md).
+FILTER / MODERN offers BP4 / XF4 / LP2 / LP3 / LP4 and an explicit on/off switch.
+There are 106 controls; the original 103 IDs/order and old sounds are preserved.
+Holger confirmed oscillator width/tuning and alpha.2 patch/project recall.
+Modern-filter listening remains pending. See [alpha.3 notes](releases/v0.18.0-alpha.3.md).
 
 0.17 adds [eight explicit modulation routes and optional preset auto-load](plugin/MODULATION-ROUTES.md).
 There are 100 sound parameters, with previous IDs and compatible defaults preserved; preset

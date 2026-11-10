@@ -31,7 +31,8 @@ void tests(){
     }
    }
    for(int f=0;f<5;++f){const auto expected=response(sr,fc,q,bw,frequencies[f]);
-    for(int k=0;k<5;++k)require(std::abs(measured[f][k]-expected[k])<1e-8,"impulse differs from independent transfer function");
+    for(int k=0;k<5;++k){require(std::abs(measured[f][k]-expected[k])<1e-8,"impulse differs from independent transfer function");
+     require(std::abs(memorylab::ModernFilter::response(sr,fc,q,bw,k*.25,frequencies[f])-expected[k])<1e-10,"display response differs from independent reference");}
    }
    const auto a=response(sr,fc,q,bw,fc);
    require(std::abs(a[4])<=q*.708,"LP4 unexpectedly squares resonance gain");

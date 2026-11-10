@@ -36,7 +36,7 @@ void lfo2Checks(){
   check(render(sr,512,2,2,0,true,false,0,0)!=render(sr,512,2,2,0,true,false,int(sr*.125),0),"LFO 2 free run did not advance through silence");
  }
  auto p=std::make_unique<MemoryLabProcessor>();set(*p,"lfo2Pitch",17);set(*p,"lfo2Pwm",.07f);set(*p,"lfo2Cutoff",.8f);set(*p,"lfo2Sync",1);set(*p,"lfo2Bpm",97);
- const auto encoded=memorylab::patch::encode(*p);auto root=juce::parseXML(encoded);root->setAttribute("schemaVersion",8);
+ const auto encoded=memorylab::patch::encode(*p);auto root=juce::parseXML(encoded);root->setAttribute("schemaVersion",8);stripModern(*root);
  for(int i=root->getNumChildElements()-1;i>=0;--i)if(newerLfo(root->getChildElement(i)->getStringAttribute("id")))root->removeChildElement(root->getChildElement(i),true);
  check(memorylab::patch::apply(*p,root->toString()).wasOk(),"schema 8 patch migration failed");
  // JUCE's bipolar PWM range roundtrip yields ~2.98e-8 at displayed zero.

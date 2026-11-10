@@ -1,18 +1,14 @@
 # Memory Lab Study roadmap
 
-## Active 0.18 first oscillator checkpoint (2026-11-08)
+## Active 0.18 modern filter checkpoint (2026-11-10)
 
-OSC / MIX adds OSC 1 pulse, OSC 2 saw and independent static OSC 1 width.
-All 15 plugin and six native suites pass; eight actual VST3 fixtures and five
-exact old-sound comparisons pass. 103 parameters, patch schema 13, host state 15.
-Holger confirmed width/tuning, repaired blend patch recall and FL project
-recall in alpha.2. Modern filter gradient/bandwidth work
-remains a separate follow-up in this series; hard sync and oscillator-1 PWM
-routing are not part of this delivery. See [scope and validation](plugin/VCO-MIX.md).
-
-Modern filter groundwork now exists as an independent native study, outside
-the released signal path. See [design and limits](native/MODERN-FILTER-RESEARCH.md).
-It is not yet a new plugin feature or a delivered numbered version.
+The oscillator expansion and alpha.2 patch/project recall were confirmed by
+Holger. Alpha.3 connects the modern profile and bandwidth study through an
+explicit opt-in FILTER / MODERN page. 106 controls, schema 14, host state 16;
+first 103 IDs/order and all legacy filter families preserved. Modern listening
+is pending. See [scope and validation](plugin/MODERN-FILTER.md).
+The [native derivation and limitations](native/MODERN-FILTER-RESEARCH.md)
+remain available. Hard sync and oscillator-1 PWM routing remain separate gaps.
 
 ## Future software extra: readable sound recipes (2026-11-08)
 

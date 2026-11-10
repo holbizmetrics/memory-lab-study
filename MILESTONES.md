@@ -61,3 +61,8 @@ recall and auto-load preference. No blanket approval of every new route implied.
 0.18 alpha.2 listening update: Holger confirmed the unchanged Four Wave Blend
 file loads, sounds correct, and survives FL project close/reopen without manual
 patch loading. Patch endpoint repair and project recall are now human-confirmed.
+
+0.18 alpha.3: opt-in FILTER / MODERN profile/BW controls, 106 total; original
+103 IDs/order preserved. Schema 14 / host state 16 migrate old sounds to Modern
+off. 16 plugin and 7 native suites pass; all 16 legacy family/drive/noise
+captures match installed alpha.2. New modern-filter listening/recall pending.

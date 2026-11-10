@@ -24,7 +24,7 @@ void vcoMixChecks(){
   check(render(sr,127,2,.5,12)!=render(sr,127,2,.5,0),"OSC 2 tuning missed OSC 2 saw");
  }
  auto p=std::make_unique<MemoryLabProcessor>();set(*p,"osc1PulseLevel",.3f);set(*p,"osc2SawLevel",.2f);set(*p,"osc1Width",.25f);
- const auto encoded=patch::encode(*p);auto old=juce::parseXML(encoded);old->setAttribute("schemaVersion",12);
+ const auto encoded=patch::encode(*p);auto old=juce::parseXML(encoded);old->setAttribute("schemaVersion",12);stripModern(*old);
  for(int i=old->getNumChildElements()-1;i>=0;--i){const auto id=old->getChildElement(i)->getStringAttribute("id");if(id=="osc1PulseLevel"||id=="osc2SawLevel"||id=="osc1Width")old->removeChildElement(old->getChildElement(i),true);}
  check(patch::apply(*p,old->toString()).wasOk(),"schema 12 migration failed");check(p->state.getRawParameterValue("osc1PulseLevel")->load()==0&&p->state.getRawParameterValue("osc2SawLevel")->load()==0,"old patch retained added waveforms");
  check(patch::apply(*p,encoded).wasOk(),"VCO mixer patch recall");juce::MemoryBlock state;p->getStateInformation(state);auto q=std::make_unique<MemoryLabProcessor>();q->setStateInformation(state.getData(),int(state.getSize()));check(patch::encode(*q)==patch::encode(*p),"VCO mixer host recall");

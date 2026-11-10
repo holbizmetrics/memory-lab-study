@@ -23,6 +23,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "four-envelope-checks.hpp"
 #include "routing-checks.hpp"
 #include "vco-mix-checks.hpp"
+#include "modern-filter-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -53,6 +54,7 @@ void arpWrapperTests(){
  std::cout<<"PASS arp wrapper: audio block parity, host BPM/internal/fallback, stop/disable cleanup, state recall and legacy bypass\n";
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::string(argv[1])=="--modern-filter-test"){juce::ScopedJuceInitialiser_GUI gui;modernFilterChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--vco-mix-test"){juce::ScopedJuceInitialiser_GUI gui;vcoMixChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--routing-test"){juce::ScopedJuceInitialiser_GUI gui;routingChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--four-envelope-test"){juce::ScopedJuceInitialiser_GUI gui;fourEnvelopeChecks();return 0;}
@@ -90,6 +92,7 @@ int main(int argc,char**argv){try{
   std::cout<<"PASS: four seeded random patches saved; both drives bypassed for listening fixtures\n";return 0;
  }
  if(argc==2){
+  check(std::string(argv[1]).rfind("--",0)!=0,"unknown smoke test option");
   auto processor=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
   const juce::File folder{juce::String::fromUTF8(argv[1])};folder.createDirectory();check(folder.isDirectory(),"snapshot folder");
   auto snapshot=[&](const char*name){juce::Thread::sleep(40);juce::Timer::callPendingTimersSynchronously();auto image=editor->createComponentSnapshot(editor->getLocalBounds(),true,1);auto stream=folder.getChildFile(name).createOutputStream();check(bool(stream),"snapshot stream");stream->setPosition(0);stream->truncate();juce::PNGImageFormat png;check(png.writeImageToStream(image,*stream),"snapshot encoding");};
@@ -125,7 +128,7 @@ int main(int argc,char**argv){try{
   editor->setSize(1040,740);snapshot("arp.png");
   auto*drivePage=dynamic_cast<juce::Button*>(find(*editor,"drivePage"));check(drivePage&&bool(drivePage->onClick),"drive page missing");drivePage->onClick();snapshot("drive.png");
   auto*voiceDrive=dynamic_cast<juce::Slider*>(find(*editor,"voiceDrive"));check(voiceDrive,"voice drive knob missing");voiceDrive->setValue(24,juce::sendNotificationSync);check(processor->state.getRawParameterValue("voiceDrive")->load()==24,"voice drive attachment");
-  editor->setSize(832,592);snapshot("drive-compact.png");auto*oscPage=dynamic_cast<juce::Button*>(find(*editor,"oscPage"));check(oscPage&&bool(oscPage->onClick),"oscillator page missing");oscPage->onClick();snapshot("osc-compact.png");editor->setSize(1040,740);snapshot("osc.png");set(*processor,"noiseLevel",.35f);set(*processor,"sawLevel",0);set(*processor,"pulseLevel",0);snapshot("noise.png");editor->setSize(832,592);snapshot("noise-compact.png");auto*familyPage=dynamic_cast<juce::Button*>(find(*editor,"familyPage"));check(familyPage&&bool(familyPage->onClick),"family page missing");familyPage->onClick();editor->setSize(1040,740);snapshot("filter-classic.png");set(*processor,"filterFamily",1);snapshot("filter-lp4.png");set(*processor,"filterFamily",2);snapshot("filter-bp4.png");set(*processor,"filterFamily",3);snapshot("filter-blend.png");editor->setSize(832,592);snapshot("filter-compact.png");
+  editor->setSize(832,592);snapshot("drive-compact.png");auto*oscPage=dynamic_cast<juce::Button*>(find(*editor,"oscPage"));check(oscPage&&bool(oscPage->onClick),"oscillator page missing");oscPage->onClick();snapshot("osc-compact.png");editor->setSize(1040,740);snapshot("osc.png");set(*processor,"noiseLevel",.35f);set(*processor,"sawLevel",0);set(*processor,"pulseLevel",0);snapshot("noise.png");editor->setSize(832,592);snapshot("noise-compact.png");auto*familyPage=dynamic_cast<juce::Button*>(find(*editor,"familyPage"));check(familyPage&&bool(familyPage->onClick),"family page missing");familyPage->onClick();editor->setSize(1040,740);snapshot("filter-classic.png");set(*processor,"filterFamily",1);snapshot("filter-lp4.png");set(*processor,"filterFamily",2);snapshot("filter-bp4.png");set(*processor,"filterFamily",3);snapshot("filter-blend.png");editor->setSize(832,592);snapshot("filter-compact.png");auto*modern=dynamic_cast<juce::Button*>(find(*editor,"modernFilterPage"));check(modern&&bool(modern->onClick),"modern page missing");modern->onClick();set(*processor,"modernEnabled",1);set(*processor,"modernProfile",0);set(*processor,"modernBandwidth",.25f);set(*processor,"cutoff",1800);set(*processor,"resonance",1);editor->setSize(1040,740);snapshot("modern-bp4.png");set(*processor,"modernBandwidth",4);snapshot("modern-wide.png");set(*processor,"modernProfile",1);snapshot("modern-lp4.png");editor->setSize(832,592);snapshot("modern-compact.png");set(*processor,"modernEnabled",0);
   std::cout<<"PASS: Voice/Motion/Amplitude/Filter/ARP editor pages, parameter attachments, arp keyboard audio and compact snapshots; previews "<<folder.getFullPathName()<<"\n";return 0;
  }
  auto p=std::make_unique<MemoryLabProcessor>();p->setPlayConfigDetails(0,2,48000,512);p->prepareToPlay(48000,512);

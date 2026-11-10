@@ -1,8 +1,8 @@
 # Modern filter groundwork
 
-Independent, unconnected research code in `modern-filter.hpp`. This is not a
-new delivered synth version, does not add installed controls, and does not
-change the released `FilterFamily` or `Voice` path.
+The independent study is now connected as the opt-in 0.18 alpha.3 modern
+filter. The legacy FilterFamily path remains unchanged.
+See [plugin integration](../plugin/MODERN-FILTER.md).
 
 The manufacturer's [specifications](https://www.shearelectronics.com/relic/specs/)
 describe a continuous BP4 / XF4 / LP2 / LP3 / LP4 profile, separate bandwidth
@@ -38,8 +38,9 @@ one million samples of unsmoothed extreme parameter changes per sample rate,
 and zero residual after reset. This is filter-level evidence, not a full synth
 headroom, aliasing, realtime CPU, patch recall or musical approval claim.
 
-Before connecting this to the instrument: append new IDs without widening or
-repurposing the legacy family parameter, migrate old patches to exact bypass,
-smooth new controls, measure whole-chain drive/headroom, and make the static
-response display use the same topology. Existing modern-family sounds must
-remain intact. No local installation is needed for this groundwork.
+Integration appends three IDs without widening or repurposing the legacy
+family parameter. Old patches migrate to exact bypass. Controls smooth over
+20 ms; the static response uses the same topology and is independently tested.
+Legacy family captures match alpha.2 byte-for-byte. Musical approval and
+hardware coefficient/gain matching remain open. Local installation is tracked
+separately from source publication.

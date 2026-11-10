@@ -3,7 +3,7 @@
 
 namespace {
 struct Spec{const char* id;const char* name;float low,high,step;double initial;float skew;memorylab::Param parameter;};
-const std::array<Spec,96> specs{{
+const std::array<Spec,99> specs{{
  {"drive","Drive",0,12,.1f,5,1,memorylab::Param::Drive},
  {"depth","Memory depth",0,1.5f,.01f,.8,1,memorylab::Param::Depth},
  {"recovery","Memory recovery (ms)",50,400,1,250,.5f,memorylab::Param::Recovery},
@@ -99,7 +99,10 @@ const std::array<Spec,96> specs{{
  {"env4Pwm","Envelope 4 pulse width depth",-0.35f,0.35f,.001f,0,1,memorylab::Param::Env4Pwm},
  {"osc1PulseLevel","Oscillator 1 pulse level",0,1,.001f,0,1,memorylab::Param::Osc1PulseLevel},
  {"osc2SawLevel","Oscillator 2 saw level",0,1,.001f,0,1,memorylab::Param::Osc2SawLevel},
- {"osc1Width","Oscillator 1 pulse width",.1f,.9f,.001f,.5,1,memorylab::Param::Osc1Width}
+ {"osc1Width","Oscillator 1 pulse width",.1f,.9f,.001f,.5,1,memorylab::Param::Osc1Width},
+ {"modernEnabled","Modern filter enabled",0,1,1,0,1,memorylab::Param::ModernEnabled},
+ {"modernProfile","Modern filter profile: BP4 / XF4 / LP2 / LP3 / LP4",0,1,.001f,.5,1,memorylab::Param::ModernProfile},
+ {"modernBandwidth","Modern filter bandwidth (octaves)",.25f,4,.001f,1,1,memorylab::Param::ModernBandwidth}
 }};
 struct ArpSpec{const char*id;const char*name;float low,high,step,initial;};
 const std::array<ArpSpec,7> arpSpecs{{
@@ -118,7 +121,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout()
  auto addSpec=[&](const Spec&s){
   auto attributes=juce::AudioParameterFloatAttributes();
   if(juce::String(s.id)=="keyTrack"||juce::String(s.id)=="ampVelocity"||juce::String(s.id)=="filterVelocity")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v*100,0)+" %";}).withValueFromStringFunction([](const juce::String&t){return t.getFloatValue()*.01f;});
-  if(juce::String(s.id)=="lfoSync"||juce::String(s.id)=="lfoRetrigger"||juce::String(s.id)=="lfo2Sync"||juce::String(s.id)=="lfo3Sync"||juce::String(s.id)=="lfo4Sync"||juce::String(s.id)=="lfo2Retrigger"||juce::String(s.id)=="lfo3Retrigger"||juce::String(s.id)=="lfo4Retrigger")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v>=.5f?"ON":"OFF");}).withValueFromStringFunction([](const juce::String&t){if(t.trim().toUpperCase()=="ON")return 1.f;if(t.trim().toUpperCase()=="OFF")return 0.f;return t.getFloatValue();});
+  if(juce::String(s.id)=="modernEnabled"||juce::String(s.id)=="lfoSync"||juce::String(s.id)=="lfoRetrigger"||juce::String(s.id)=="lfo2Sync"||juce::String(s.id)=="lfo3Sync"||juce::String(s.id)=="lfo4Sync"||juce::String(s.id)=="lfo2Retrigger"||juce::String(s.id)=="lfo3Retrigger"||juce::String(s.id)=="lfo4Retrigger")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v>=.5f?"ON":"OFF");}).withValueFromStringFunction([](const juce::String&t){if(t.trim().toUpperCase()=="ON")return 1.f;if(t.trim().toUpperCase()=="OFF")return 0.f;return t.getFloatValue();});
   if(juce::String(s.id)=="lfoDivision"||juce::String(s.id)=="lfo2Division"||juce::String(s.id)=="lfo3Division"||juce::String(s.id)=="lfo4Division")attributes=attributes.withStringFromValueFunction([](float v,int){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};return juce::String(n[juce::jlimit(0,5,int(std::round(v)))]);}).withValueFromStringFunction([](const juce::String&t){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};for(int i=0;i<6;++i)if(t.trim().toUpperCase()==n[i])return float(i);return t.getFloatValue();});
   if(juce::String(s.id)=="lfoShape"||juce::String(s.id)=="lfo2Shape"||juce::String(s.id)=="lfo3Shape"||juce::String(s.id)=="lfo4Shape")attributes=attributes.withStringFromValueFunction([](float value,int){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};return juce::String(names[juce::jlimit(0,3,int(std::round(value)))]);}).withValueFromStringFunction([](const juce::String&text){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};for(int i=0;i<4;++i)if(text.trim().toUpperCase()==names[i])return float(i);return text.getFloatValue();});
   if(juce::String(s.id)=="filterFamily")attributes=attributes.withStringFromValueFunction([](float value,int){const char*names[]{"CLASSIC","LP4","BP4","BLEND"};return juce::String(names[juce::jlimit(0,3,int(std::round(value)))]);}).withValueFromStringFunction([](const juce::String&text){const char*names[]{"CLASSIC","LP4","BP4","BLEND"};for(int i=0;i<4;++i)if(text.trim().toUpperCase()==names[i])return float(i);return text.getFloatValue();});
@@ -229,7 +232,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",15,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",16,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,
