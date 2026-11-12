@@ -66,3 +66,13 @@ patch loading. Patch endpoint repair and project recall are now human-confirmed.
 103 IDs/order preserved. Schema 14 / host state 16 migrate old sounds to Modern
 off. 16 plugin and 7 native suites pass; all 16 legacy family/drive/noise
 captures match installed alpha.2. New modern-filter listening/recall pending.
+
+0.18 alpha.3 listening update (2026-11-12): Holger confirmed Modern on/off,
+profile sweep, audible/visible BP4 bandwidth change, Classic/BW inactive states,
+and Modern LP2 Test (300 Hz) patch recall plus FL project close/reopen recall.
+The planned listening round is complete; no hardware-equivalence claim.
+
+Next: four-part allocation foundation, with eight total voice slots and fixed
+part reservations, keyboard zones and MIDI channel routing. The native policy
+is isolated until DSP/part state and host integration are ready. No new FL
+controls or delivered 0.19 version are implied by the foundation alone.

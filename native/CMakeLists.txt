@@ -56,6 +56,13 @@ if(MSVC)
 endif()
 add_test(NAME modern_filter_research COMMAND memorylab_modern_filter)
 
+add_executable(memorylab_part_allocator part-allocator-test.cpp)
+target_compile_features(memorylab_part_allocator PRIVATE cxx_std_17)
+if(MSVC)
+ target_compile_options(memorylab_part_allocator PRIVATE /W4 /fp:precise)
+endif()
+add_test(NAME part_allocator_policy COMMAND memorylab_part_allocator)
+
 add_executable(memorylab_filter_family_diagnostic filter-family-diagnostic.cpp)
 target_compile_features(memorylab_filter_family_diagnostic PRIVATE cxx_std_17)
 if(MSVC)

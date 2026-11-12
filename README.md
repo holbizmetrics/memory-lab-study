@@ -5,7 +5,9 @@
 FILTER / MODERN offers BP4 / XF4 / LP2 / LP3 / LP4 and an explicit on/off switch.
 There are 106 controls; the original 103 IDs/order and old sounds are preserved.
 Holger confirmed oscillator width/tuning and alpha.2 patch/project recall.
-Modern-filter listening remains pending. See [alpha.3 notes](releases/v0.18.0-alpha.3.md).
+Holger confirmed the Modern sweep, bandwidth, inactive controls and patch/project
+recall. See [alpha.3 notes](releases/v0.18.0-alpha.3.md) and the
+[four-part allocation groundwork](native/PART-ALLOCATION.md), not yet in the plugin.
 
 0.17 adds [eight explicit modulation routes and optional preset auto-load](plugin/MODULATION-ROUTES.md).
 There are 100 sound parameters, with previous IDs and compatible defaults preserved; preset

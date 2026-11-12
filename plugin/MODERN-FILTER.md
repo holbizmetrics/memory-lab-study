@@ -41,8 +41,10 @@ eight waveform fixtures and five prior default/motion/envelope/routing/saved
 recordings remain unchanged. Original Four Wave Blend passes file-loader recall.
 Actual module scan/load/audio/state/release/reload and normal/compact UI pass.
 
-Holger's modern-filter musical approval is pending. Prior waveform and alpha.2
-patch/project approvals do not approve this filter. This is a behavioral
+Holger confirmed Modern on/off, the profile sweep, audible/visible bandwidth
+change and inactive controls. He saved Modern LP2 Test with cutoff 300 Hz,
+then confirmed patch reload and FL project close/reopen restore its sound.
+These checks do not establish every setting or a hardware match. This is a behavioral
 approximation, not circuit-exact matching. [Derivation and limits](../native/MODERN-FILTER-RESEARCH.md).
 Full realtime CPU/dropout, aliasing and FL automation/undo coverage remain open.
 
