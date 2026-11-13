@@ -58,6 +58,7 @@ public:
  void prepare(double rate){sr=rate;reset();}
  void reset(){env=previous=dcX=dcY=0;d=5;dep=.8;rel=250;}
  void clearSignal(){env=previous=dcX=dcY=0;}
+ void prime(const Parameters&p){clearSignal();d=p.drive;dep=p.depth;rel=p.recovery;}
  double tick(double input,const Parameters& p){
   const double s=1-std::exp(-1/(sr*.02));
   d+=(p.drive-d)*s;dep+=(p.depth-dep)*s;rel+=(p.recovery-rel)*s;
@@ -427,6 +428,7 @@ public:
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
  void reset(){voices={};clock=0;freeLfoPhase=freeLfo2Phase=freeLfo3Phase=freeLfo4Phase=0;target=current=Parameters{};voiceDriveGain=1;voiceDriveMix=0;filterWeights={};memory.prepare(sr);sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
+ void primeParameters(){current=target;memory.prime(target);for(int i=0;i<3;++i)filterWeights[i]=target.filterFamily==i+1?1.:0.;}
  std::size_t heldVoices(int channel=-1)const{std::size_t n=0;for(const auto&v:voices)if(v.active&&v.keyDown&&(channel<0||v.channel==channel))++n;return n;}
  bool sounding(int note,int channel)const{for(const auto&v:voices)if(v.active&&v.note==note&&v.channel==channel)return true;return false;}
  // Explicit slot assignment for the separate multi-part allocator. The normal

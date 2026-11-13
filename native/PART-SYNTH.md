@@ -1,9 +1,9 @@
 # Four-part native audio engine
 
 PartSynth connects the tested allocator to independently configurable sounds.
-This is a native development checkpoint, not a new installed synth version.
-The VST3 still uses the approved single-part engine; no part controls or new
-patch/host schema are delivered yet.
+The 0.19 source milestone now connects this engine to plugin part controls and
+schema-15/state-17 persistence. See [the plugin contract](../plugin/PARTS.md).
+Local installation and Holger listening approval are tracked separately.
 
 Each part owns its oscillator/filter/envelope/LFO settings, modulation phase,
 sustain/expression state, volume and memory-drive state. Its voice quota comes
@@ -43,7 +43,7 @@ independent noise streams, layout invalidation, atomic invalid blocks and no
 heap allocation during audio dispatch/render. The pre-refactor native phrase
 is separately compared by SHA256 to guard the shared voice-start extraction.
 
-Pending: plugin part controls, parameter IDs/automation strategy, complete
-multi-part patch and project state with old-state migration, per-part arp/clock
-policy, realtime CPU/UI checks, musical listening and a numbered prerelease.
-The installed plugin remains 0.18 alpha.3.
+Remaining: custom allocation, borrowing, per-part arp, separate outputs,
+complete realtime checks and musical approval. The implemented wrapper uses
+one global arp, per-part LFO timing and selected-part host automation. Source
+publication does not imply installation or live FL approval.

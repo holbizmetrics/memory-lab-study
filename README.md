@@ -1,5 +1,11 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.19 connects [four editable parts](plugin/PARTS.md): Single, 2-layer, 2-way
+split and 4-layer within eight voices. Existing sound pages follow part
+selection; SAVE/LOAD store all parts. The first 106 IDs/order and earlier
+sounds are preserved; 409 controls total. Technical checks pass; new part
+listening/FL recall approval is pending. [Prerelease notes](releases/v0.19.0-alpha.1.md).
+
 0.18 adds [complementary waveforms](plugin/VCO-MIX.md) and a
 [continuous modern filter profile with bandwidth](plugin/MODERN-FILTER.md).
 FILTER / MODERN offers BP4 / XF4 / LP2 / LP3 / LP4 and an explicit on/off switch.
@@ -7,7 +13,7 @@ There are 106 controls; the original 103 IDs/order and old sounds are preserved.
 Holger confirmed oscillator width/tuning and alpha.2 patch/project recall.
 Holger confirmed the Modern sweep, bandwidth, inactive controls and patch/project
 recall. See [alpha.3 notes](releases/v0.18.0-alpha.3.md) and the
-[four-part allocation groundwork](native/PART-ALLOCATION.md), not yet in the plugin.
+[four-part allocation foundation](native/PART-ALLOCATION.md), now connected in 0.19.
 
 0.17 adds [eight explicit modulation routes and optional preset auto-load](plugin/MODULATION-ROUTES.md).
 There are 100 sound parameters, with previous IDs and compatible defaults preserved; preset

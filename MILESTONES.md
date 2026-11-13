@@ -9,7 +9,7 @@ four-part voice architecture can be more work than several UI milestones.
 
 | Area | Implemented here | Still missing / boundary | Holger's testing |
 | --- | --- | --- | --- |
-| Voices | Eight-voice pool, sustain, stealing, MIDI bend and channel pressure | Four-part allocation/layers/splits; MPE not implemented | Played in FL; no full multi-part test possible yet |
+| Voices | Eight-voice pool, sustain, stealing, MIDI bend and channel pressure | 0.19 fixed four-part allocations implemented; custom quotas/MPE remain | Single-part played in FL; multi-part listening pending |
 | Oscillators | Two saw/pulse cores, four waveform levels, separate widths, OSC 2 tuning/PWM, phase reset, noise | Hard sync, OSC 1 PWM and full independent routing/SEM matching remain | Earlier OSC/noise confirmed; new complementary waveforms await listening |
 | Filters | Classic HP/notch/LP profile, LP4, BP4, BP4/LP2 Blend | Full documented family/profile/bandwidth behaviour and measured hardware matching remain | Family/drive listening; Profile clarified as Classic-only |
 | Envelopes | Four independent dAHDSR contours: amplitude, filter and two pitch/cutoff modulators | Pitch routes from all four contours, PWM from ENV 3/4; a general matrix remains | Existing contours played; filter velocity confirmed; ENV 3 pitch and ENV 4 cutoff, patch and full FL restart recall confirmed |
@@ -84,3 +84,10 @@ layer block parity, voice quotas, split/channel/sustain/panic handling,
 independent noise and no audio-path heap allocations. The pre-refactor native
 phrase is byte-identical. Plugin part controls, host/patch state and musical
 approval remain pending; no new installed or numbered synth release yet.
+
+0.19 alpha.1 source checkpoint: Parts UI, independent sound editing and
+complete patch/host state are connected. Single / 2-layer / 2-way split /
+4-layer, split note, four MIDI channels, Copy Part 1, selected-part presets and
+Dice. 409 parameters, first 106 preserved; schema 15, state 17. 17 plugin and
+9 native suites pass; 21 actual old filter captures and earlier sound fixtures
+remain byte-identical. New musical/live FL approval remains pending.

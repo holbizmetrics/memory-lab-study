@@ -19,19 +19,24 @@ inline const std::vector<Entry>& bank(){
  };
  return entries;
 }
-// Build a complete schema-14 patch without changing the live processor. Every
+// Build a complete schema-15 patch without changing the live processor. Every
 // preset starts from factory defaults, not the previously selected sound.
 inline juce::String encode(MemoryLabProcessor&p,int index){
  if(index<0||index>=int(bank().size()))return {};
- juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",14);
+ juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",15);
  for(auto*base:p.getParameters())if(auto*parameter=dynamic_cast<juce::RangedAudioParameter*>(base)){
-  float value=parameter->convertFrom0to1(parameter->getDefaultValue());
-  const auto&id=parameter->paramID;
-  if(id=="drive"||id=="voiceDrive")value=0;
-  if(id=="resonance")value=.9f;
-  for(const auto&setting:bank()[std::size_t(index)].settings)if(id==setting.first)value=setting.second;
-  // Keep the user's output level; presets never turn a muted instrument up.
-  if(id=="volume")value=parameter->convertFrom0to1(parameter->getValue());
+  const auto&id=parameter->paramID;const int part=p.editingPart.load();
+  const auto prefix=part==0?juce::String{}:"part"+juce::String(part+1)+"__";
+  const bool selected=part==0?!id.startsWith("part")&&id!="splitNote":id.startsWith(prefix);
+  const auto baseId=part==0?id:id.substring(prefix.length());
+  float value=parameter->convertFrom0to1(parameter->getValue());
+  if(selected){
+   value=parameter->convertFrom0to1(parameter->getDefaultValue());
+   if(baseId=="drive"||baseId=="voiceDrive")value=0;
+   if(baseId=="resonance")value=.9f;
+   for(const auto&setting:bank()[std::size_t(index)].settings)if(baseId==setting.first)value=setting.second;
+   if(baseId=="volume")value=parameter->convertFrom0to1(parameter->getValue());
+  }
   auto*entry=root.createNewChildElement("PARAM");entry->setAttribute("id",id);entry->setAttribute("value",double(value));
  }
  return root.toString();

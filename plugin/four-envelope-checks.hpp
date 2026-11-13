@@ -59,9 +59,9 @@ void fourEnvelopeChecks(){
  std::vector<float>tail(48000);stolen->dispatch({0,EventKind::AllSoundOff});stolen->render(tail.data(),tail.size());
  check(std::all_of(tail.begin(),tail.end(),[](float x){return x==0;}),"modulation state leaked after all sound off");
  auto p=std::make_unique<MemoryLabProcessor>();
- check(p->getParameters().size()==106,"four envelope parameter count");
+ check(p->getParameters().size()==409,"four envelope parameter count");
  set(*p,"env3Pitch",250);set(*p,"env4Cutoff",1.25f);set(*p,"env4Attack",1250);
- const auto encoded=patch::encode(*p);auto xml=juce::parseXML(encoded);xml->setAttribute("schemaVersion",10);stripModern(*xml);
+ const auto encoded=patch::encode(*p);auto xml=juce::parseXML(encoded);xml->setAttribute("schemaVersion",10);stripParts(*xml);stripModern(*xml);
  auto added=[](const juce::String&id){return id.startsWith("env3")||id.startsWith("env4")||id=="lfoAmp"||id=="lfo2Amp"||id=="lfo3Amp"||id=="lfo4Amp"||id=="ampPitch"||id=="fltPitch"||id=="env3Pwm"||id=="env4Pwm"||id=="osc1PulseLevel"||id=="osc2SawLevel"||id=="osc1Width";};
  for(int i=xml->getNumChildElements()-1;i>=0;--i)if(added(xml->getChildElement(i)->getStringAttribute("id")))xml->removeChildElement(xml->getChildElement(i),true);
  check(patch::apply(*p,xml->toString()).wasOk(),"schema 10 migration failed");

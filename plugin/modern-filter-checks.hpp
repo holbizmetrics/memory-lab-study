@@ -30,7 +30,7 @@ void modernFilterChecks(){
  for(int family=0;family<4;++family)
   check(render(48000,127,false,0,.25,0,family)==render(48000,127,false,1,4,0,family),"disabled modern edits changed legacy sound");
  auto p=std::make_unique<MemoryLabProcessor>();set(*p,"modernEnabled",1);set(*p,"modernProfile",.25f);set(*p,"modernBandwidth",4);
- const auto saved=patch::encode(*p);auto old=juce::parseXML(saved);old->setAttribute("schemaVersion",13);stripModern(*old);
+ const auto saved=patch::encode(*p);auto old=juce::parseXML(saved);old->setAttribute("schemaVersion",13);stripParts(*old);stripModern(*old);
  check(patch::apply(*p,old->toString()).wasOk(),"schema13 modern migration");
  check(p->state.getRawParameterValue("modernEnabled")->load()==0&&p->state.getRawParameterValue("modernProfile")->load()==.5f&&p->state.getRawParameterValue("modernBandwidth")->load()==1,"old patch modern defaults");
  check(patch::apply(*p,saved).wasOk(),"modern patch recall");

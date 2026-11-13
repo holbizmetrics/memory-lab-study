@@ -1,6 +1,6 @@
 #pragma once
 #include <juce_audio_utils/juce_audio_utils.h>
-#include "../native/voice.hpp"
+#include "../native/part-synth.hpp"
 #include "../native/arpeggiator.hpp"
 #include "RandomizerSession.hpp"
 #include "PresetSession.hpp"
@@ -30,6 +30,10 @@ public:
  juce::AudioProcessorValueTreeState state;
  memorylab::RandomizerSession randomizerSession;
  memorylab::PresetSession presetSession;
+ std::atomic<int> editingPart{0}; // editor selection, not a sound/host parameter
+ static juce::String partId(int part,const juce::String&base){return part==0||base.startsWith("arp")?base:"part"+juce::String(part+1)+"__"+base;}
+ juce::String editId(const juce::String&base)const{return partId(editingPart.load(),base);}
+ void copyPart(int from,int to);
  juce::MidiKeyboardState keyboard;
  std::atomic<float> outputPeak{0};
  std::atomic<int> voiceCount{0};
@@ -42,7 +46,7 @@ public:
 private:
  static juce::AudioProcessorValueTreeState::ParameterLayout layout();
  void midi(const juce::uint8*,int);
- memorylab::Synth synth;
+ memorylab::PartSynth synth;
  memorylab::Arpeggiator arp;
  std::array<std::atomic<float>*,7> arpValues{};
  bool arpEnabled=false,wasPlaying=false;
@@ -54,5 +58,11 @@ private:
  static constexpr std::size_t parameterCount=99;
  std::array<std::atomic<float>*,parameterCount> values{};
  std::array<float,parameterCount> previous{};
+ std::array<std::array<std::atomic<float>*,parameterCount>,3> partValues{};
+ std::array<std::array<float,parameterCount>,3> partPrevious{};
+ std::array<std::array<double,parameterCount>,3> partInitial{};
+ std::array<std::atomic<float>*,6> routingValues{};
+ std::array<int,6> previousRouting{{0,60,0,0,0,0}};
+ void updateRouting();
  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MemoryLabProcessor)
 };

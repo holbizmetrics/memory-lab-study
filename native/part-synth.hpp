@@ -40,12 +40,13 @@ public:
  bool prepare(double sr){
   if(!std::isfinite(sr)||sr<44100||sr>192000)return false;
   for(auto&p:parts)if(!p.prepare(sr))return false;
-  allocator.clear();ready=true;return true;
+  allocator.configure({{{8,0,127,-1},{},{},{}}});ready=true;return true;
  }
  const PartAllocator::Layout& layout()const{return allocator.layout();}
  bool configure(const PartAllocator::Layout& next){
+  const auto prior=allocator.layout();
   if(!allocator.configure(next))return false;
-  for(auto&p:parts)p.dispatch({0,EventKind::AllSoundOff});
+  for(int p=0;p<4;++p){parts[p].dispatch({0,EventKind::AllSoundOff});if(prior[p].voices==0&&next[p].voices>0)parts[p].primeParameters();}
   return true;
  }
  bool parameter(int part,Param parameter,double value){

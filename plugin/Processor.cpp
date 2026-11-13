@@ -118,15 +118,15 @@ const std::array<ArpSpec,7> arpSpecs{{
 
 juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout(){
  juce::AudioProcessorValueTreeState::ParameterLayout result;
- auto addSpec=[&](const Spec&s){
+ auto addSpec=[&](const Spec&s,int part=0){
   auto attributes=juce::AudioParameterFloatAttributes();
   if(juce::String(s.id)=="keyTrack"||juce::String(s.id)=="ampVelocity"||juce::String(s.id)=="filterVelocity")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v*100,0)+" %";}).withValueFromStringFunction([](const juce::String&t){return t.getFloatValue()*.01f;});
   if(juce::String(s.id)=="modernEnabled"||juce::String(s.id)=="lfoSync"||juce::String(s.id)=="lfoRetrigger"||juce::String(s.id)=="lfo2Sync"||juce::String(s.id)=="lfo3Sync"||juce::String(s.id)=="lfo4Sync"||juce::String(s.id)=="lfo2Retrigger"||juce::String(s.id)=="lfo3Retrigger"||juce::String(s.id)=="lfo4Retrigger")attributes=attributes.withStringFromValueFunction([](float v,int){return juce::String(v>=.5f?"ON":"OFF");}).withValueFromStringFunction([](const juce::String&t){if(t.trim().toUpperCase()=="ON")return 1.f;if(t.trim().toUpperCase()=="OFF")return 0.f;return t.getFloatValue();});
   if(juce::String(s.id)=="lfoDivision"||juce::String(s.id)=="lfo2Division"||juce::String(s.id)=="lfo3Division"||juce::String(s.id)=="lfo4Division")attributes=attributes.withStringFromValueFunction([](float v,int){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};return juce::String(n[juce::jlimit(0,5,int(std::round(v)))]);}).withValueFromStringFunction([](const juce::String&t){const char*n[]{"1/4","1/8","1/16","1/32","1/8 T","1/16 T"};for(int i=0;i<6;++i)if(t.trim().toUpperCase()==n[i])return float(i);return t.getFloatValue();});
   if(juce::String(s.id)=="lfoShape"||juce::String(s.id)=="lfo2Shape"||juce::String(s.id)=="lfo3Shape"||juce::String(s.id)=="lfo4Shape")attributes=attributes.withStringFromValueFunction([](float value,int){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};return juce::String(names[juce::jlimit(0,3,int(std::round(value)))]);}).withValueFromStringFunction([](const juce::String&text){const char*names[]{"SINE","TRIANGLE","SAW","PULSE"};for(int i=0;i<4;++i)if(text.trim().toUpperCase()==names[i])return float(i);return text.getFloatValue();});
   if(juce::String(s.id)=="filterFamily")attributes=attributes.withStringFromValueFunction([](float value,int){const char*names[]{"CLASSIC","LP4","BP4","BLEND"};return juce::String(names[juce::jlimit(0,3,int(std::round(value)))]);}).withValueFromStringFunction([](const juce::String&text){const char*names[]{"CLASSIC","LP4","BP4","BLEND"};for(int i=0;i<4;++i)if(text.trim().toUpperCase()==names[i])return float(i);return text.getFloatValue();});
-  result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{s.id,1},s.name,
-   juce::NormalisableRange<float>{s.low,s.high,s.step,s.skew},float(s.initial),attributes));
+  result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{partId(part,s.id),1},part==0?juce::String(s.name):"Part "+juce::String(part+1)+" "+s.name,
+   juce::NormalisableRange<float>{s.low,s.high,s.step,s.skew},float(part>0&&(juce::String(s.id)=="drive"||juce::String(s.id)=="voiceDrive")?0:part>0&&juce::String(s.id)=="resonance"?.9:s.initial),attributes));
  };
  // Keep the original 35 host indices stable. New controls append after the arp.
  for(std::size_t i=0;i<28;++i)addSpec(specs[i]);
@@ -147,17 +147,43 @@ juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout()
   result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{s.id,1},s.name,juce::NormalisableRange<float>{s.low,s.high,s.step},s.initial,attributes));
  }
  for(std::size_t i=28;i<specs.size();++i)addSpec(specs[i]);
+ for(int part=1;part<4;++part)for(const auto&s:specs)addSpec(s,part);
+ const char*routeIds[]{"partMode","splitNote","part1Channel","part2Channel","part3Channel","part4Channel"};
+ for(int i=0;i<6;++i){
+  auto attributes=juce::AudioParameterFloatAttributes();
+  if(i==0)attributes=attributes.withStringFromValueFunction([](float v,int){const char*n[]{"SINGLE","2-LAYER","2-SPLIT","4-LAYER"};return juce::String(n[juce::jlimit(0,3,int(std::round(v)))]);}).withValueFromStringFunction([](const juce::String&t){const char*n[]{"SINGLE","2-LAYER","2-SPLIT","4-LAYER"};for(int k=0;k<4;++k)if(t.trim().toUpperCase()==n[k])return float(k);return t.getFloatValue();});
+  else if(i>=2)attributes=attributes.withStringFromValueFunction([](float v,int){return v<.5f?juce::String("OMNI"):juce::String(int(std::round(v)));}).withValueFromStringFunction([](const juce::String&t){return t.trim().toUpperCase()=="OMNI"?0.f:t.getFloatValue();});
+  result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{routeIds[i],1},routeIds[i],juce::NormalisableRange<float>{i==1?1.f:0.f,i==0?3.f:i==1?127.f:16.f,1.f},i==1?60.f:0.f,attributes));
+ }
  return result;
 }
 MemoryLabProcessor::MemoryLabProcessor():AudioProcessor(BusesProperties().withOutput("Output",juce::AudioChannelSet::stereo(),true)),state(*this,nullptr,"MemoryLabState",layout()){
- previous.fill(std::numeric_limits<float>::quiet_NaN());
+ previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());
  for(std::size_t i=0;i<specs.size();++i)values[i]=state.getRawParameterValue(specs[i].id);
  for(std::size_t i=0;i<arpSpecs.size();++i)arpValues[i]=state.getRawParameterValue(arpSpecs[i].id);
+ for(int part=1;part<4;++part)for(std::size_t i=0;i<specs.size();++i){partValues[part-1][i]=state.getRawParameterValue(partId(part,specs[i].id));partInitial[part-1][i]=juce::String(specs[i].id)=="drive"||juce::String(specs[i].id)=="voiceDrive"?0:juce::String(specs[i].id)=="resonance"?.9:specs[i].initial;}
+ const char*routeIds[]{"partMode","splitNote","part1Channel","part2Channel","part3Channel","part4Channel"};
+ for(int i=0;i<6;++i)routingValues[i]=state.getRawParameterValue(routeIds[i]);
 }
 bool MemoryLabProcessor::isBusesLayoutSupported(const BusesLayout& b)const{
  return b.getMainInputChannelSet().isDisabled()&&(b.getMainOutputChannelSet()==juce::AudioChannelSet::mono()||b.getMainOutputChannelSet()==juce::AudioChannelSet::stereo());
 }
-void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);if(ready)renderSampleRate=rate;arp.reset();arpEnabled=false;wasPlaying=false;keyboard.reset();outputPeak=0;voiceCount=0;arpStep=0;previous.fill(std::numeric_limits<float>::quiet_NaN());setLatencySamples(0);}
+void MemoryLabProcessor::copyPart(int from,int to){
+ if(from<0||from>3||to<0||to>3||from==to)return;
+ for(const auto&s:specs){auto*a=state.getParameter(partId(from,s.id));auto*b=state.getParameter(partId(to,s.id));b->beginChangeGesture();b->setValueNotifyingHost(a->getValue());b->endChangeGesture();}
+ updateHostDisplay();
+}
+void MemoryLabProcessor::updateRouting(){
+ std::array<int,6> next{};for(int i=0;i<6;++i)next[i]=int(std::round(routingValues[i]->load()));
+ if(next==previousRouting)return;
+ memorylab::PartAllocator::Layout layout{};
+ if(next[0]==0)layout[0].voices=8;
+ else if(next[0]==1||next[0]==2){layout[0].voices=layout[1].voices=4;if(next[0]==2){layout[0].high=next[1]-1;layout[1].low=next[1];}}
+ else for(auto&p:layout)p.voices=2;
+ for(int p=0;p<4;++p)layout[p].channel=next[p+2]-1;
+ if(synth.configure(layout)){previousRouting=next;arp.reset();}
+}
+void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);if(ready)renderSampleRate=rate;arp.reset();arpEnabled=false;wasPlaying=false;keyboard.reset();outputPeak=0;voiceCount=0;arpStep=0;previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previousRouting={0,60,0,0,0,0};setLatencySamples(0);}
 void MemoryLabProcessor::arpEmit(memorylab::EventKind kind,int note,double velocity,int channel){synth.dispatch({0,kind,note,velocity,channel});}
 void MemoryLabProcessor::render(float*audio,int count){
  if(!arpEnabled){synth.render(audio,std::size_t(count));return;}
@@ -197,6 +223,12 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
   const double nativeValue=std::abs(double(value)-specs[i].initial)<tolerance?specs[i].initial:double(value);
   synth.dispatch({0,memorylab::EventKind::Parameter,0,nativeValue,0,specs[i].parameter});previous[i]=value;
  }}
+ for(int part=1;part<4;++part)for(std::size_t i=0;i<specs.size();++i){const float value=partValues[part-1][i]->load();if(value!=partPrevious[part-1][i]){
+  const double initial=partInitial[part-1][i];
+  const double tolerance=std::max(1e-6,double(specs[i].step)*.001);
+  synth.parameter(part,specs[i].parameter,std::abs(double(value)-specs[i].initial)<tolerance?specs[i].initial:std::abs(double(value)-initial)<tolerance?initial:double(value));partPrevious[part-1][i]=value;
+ }}
+ updateRouting();
  const int count=audio.getNumSamples();float* mono=audio.getWritePointer(0);int cursor=0;
  const bool enabled=arpValues[0]->load()>=.5f;
  if(enabled!=arpEnabled){
@@ -216,6 +248,10 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  synth.dispatch({0,memorylab::EventKind::Parameter,0,fourthBpm,0,memorylab::Param::Lfo4Bpm});
  const double thirdBpm=hostBpm>0?hostBpm:values[59]->load();lfo3Tempo=float(thirdBpm);lfo3HasHostTempo=hostBpm>0;
  synth.dispatch({0,memorylab::EventKind::Parameter,0,thirdBpm,0,memorylab::Param::Lfo3Bpm});
+ for(int part=1;part<4;++part){
+  const std::size_t indices[]{38,50,59,68};const memorylab::Param targets[]{memorylab::Param::LfoBpm,memorylab::Param::Lfo2Bpm,memorylab::Param::Lfo3Bpm,memorylab::Param::Lfo4Bpm};
+  for(int i=0;i<4;++i){const float tempo=float(hostBpm>0?hostBpm:partValues[part-1][indices[i]]->load());synth.parameter(part,targets[i],tempo);if(editingPart.load()==part){if(i==0)lfoTempo=tempo;else if(i==1)lfo2Tempo=tempo;else if(i==2)lfo3Tempo=tempo;else lfo4Tempo=tempo;}}
+ }
  if(arpEnabled&&playing!=wasPlaying){
   auto emit=[this](auto k,int note,double v,int c){arpEmit(k,note,v,c);};
   if(playing)arp.restart(emit);else{arp.stop(emit);arp.reset();}
@@ -232,7 +268,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",16,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",17,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,
@@ -242,6 +278,11 @@ void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=
  }
  for(const auto&s:arpSpecs)if(!incoming.getChildWithProperty("id",s.id).isValid()){
   juce::ValueTree child("PARAM");child.setProperty("id",s.id,nullptr);child.setProperty("value",s.initial,nullptr);incoming.appendChild(child,nullptr);
- }state.replaceState(incoming);
+ }
+ // Appended part/routing controls take defaults when absent in old host states.
+ for(auto*base:getParameters())if(auto*p=dynamic_cast<juce::RangedAudioParameter*>(base))if(!incoming.getChildWithProperty("id",p->paramID).isValid()){
+  juce::ValueTree child("PARAM");child.setProperty("id",p->paramID,nullptr);child.setProperty("value",p->convertFrom0to1(p->getDefaultValue()),nullptr);incoming.appendChild(child,nullptr);
+ }
+ state.replaceState(incoming);
 }}
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter(){return new MemoryLabProcessor();}

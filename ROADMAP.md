@@ -1,24 +1,14 @@
 # Memory Lab Study roadmap
 
-## Active 0.18 modern filter checkpoint (2026-11-10)
+## Active 0.19 part checkpoint
 
-The oscillator expansion and alpha.2 patch/project recall were confirmed by
-Holger. Alpha.3 connects the modern profile and bandwidth study through an
-explicit opt-in FILTER / MODERN page. 106 controls, schema 14, host state 16;
-first 103 IDs/order and all legacy filter families preserved. Modern listening
-is pending. See [scope and validation](plugin/MODERN-FILTER.md).
-The [native derivation and limitations](native/MODERN-FILTER-RESEARCH.md)
-remain available. Hard sync and oscillator-1 PWM routing remain separate gaps.
-
-## Four-part groundwork (2026-11-12)
-
-Holger completed the 0.18 alpha.3 listening/recall round. The next milestone
-starts with a [separate eight-slot allocation policy](native/PART-ALLOCATION.md).
-Fixed reservations, splits/layers, MIDI channels, sustain/stealing and invalid
-layout rejection pass their isolated tests. The next native audio checkpoint
-connects independent part sounds, shared eight-slot ownership and sample-accurate
-rendering; see [PartSynth](native/PART-SYNTH.md). Patch/host state and UI remain
-unconnected; the installed plugin remains alpha.3.
+Four native sounds are now connected to host state and the Parts editor.
+Single / 2-layer / 2-way split / 4-layer use eight total voices. Sound pages,
+starter sounds, Dice and output follow part selection; arp remains global.
+Schema 15 / host state 17 store 409 controls, preserving the first 106 IDs.
+17 plugin and 9 native suites pass; actual old-sound captures remain identical.
+Holger's 0.19 listening and live FL recall are pending. See [parts scope](plugin/PARTS.md).
+The 0.18 waveform/modern-filter and patch/project recall round is approved.
 
 ## Future software extra: readable sound recipes (2026-11-08)
 

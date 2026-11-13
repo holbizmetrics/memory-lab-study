@@ -22,7 +22,7 @@ void routingChecks(){
  }
  auto p=std::make_unique<MemoryLabProcessor>();const char*ids[]{"lfoAmp","lfo2Amp","lfo3Amp","lfo4Amp","ampPitch","fltPitch","env3Pwm","env4Pwm"};
  for(auto*id:ids)set(*p,id,juce::String(id).contains("Pitch")?123:.2f);
- const auto encoded=patch::encode(*p);auto old=juce::parseXML(encoded);old->setAttribute("schemaVersion",11);stripModern(*old);
+ const auto encoded=patch::encode(*p);auto old=juce::parseXML(encoded);old->setAttribute("schemaVersion",11);stripParts(*old);stripModern(*old);
  for(int i=old->getNumChildElements()-1;i>=0;--i){const auto id=old->getChildElement(i)->getStringAttribute("id");if(id=="osc1PulseLevel"||id=="osc2SawLevel"||id=="osc1Width")old->removeChildElement(old->getChildElement(i),true);}
  for(int i=old->getNumChildElements()-1;i>=0;--i)for(auto*id:ids)if(old->getChildElement(i)->getStringAttribute("id")==id){old->removeChildElement(old->getChildElement(i),true);break;}
  // Normalised float roundtrips can leave sub-micro-unit PWM residuals; the
