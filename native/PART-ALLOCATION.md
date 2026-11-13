@@ -32,8 +32,9 @@ splits, four layers, sustain, same-note channel isolation, velocity-zero note
 off, channel/all-part panic, atomic layout rejection and 100,000 events with
 no heap allocations. It is policy evidence, not a full audio test.
 
-Next integration work: per-part DSP settings and voice ownership, shared versus
-per-part drive semantics, part gain/transpose, sample-accurate rendering,
-backward-compatible host/patch state, part controls and musical listening.
+The [native audio integration](PART-SYNTH.md) now connects independent sounds,
+voice ownership, per-part drive/volume and sample-accurate note rendering.
+Next: backward-compatible host/patch state, part controls, arp/clock policy,
+transpose and musical listening.
 The approved single-part path must stay byte-identical before a new build is
 offered for testing. Existing installation stays at 0.18 alpha.3.

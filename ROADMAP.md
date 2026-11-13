@@ -15,8 +15,10 @@ remain available. Hard sync and oscillator-1 PWM routing remain separate gaps.
 Holger completed the 0.18 alpha.3 listening/recall round. The next milestone
 starts with a [separate eight-slot allocation policy](native/PART-ALLOCATION.md).
 Fixed reservations, splits/layers, MIDI channels, sustain/stealing and invalid
-layout rejection pass their isolated tests. Per-part DSP/settings, patch/host
-state and UI are not yet connected; the installed plugin remains alpha.3.
+layout rejection pass their isolated tests. The next native audio checkpoint
+connects independent part sounds, shared eight-slot ownership and sample-accurate
+rendering; see [PartSynth](native/PART-SYNTH.md). Patch/host state and UI remain
+unconnected; the installed plugin remains alpha.3.
 
 ## Future software extra: readable sound recipes (2026-11-08)
 

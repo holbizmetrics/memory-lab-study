@@ -76,3 +76,11 @@ Next: four-part allocation foundation, with eight total voice slots and fixed
 part reservations, keyboard zones and MIDI channel routing. The native policy
 is isolated until DSP/part state and host integration are ready. No new FL
 controls or delivered 0.19 version are implied by the foundation alone.
+
+Four-part native audio checkpoint (2026-11-13): independent part sounds now
+render through the eight-slot allocator. 9/9 native suites pass, including
+four-rate exact one-part parity, independent four-synth reference summation,
+layer block parity, voice quotas, split/channel/sustain/panic handling,
+independent noise and no audio-path heap allocations. The pre-refactor native
+phrase is byte-identical. Plugin part controls, host/patch state and musical
+approval remain pending; no new installed or numbered synth release yet.

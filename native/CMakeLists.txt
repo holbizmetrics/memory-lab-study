@@ -63,6 +63,13 @@ if(MSVC)
 endif()
 add_test(NAME part_allocator_policy COMMAND memorylab_part_allocator)
 
+add_executable(memorylab_part_synth part-synth-test.cpp)
+target_compile_features(memorylab_part_synth PRIVATE cxx_std_17)
+if(MSVC)
+ target_compile_options(memorylab_part_synth PRIVATE /W4 /fp:precise)
+endif()
+add_test(NAME part_synth_audio COMMAND memorylab_part_synth)
+
 add_executable(memorylab_filter_family_diagnostic filter-family-diagnostic.cpp)
 target_compile_features(memorylab_filter_family_diagnostic PRIVATE cxx_std_17)
 if(MSVC)

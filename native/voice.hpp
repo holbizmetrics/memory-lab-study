@@ -299,6 +299,9 @@ class Synth {
   if(!chosen)for(auto& v:voices)if(!v.active){chosen=&v;break;}
   if(!chosen)for(auto&v:voices)if(!v.gate&&(!chosen||v.env<chosen->env))chosen=&v;
   if(!chosen)chosen=&*std::min_element(voices.begin(),voices.end(),[](const Voice&a,const Voice&b){return a.age<b.age;});
+  startVoice(chosen,e);
+ }
+ void startVoice(Voice* chosen,const Event&e){
   const double phase1=chosen->phase1,phase2=chosen->phase2;
   const bool replacing=chosen->active;const double oldOutput=chosen->lastOutput;
   *chosen=Voice{};chosen->active=chosen->gate=true;chosen->note=e.note;chosen->channel=e.channel;
@@ -426,6 +429,19 @@ public:
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
  std::size_t heldVoices(int channel=-1)const{std::size_t n=0;for(const auto&v:voices)if(v.active&&v.keyDown&&(channel<0||v.channel==channel))++n;return n;}
  bool sounding(int note,int channel)const{for(const auto&v:voices)if(v.active&&v.note==note&&v.channel==channel)return true;return false;}
+ // Explicit slot assignment for the separate multi-part allocator. The normal
+ // single-part note-on path above retains its existing allocation decisions.
+ bool assignVoice(int index,const Event&e,std::uint32_t noiseSalt=0){
+  if(index<0||index>=8||e.kind!=EventKind::NoteOn||e.note<0||e.note>127||e.channel<0||e.channel>15||!std::isfinite(e.value)||e.value<=0)return false;
+  auto&voice=voices[std::size_t(index)];startVoice(&voice,e);
+  if(noiseSalt){voice.noiseState^=noiseSalt*2654435761u;if(!voice.noiseState)voice.noiseState=1;}
+  return true;
+ }
+ struct VoiceStatus{bool active;double level;};
+ VoiceStatus voiceStatus(int index)const{
+  if(index<0||index>=8)return {false,0};
+  const auto&v=voices[std::size_t(index)];return {v.active,v.env};
+ }
  // Audio-thread-only event dispatch for a wrapper that renders between events.
  void dispatch(const Event& event){apply(event);}
  // Events must be sorted, with offsets in [0,frames). Invalid blocks are silent,
