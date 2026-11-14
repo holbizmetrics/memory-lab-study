@@ -5,6 +5,8 @@
 Combined-feature tests and actual VST3 preservation captures are documented
 in [integration scope](plugin/INTEGRATION.md). No controls or DSP changes;
 live CPU/dropout, FL automation recording/undo and hardware comparisons remain.
+Holger confirmed the 0.20 fresh-instance, split, combined-motion and note-release
+regression round. Next is the hardware coverage audit and a refreshed route.
 
 Four native sounds are now connected to host state and the Parts editor.
 Single / 2-layer / 2-way split / 4-layer use eight total voices. Sound pages,

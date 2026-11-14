@@ -31,3 +31,8 @@ remain open. Fixed reservations and one global arp remain deliberate limits.
 The checkpoint does not declare the Relic conversion complete. Remaining
 hardware coverage includes modulation forms/routing and oscillator behavior,
 as well as reference measurements for filter and drive characteristics.
+
+Holger's 0.20 live regression approval: fresh instance/version identification,
+Bass and Air Split zoning, Slow Wah Fast Heart movement, and normal note
+release without stuck notes all confirmed. This completes the planned short
+listening round; it does not close the broader live-performance checks above.

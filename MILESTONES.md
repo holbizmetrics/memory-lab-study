@@ -100,3 +100,9 @@ was confirmed in both directions. The planned listening round is complete.
 Next: 0.20 combined integration checks across part routing, host tempo,
 modulation, envelopes, filters, drive, state and automation. No added control
 count or hardware-equivalence claim is implied by this quality checkpoint.
+
+0.20 alpha.1 listening update: Holger confirmed the fresh 0.20 instance,
+Bass and Air Split, Slow Wah Fast Heart and normal release/no stuck notes.
+The short regression round is complete. Next: refresh hardware coverage from
+manufacturer evidence, separating implemented features from approximations
+and from behaviors whose hardware specification is still unknown.
