@@ -2,7 +2,7 @@
 void partWrapperChecks(){
  using namespace memorylab;
  auto p=std::make_unique<MemoryLabProcessor>();
- check(p->getParameters().size()==409,"part parameter count");
+ check(p->getParameters().size()==425,"part parameter count");
  check(p->state.getRawParameterValue("partMode")->load()==0,"default not single");
  set(*p,"cutoff",300);set(*p,"part2__cutoff",4800);set(*p,"part2__osc2Interval",12);set(*p,"partMode",2);set(*p,"splitNote",60);set(*p,"part2Channel",2);
  const auto encoded=patch::encode(*p);auto old=juce::parseXML(encoded);old->setAttribute("schemaVersion",14);stripParts(*old);
@@ -46,6 +46,6 @@ void partWrapperChecks(){
   m.addEvent(juce::MidiMessage::allSoundOff(2),0);play->processBlock(a,m);check(play->voiceCount.load()==0,"part panic did not clear");
   set(*play,"partMode",0);play->releaseResources();play->prepareToPlay(sr,257);m.addEvent(juce::MidiMessage::noteOn(1,48,(juce::uint8)100),0);play->processBlock(a,m);check(play->voiceCount.load()==1,"prepare retained old allocation");
  }
- std::cout<<"PASS part wrapper: 409 controls, old/new patch and host migration, selected-part preset/dice/undo/copy/edit isolation, passive navigation, complete INIT, four-rate layers/splits/channel panic/prepare; peak="<<peak<<"\n";
+ std::cout<<"PASS part wrapper: 425 controls, old/new patch and host migration, selected-part preset/dice/undo/copy/edit isolation, passive navigation, complete INIT, four-rate layers/splits/channel panic/prepare; peak="<<peak<<"\n";
 }
 

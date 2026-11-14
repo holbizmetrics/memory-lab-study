@@ -4,7 +4,7 @@ void automationChecks(){
  auto processor=std::make_unique<MemoryLabProcessor>();
  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
  const char*ids[]{"drive","depth","recovery","detune","width","cutoff","resonance","volume","profile","lfoRate","vibrato","pwm","filterLfo","filterEnv","pressure","phaseReset","ampDelay","ampAttack","ampHold","ampDecay","ampSustain","ampRelease","fltDelay","fltAttack","fltHold","fltDecay","fltSustain","fltRelease","arpOn","arpSync","arpBpm","arpRate","arpOrder","arpOctaves","arpGate","voiceDrive","sawLevel","pulseLevel","osc2Interval","noiseLevel","filterFamily","lfoShape","lfoSync","lfoDivision","lfoRetrigger","lfoBpm","keyTrack","ampVelocity","filterVelocity","lfo2Rate","lfo2Pitch","lfo2Pwm","lfo2Cutoff","lfo2Shape","lfo2Sync","lfo2Division","lfo2Retrigger","lfo2Bpm","lfo3Rate","lfo3Pitch","lfo3Pwm","lfo3Cutoff","lfo3Shape","lfo3Sync","lfo3Division","lfo3Retrigger","lfo3Bpm","lfo4Rate","lfo4Pitch","lfo4Pwm","lfo4Cutoff","lfo4Shape","lfo4Sync","lfo4Division","lfo4Retrigger","lfo4Bpm","env3Delay","env3Attack","env3Hold","env3Decay","env3Sustain","env3Release","env3Pitch","env3Cutoff","env4Delay","env4Attack","env4Hold","env4Decay","env4Sustain","env4Release","env4Pitch","env4Cutoff","lfoAmp","lfo2Amp","lfo3Amp","lfo4Amp","ampPitch","fltPitch","env3Pwm","env4Pwm","osc1PulseLevel","osc2SawLevel","osc1Width","modernEnabled","modernProfile","modernBandwidth"};
- check(processor->getParameters().size()==409,"automation parameter count changed");
+ check(processor->getParameters().size()==425,"automation parameter count changed");
  for(int i=0;i<106;++i){auto*p=processor->state.getParameter(ids[i]);check(p&&p==processor->getParameters()[i],"automation ID/order changed");check(p->isAutomatable(),"parameter not automatable");}
  for(int part=1;part<4;++part)for(int i=0;i<99;++i){const auto id=MemoryLabProcessor::partId(part,ids[i<28?i:i+7]);auto*p=processor->state.getParameter(id);check(p&&p==processor->getParameters()[106+(part-1)*99+i]&&p->isAutomatable(),"appended part ID/order");}
  const char*routes[]{"partMode","splitNote","part1Channel","part2Channel","part3Channel","part4Channel"};for(int i=0;i<6;++i)check(processor->state.getParameter(routes[i])==processor->getParameters()[403+i],"part routing ID/order");
@@ -38,5 +38,5 @@ void automationChecks(){
  check(std::abs(restored->state.getRawParameterValue("cutoff")->load()-3300)<1,"automation value state recall");
  check(restored->state.getRawParameterValue("arpGate")->load()==70,"arp automation value state recall");
  check(restored->state.getRawParameterValue("voiceDrive")->load()==12,"voice drive automation state recall");
- std::cout<<"PASS automation foundation: 409 stable automatable IDs/order, balanced knob gestures, parameter-to-editor updates without gesture echo, hidden-page rebinding and value recall. FL host recording/playback not covered.\n";
+ std::cout<<"PASS automation foundation: 425 stable automatable IDs/order, balanced knob gestures, parameter-to-editor updates without gesture echo, hidden-page rebinding and value recall. FL host recording/playback not covered.\n";
 }

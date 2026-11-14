@@ -64,6 +64,8 @@ needs tests, a source prerelease and Holger's listening round.
 2. **0.22 — Envelope character:** optional exponential contours and an additive
    timing design that can cover the interview's range without changing old host
    normalization. Do not call a guessed curve an exact CEM3310 emulation.
+   Historical voice-card text distinguishes a truncated attack toward a higher
+   target from a simple exponential contour; investigate stage-specific laws.
    Gate: reference stage plots/audio, edge/release tests and old-patch parity.
 3. **0.23 — Filter modulation:** explicit profile/resonance routes with bounded
    smoothing and useful visual feedback. Establish a route contract before adding

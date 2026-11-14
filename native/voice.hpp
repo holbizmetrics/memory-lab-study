@@ -31,7 +31,9 @@ inline double envelopeLevel(double elapsed,const EnvelopeSettings&s){
  if(s.decay>0&&t<s.attack+s.hold+s.decay)return 1-(1-s.sustain)*(t-s.attack-s.hold)/s.decay;
  return s.sustain;
 }
+inline double lfoPolarity(double bipolar,double amount){return amount==0?bipolar:bipolar+(1-bipolar)*(.5*amount);}
 struct Parameters {
+ std::array<double,4> lfoUnipolar{};
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
@@ -76,7 +78,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -244,6 +246,10 @@ class Synth {
     case Param::Osc2Interval:target.osc2Interval=std::clamp(std::round(e.value),-24.,24.);break;
     case Param::NoiseLevel:target.noiseLevel=std::clamp(e.value,0.,1.);break;
     case Param::FilterFamily:target.filterFamily=int(std::clamp(std::round(e.value),0.,3.));break;
+    case Param::LfoUnipolar:target.lfoUnipolar[0]=e.value>=.5?1.:0.;break;
+case Param::Lfo2Unipolar:target.lfoUnipolar[1]=e.value>=.5?1.:0.;break;
+case Param::Lfo3Unipolar:target.lfoUnipolar[2]=e.value>=.5?1.:0.;break;
+case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
     case Param::LfoShape:target.lfoShape=int(std::clamp(std::round(e.value),0.,3.));break;
     case Param::LfoSync:target.lfoSync=e.value>=.5;break;
     case Param::LfoDivision:target.lfoDivision=int(std::clamp(std::round(e.value),0.,5.));break;
@@ -315,19 +321,23 @@ class Synth {
  }
  double voiceTick(Voice& v){
   const double phase=target.lfoRetrigger?v.lfoPhase:freeLfoPhase;
-  const double lfo=target.lfoShape==0?std::sin(2*pi*phase):lfoSample(phase,target.lfoShape),filterEnv=v.filterEnv.tick(sr);
+  const double rawLfo=target.lfoShape==0?std::sin(2*pi*phase):lfoSample(phase,target.lfoShape),filterEnv=v.filterEnv.tick(sr);
+  const double lfo=lfoPolarity(rawLfo,current.lfoUnipolar[0]);
   v.lfoPhase+=(target.lfoSync?syncedLfoHz(target.lfoBpm,target.lfoDivision):current.lfoRate)/sr;v.lfoPhase-=std::floor(v.lfoPhase);
   const double phase2=target.lfo2Retrigger?v.lfo2Phase:freeLfo2Phase;
   const bool active2=current.lfo2Pitch!=0||current.lfo2Pwm!=0||current.lfo2Cutoff!=0||current.lfo2Amp!=0;
-  const double lfo2=active2?lfoSample(phase2,target.lfo2Shape):0;
+  const double rawLfo2=active2?lfoSample(phase2,target.lfo2Shape):0;
+  const double lfo2=active2?lfoPolarity(rawLfo2,current.lfoUnipolar[1]):0;
   v.lfo2Phase+=(target.lfo2Sync?syncedLfoHz(target.lfo2Bpm,target.lfo2Division):current.lfo2Rate)/sr;v.lfo2Phase-=std::floor(v.lfo2Phase);
   const double phase3=target.lfo3Retrigger?v.lfo3Phase:freeLfo3Phase;
   const bool active3=current.lfo3Pitch!=0||current.lfo3Pwm!=0||current.lfo3Cutoff!=0||current.lfo3Amp!=0;
-  const double lfo3=active3?lfoSample(phase3,target.lfo3Shape):0;
+  const double rawLfo3=active3?lfoSample(phase3,target.lfo3Shape):0;
+  const double lfo3=active3?lfoPolarity(rawLfo3,current.lfoUnipolar[2]):0;
   v.lfo3Phase+=(target.lfo3Sync?syncedLfoHz(target.lfo3Bpm,target.lfo3Division):current.lfo3Rate)/sr;v.lfo3Phase-=std::floor(v.lfo3Phase);
   const double phase4=target.lfo4Retrigger?v.lfo4Phase:freeLfo4Phase;
   const bool active4=current.lfo4Pitch!=0||current.lfo4Pwm!=0||current.lfo4Cutoff!=0||current.lfo4Amp!=0;
-  const double lfo4=active4?lfoSample(phase4,target.lfo4Shape):0;
+  const double rawLfo4=active4?lfoSample(phase4,target.lfo4Shape):0;
+  const double lfo4=active4?lfoPolarity(rawLfo4,current.lfoUnipolar[3]):0;
   v.lfo4Phase+=(target.lfo4Sync?syncedLfoHz(target.lfo4Bpm,target.lfo4Division):current.lfo4Rate)/sr;v.lfo4Phase-=std::floor(v.lfo4Phase);
   const double env3=v.env3.tick(sr),env4=v.env4.tick(sr),ampContour=v.ampEnv.tick(sr);
   double pitch=current.pitchLfo*lfo+200*bend[v.channel];if(current.lfo2Pitch!=0)pitch+=current.lfo2Pitch*lfo2;if(current.lfo3Pitch!=0)pitch+=current.lfo3Pitch*lfo3;if(current.lfo4Pitch!=0)pitch+=current.lfo4Pitch*lfo4;
@@ -389,10 +399,10 @@ if(current.modernEnabled>0){
   if(studyFilterMode)output=v.studyFilter.tick(x,sr,cutoff,current.q,studyFilterMode);
 #endif
   auto tremolo=[](double depth,double wave){return 1-std::abs(depth)*(.5+.5*(depth<0?-wave:wave));};
-  if(current.lfoAmp!=0)output*=tremolo(current.lfoAmp,lfo);
-  if(current.lfo2Amp!=0)output*=tremolo(current.lfo2Amp,lfo2);
-  if(current.lfo3Amp!=0)output*=tremolo(current.lfo3Amp,lfo3);
-  if(current.lfo4Amp!=0)output*=tremolo(current.lfo4Amp,lfo4);
+  if(current.lfoAmp!=0)output*=tremolo(current.lfoAmp,rawLfo);
+  if(current.lfo2Amp!=0)output*=tremolo(current.lfo2Amp,rawLfo2);
+  if(current.lfo3Amp!=0)output*=tremolo(current.lfo3Amp,rawLfo3);
+  if(current.lfo4Amp!=0)output*=tremolo(current.lfo4Amp,rawLfo4);
   // Bypass is exact. Fade in over the first dB so turning the stage on cannot
   // suddenly truncate a high-resonance signal already above the clip threshold.
   if(voiceDriveMix>0)output+=(std::clamp(output*voiceDriveGain,-1.,1.)-output)*voiceDriveMix;
@@ -518,6 +528,7 @@ public:
    if(target.pulseLevel==0&&current.pulseLevel<1e-8)current.pulseLevel=0;
    current.modernEnabled+=(target.modernEnabled-current.modernEnabled)*smooth;
    if(std::abs(current.modernEnabled-target.modernEnabled)<1e-8)current.modernEnabled=target.modernEnabled;
+   for(int source=0;source<4;++source)current.lfoUnipolar[source]+=(target.lfoUnipolar[source]-current.lfoUnipolar[source])*smooth;
    current.modernProfile+=(target.modernProfile-current.modernProfile)*smooth;
    current.modernBandwidth+=(target.modernBandwidth-current.modernBandwidth)*smooth;
    current.noiseLevel+=(target.noiseLevel-current.noiseLevel)*smooth;

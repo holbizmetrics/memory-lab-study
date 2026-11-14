@@ -45,7 +45,7 @@ const std::array<Control,8>motionClock{{
  {"lfoRate","FREE RATE","Hz","LFO speed when TEMPO SYNC is off."},
  {"lfoShape","LFO SHAPE","","Sine, triangle, rising saw or 50% pulse."},
  {"filterLfo","FILTER MOTION","oct","Selected LFO depth on cutoff. Zero disables this route."},
- {"volume","OUTPUT","","Final output level."}
+ {"lfoUnipolar","POLARITY","","BIPOLAR: -1 to +1. UNIPOLAR: 0 to +1 for pitch, width and cutoff. AMP DEPTH keeps its full attenuation cycle in both modes. Switches smooth over 20 ms."}
 }};
 const std::array<Control,8>motion2{{
  {"lfo2Rate","LFO 2 RATE","Hz","Independent LFO 2 speed. Tempo/retrigger options are on CLOCK 2."},
@@ -65,7 +65,7 @@ const std::array<Control,8>motion2Clock{{
  {"lfo2Rate","FREE RATE 2","Hz","LFO 2 speed when tempo sync is off."},
  {"lfo2Shape","LFO 2 SHAPE","","Independent sine, triangle, rising saw or pulse."},
  {"lfo2Cutoff","LFO 2 FILTER","oct","LFO 2 cutoff depth. Zero disables this route."},
- {"volume","OUTPUT","","Final output level."}
+ {"lfo2Unipolar","POLARITY","","BIPOLAR: -1 to +1. UNIPOLAR: 0 to +1 for pitch, width and cutoff. AMP DEPTH keeps its full attenuation cycle in both modes. Switches smooth over 20 ms."}
 }};
 const std::array<Control,8>motion3{{
  {"lfo3Rate","LFO 3 RATE","Hz","Independent LFO 3 speed. Tempo/retrigger options are on CLOCK 3."},
@@ -85,7 +85,7 @@ const std::array<Control,8>motion3Clock{{
  {"lfo3Rate","FREE RATE 3","Hz","LFO 3 speed when tempo sync is off."},
  {"lfo3Shape","LFO 3 SHAPE","","Independent sine, triangle, rising saw or pulse."},
  {"lfo3Cutoff","LFO 3 FILTER","oct","LFO 3 cutoff depth. Zero disables this route."},
- {"volume","OUTPUT","","Final output level."}
+ {"lfo3Unipolar","POLARITY","","BIPOLAR: -1 to +1. UNIPOLAR: 0 to +1 for pitch, width and cutoff. AMP DEPTH keeps its full attenuation cycle in both modes. Switches smooth over 20 ms."}
 }};
 const std::array<Control,8>motion4{{
  {"lfo4Rate","LFO 4 RATE","Hz","Independent LFO 4 speed. Tempo/retrigger options are on CLOCK 4."},
@@ -105,7 +105,7 @@ const std::array<Control,8>motion4Clock{{
  {"lfo4Rate","FREE RATE 4","Hz","LFO 4 speed when tempo sync is off."},
  {"lfo4Shape","LFO 4 SHAPE","","Independent sine, triangle, rising saw or pulse."},
  {"lfo4Cutoff","LFO 4 FILTER","oct","LFO 4 cutoff depth. Zero disables this route."},
- {"volume","OUTPUT","","Final output level."}
+ {"lfo4Unipolar","POLARITY","","BIPOLAR: -1 to +1. UNIPOLAR: 0 to +1 for pitch, width and cutoff. AMP DEPTH keeps its full attenuation cycle in both modes. Switches smooth over 20 ms."}
 }};
 const std::array<Control,8> env3Controls{{
  {"env3Delay","DELAY","ms","Envelope 3 delay; stage settings apply to the next note."},
@@ -323,10 +323,10 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
   const double bpm=source==1?processor.lfoTempo.load():source==2?processor.lfo2Tempo.load():source==3?processor.lfo3Tempo.load():processor.lfo4Tempo.load();
   const double hz=sync?memorylab::syncedLfoHz(bpm,int(std::round(v("Division")))):v("Rate");
   const int shape=int(std::round(v("Shape")));juce::Path curve;
-  for(int i=0;i<=400;++i){const double y=.5+.42*memorylab::lfoSample(hz*i/400.,shape);const float x=area.getX()+area.getWidth()*i/400.f,py=area.getBottom()-float(y)*area.getHeight();if(i==0)curve.startNewSubPath(x,py);else curve.lineTo(x,py);}
+  for(int i=0;i<=400;++i){const double y=.5+.42*memorylab::lfoPolarity(memorylab::lfoSample(hz*i/400.,shape),v("Unipolar"));const float x=area.getX()+area.getWidth()*i/400.f,py=area.getBottom()-float(y)*area.getHeight();if(i==0)curve.startNewSubPath(x,py);else curve.lineTo(x,py);}
   g.setColour(amber);g.strokePath(curve,juce::PathStrokeType(2));g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(11.f)));
   const bool host=source==1?processor.lfoHasHostTempo.load():source==2?processor.lfo2HasHostTempo.load():source==3?processor.lfo3HasHostTempo.load():processor.lfo4HasHostTempo.load();
-  g.drawText(juce::String(hz,2)+" Hz / "+(sync?(host?"HOST BPM":"FALLBACK BPM"):"FREE RATE")+" / "+(v("Retrigger")>=.5f?"NOTE RESET":"FREE RUN"),int(area.getX()),int(area.getBottom()+3),int(area.getWidth()),18,juce::Justification::centredLeft);
+  g.drawText(juce::String(hz,2)+" Hz / "+(v("Unipolar")>=.5f?"UNI / ":"BI / ")+(sync?(host?"HOST BPM":"FALLBACK BPM"):"FREE RATE")+" / "+(v("Retrigger")>=.5f?"NOTE RESET":"FREE RUN"),int(area.getX()),int(area.getBottom()+3),int(area.getWidth()),18,juce::Justification::centredLeft);
  }
  void expressionGraph(juce::Graphics&g,juce::Rectangle<float>area){
   const bool tracking=std::string(controls()[std::size_t(selected)].id)=="keyTrack";
@@ -405,7 +405,7 @@ public:
  }
  void paint(juce::Graphics&g)override{
   g.fillAll(ink);g.setColour(white);g.setFont(juce::Font(juce::FontOptions(27.f,juce::Font::bold)));g.drawText("MEMORY LAB",30,20,320,36,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("0.20 / PART "+juce::String(processor.editingPart.load()+1),240,29,90,20,juce::Justification::centredLeft);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("0.21 / PART "+juce::String(processor.editingPart.load()+1),240,29,90,20,juce::Justification::centredLeft);
   g.setColour(panel);g.fillRoundedRectangle(28,82,866,236,12);g.fillRoundedRectangle(912,82,100,426,12);
   g.setColour(juce::Colour(0xff090f10));g.fillRoundedRectangle(40,94,842,212,7);
   const auto&c=controls()[std::size_t(selected)];g.setColour(isMotion?amber:mint);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawText(c.name,60,110,285,26,juce::Justification::centredLeft);

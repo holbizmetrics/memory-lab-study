@@ -1,5 +1,6 @@
 "use strict";
 const views = {
+"lfo-polarity": ["One-sided or centered motion","Each CLOCK page offers independent bipolar/unipolar polarity for the selected part. Old sounds remain bipolar; new listening approval is pending."],
 "parts-split": ["Parts and keyboard split","Reserve four voices below the chosen MIDI note and four above it; edit independent sounds and MIDI inputs."],
 "parts-layer4": ["Four layered parts","Four sounds share eight voices, with two voices reserved per part. Selection changes which sound the editor controls."],
 "osc-mix": ["Two-core oscillator mixer","Mix saw and pulse from each core, with separate base widths. Added sources default off; existing PWM affects oscillator 2."],

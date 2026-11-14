@@ -155,15 +155,21 @@ juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout()
   else if(i>=2)attributes=attributes.withStringFromValueFunction([](float v,int){return v<.5f?juce::String("OMNI"):juce::String(int(std::round(v)));}).withValueFromStringFunction([](const juce::String&t){return t.trim().toUpperCase()=="OMNI"?0.f:t.getFloatValue();});
   result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{routeIds[i],1},routeIds[i],juce::NormalisableRange<float>{i==1?1.f:0.f,i==0?3.f:i==1?127.f:16.f,1.f},i==1?60.f:0.f,attributes));
  }
+ for(int part=0;part<4;++part)for(const char*id:{"lfoUnipolar","lfo2Unipolar","lfo3Unipolar","lfo4Unipolar"}){
+  auto attrs=juce::AudioParameterFloatAttributes().withStringFromValueFunction([](float v,int){return juce::String(v>=.5f?"UNIPOLAR":"BIPOLAR");}).withValueFromStringFunction([](const juce::String&t){return t.trim().toUpperCase()=="UNIPOLAR"?1.f:t.trim().toUpperCase()=="BIPOLAR"?0.f:t.getFloatValue();});
+  result.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{partId(part,id),1},"Part "+juce::String(part+1)+" "+id,juce::NormalisableRange<float>{0,1,1},0,attrs));
+ }
  return result;
 }
 MemoryLabProcessor::MemoryLabProcessor():AudioProcessor(BusesProperties().withOutput("Output",juce::AudioChannelSet::stereo(),true)),state(*this,nullptr,"MemoryLabState",layout()){
- previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());
+ for(auto&row:polarityPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());
  for(std::size_t i=0;i<specs.size();++i)values[i]=state.getRawParameterValue(specs[i].id);
  for(std::size_t i=0;i<arpSpecs.size();++i)arpValues[i]=state.getRawParameterValue(arpSpecs[i].id);
  for(int part=1;part<4;++part)for(std::size_t i=0;i<specs.size();++i){partValues[part-1][i]=state.getRawParameterValue(partId(part,specs[i].id));partInitial[part-1][i]=juce::String(specs[i].id)=="drive"||juce::String(specs[i].id)=="voiceDrive"?0:juce::String(specs[i].id)=="resonance"?.9:specs[i].initial;}
  const char*routeIds[]{"partMode","splitNote","part1Channel","part2Channel","part3Channel","part4Channel"};
  for(int i=0;i<6;++i)routingValues[i]=state.getRawParameterValue(routeIds[i]);
+ const char*polarityIds[]{"lfoUnipolar","lfo2Unipolar","lfo3Unipolar","lfo4Unipolar"};
+ for(int part=0;part<4;++part)for(int i=0;i<4;++i)polarityValues[part][i]=state.getRawParameterValue(partId(part,polarityIds[i]));
 }
 bool MemoryLabProcessor::isBusesLayoutSupported(const BusesLayout& b)const{
  return b.getMainInputChannelSet().isDisabled()&&(b.getMainOutputChannelSet()==juce::AudioChannelSet::mono()||b.getMainOutputChannelSet()==juce::AudioChannelSet::stereo());
@@ -171,6 +177,7 @@ bool MemoryLabProcessor::isBusesLayoutSupported(const BusesLayout& b)const{
 void MemoryLabProcessor::copyPart(int from,int to){
  if(from<0||from>3||to<0||to>3||from==to)return;
  for(const auto&s:specs){auto*a=state.getParameter(partId(from,s.id));auto*b=state.getParameter(partId(to,s.id));b->beginChangeGesture();b->setValueNotifyingHost(a->getValue());b->endChangeGesture();}
+ for(const char*id:{"lfoUnipolar","lfo2Unipolar","lfo3Unipolar","lfo4Unipolar"}){auto*a=state.getParameter(partId(from,id));auto*b=state.getParameter(partId(to,id));b->beginChangeGesture();b->setValueNotifyingHost(a->getValue());b->endChangeGesture();}
  updateHostDisplay();
 }
 void MemoryLabProcessor::updateRouting(){
@@ -183,7 +190,7 @@ void MemoryLabProcessor::updateRouting(){
  for(int p=0;p<4;++p)layout[p].channel=next[p+2]-1;
  if(synth.configure(layout)){previousRouting=next;arp.reset();}
 }
-void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);if(ready)renderSampleRate=rate;arp.reset();arpEnabled=false;wasPlaying=false;keyboard.reset();outputPeak=0;voiceCount=0;arpStep=0;previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previousRouting={0,60,0,0,0,0};setLatencySamples(0);}
+void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);if(ready)renderSampleRate=rate;arp.reset();arpEnabled=false;wasPlaying=false;keyboard.reset();outputPeak=0;voiceCount=0;arpStep=0;for(auto&row:polarityPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previousRouting={0,60,0,0,0,0};setLatencySamples(0);}
 void MemoryLabProcessor::arpEmit(memorylab::EventKind kind,int note,double velocity,int channel){synth.dispatch({0,kind,note,velocity,channel});}
 void MemoryLabProcessor::render(float*audio,int count){
  if(!arpEnabled){synth.render(audio,std::size_t(count));return;}
@@ -228,6 +235,8 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
   const double tolerance=std::max(1e-6,double(specs[i].step)*.001);
   synth.parameter(part,specs[i].parameter,std::abs(double(value)-specs[i].initial)<tolerance?specs[i].initial:std::abs(double(value)-initial)<tolerance?initial:double(value));partPrevious[part-1][i]=value;
  }}
+ const memorylab::Param polarityTargets[]{memorylab::Param::LfoUnipolar,memorylab::Param::Lfo2Unipolar,memorylab::Param::Lfo3Unipolar,memorylab::Param::Lfo4Unipolar};
+ for(int part=0;part<4;++part)for(int i=0;i<4;++i){const float value=polarityValues[part][i]->load();if(value!=polarityPrevious[part][i]){synth.parameter(part,polarityTargets[i],value);polarityPrevious[part][i]=value;}}
  updateRouting();
  const int count=audio.getNumSamples();float* mono=audio.getWritePointer(0);int cursor=0;
  const bool enabled=arpValues[0]->load()>=.5f;
@@ -268,7 +277,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",17,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",18,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,

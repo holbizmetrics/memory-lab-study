@@ -119,6 +119,9 @@ void tests(){
  require(!clean->render(actual.data(),length,&bad,1),"fresh invalid offset accepted");
  clean->dispatch({0,EventKind::NoteOn,50,.8,0});control->dispatch({0,EventKind::NoteOn,50,.8,0});
  clean->render(actual.data(),length);control->render(expected.data(),length);require(actual==expected,"invalid block changed state");
+ // Every appended native control must remain reachable through the part guard.
+ for(int part=0;part<4;++part)for(int parameter=0;parameter<=int(Param::Lfo4Unipolar);++parameter)require(multi->parameter(part,Param(parameter),0),"valid appended part parameter rejected");
+ require(!multi->parameter(0,Param(int(Param::Lfo4Unipolar)+1),0),"invalid parameter accepted");
  // Audio dispatch and rendering must not allocate after preparation.
  allocations=0;counting=true;
  for(int n=0;n<100;++n){multi->dispatch({0,EventKind::NoteOn,50+n%8,.8,0});multi->render(actual.data(),256);multi->dispatch({0,EventKind::NoteOff,50+n%8,0,0});}

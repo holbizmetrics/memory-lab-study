@@ -10,7 +10,27 @@ study; 0.26 stereo/unison; 0.27 parts/expression; 0.28 fidelity/release review.
 Stages can split; uncertain hardware features require evidence before coding.
 These numbers do not promise completion. Preserve approved sound and all IDs.
 
-## Active 0.20 integration checkpoint
+Holger's agreed additions after the audit: modulation of modulators (start
+with envelope-controlled LFO depth), explicitly designed MPE support, and a
+switchable extended bandwidth experiment that can affect low-pass responses.
+Keep the current bandwidth behavior as Legacy for older patches. Exact hardware
+bandwidth laws remain unknown; do not label an approximation as Relic mode.
+Assign dedicated stages when their designs/evidence are ready; don't squeeze
+these into 0.21 polarity. MPE and modulator-depth routing are planned features,
+even where complete hardware mapping is unavailable.
+
+Compatibility policy agreed with Holger: use feature-level Legacy/New choices
+where intentional behavior changes would otherwise alter saved sounds (notably
+envelope contours, bandwidth and voice signal path). Preserve defaults and old
+patch migration; avoid a separate switch for every internal implementation fix.
+
+## Active 0.21 polarity checkpoint
+
+Independent polarity is implemented and technically checked. See
+[polarity contract](plugin/LFO-POLARITY.md). Listen to one-sided pitch/cutoff
+movement, then verify complete patch/project recall. 0.20 regression is approved.
+
+## Completed 0.20 integration checkpoint
 
 Combined-feature tests and actual VST3 preservation captures are documented
 in [integration scope](plugin/INTEGRATION.md). No controls or DSP changes;

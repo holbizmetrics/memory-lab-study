@@ -108,3 +108,9 @@ Bass and Air Split, Slow Wah Fast Heart and normal release/no stuck notes.
 The short regression round is complete. Next: refresh hardware coverage from
 manufacturer evidence, separating implemented features from approximations
 and from behaviors whose hardware specification is still unknown.
+
+0.21 alpha.1: per-source/per-part LFO polarity, CLOCK page control and target
+waveform preview. 425 parameters with the first 409 preserved, schema 16 / state
+18 and bipolar legacy migration. 19 plugin and 9 native checks pass; 37 actual
+0.20 recordings stay exact, eight polarity fixtures differ as intended. New
+musical listening pending. AMP DEPTH retains its full attenuation cycle.

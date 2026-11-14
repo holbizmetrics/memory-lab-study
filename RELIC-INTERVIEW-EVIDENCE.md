@@ -9,6 +9,7 @@ and features, not an independent circuit verification or measured sound match.
 | YouTube ID | Identified source | Material retained here |
 | --- | --- | --- |
 | RT608NU78CM | Sound On Sound, Relic-6 / NAMM 2017 | Supplied transcript and link |
+| xiV7lzYuM8I | Sonicstate, Relic-6 / NAMM 2017 | Additional noisy automatic transcript supplied 2026-11-14; historical claims below |
 | CUqPG2ycv1A | Sonicstate, SynthPlex 2022 | Supplied transcript and panel screenshots |
 | s51LRL1qUpM | Marinelli, Oberheim Inspired Analog Synth / NAMM 2024 | Supplied transcript, link and title screenshot |
 | fXIGjvYH1cM | RockoN Report, NAMM 2024 Day 4 | Report page read; supplied walkthrough text; title screenshot |
@@ -29,6 +30,27 @@ article; Synthtopia's October 2026 article; Matrixsynth's Shear Electronics arch
 Full references, access limits and version differences are documented below.
 
 ## NAMM 2017: Relic-6
+
+Additional Sonicstate transcript supplied 2026-11-14, video
+https://www.youtube.com/watch?v=xiV7lzYuM8I . This is distinct from the Sound
+On Sound video below. It describes two recently built prototypes, switched
+OSC 2 soft/loud/off, sync, a stated 50–90% pulse-width adjustment, a 12 dB/oct
+low-pass, per-card digital envelope generation, simulated variation between
+envelopes, and layering. Source-identification and technical terms contain
+obvious speech-recognition errors, including an ambiguous voice-count phrase.
+Do not transfer the pulse-width range, envelope spread or analog circuit-match
+claims to production hardware. No timestamps or independent audio review yet.
+
+Holger also supplied the preserved 2017 Matrixsynth voice-card text on
+2026-11-14; its original Voice Card link now redirects to the general site.
+It specifically describes a CEM3310-like attack targeting 6.5 V and truncated
+at 5 V, rather than a generic exponential attack, plus 40 kHz/14-bit generation
+and controllable envelope timing spread (“fatness”). Stereo output VCAs and
+programmable voice pan are also described. These are historical manufacturer
+claims reproduced by the article, not independently measured production specs.
+For envelope design, distinguish curved decay/release from an attack-to-higher-
+target mechanism. An optional simple exponential mode may be useful, but must
+not be advertised as a verified CEM3310 or Relic contour.
 
 Source: [Sound On Sound interview with Jacob Brashears](https://www.youtube.com/watch?v=RT608NU78CM).
 Holger supplied the transcript and a screenshot identifying the interview.

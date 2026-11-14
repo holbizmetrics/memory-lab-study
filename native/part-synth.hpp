@@ -50,7 +50,7 @@ public:
   return true;
  }
  bool parameter(int part,Param parameter,double value){
-  if(part<0||part>3||int(parameter)<0||int(parameter)>int(Param::ModernBandwidth)||!std::isfinite(value))return false;
+  if(part<0||part>3||int(parameter)<0||int(parameter)>int(Param::Lfo4Unipolar)||!std::isfinite(value))return false;
   parts[part].dispatch({0,EventKind::Parameter,0,value,0,parameter});return true;
  }
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&p:parts)n+=p.activeVoices();return n;}

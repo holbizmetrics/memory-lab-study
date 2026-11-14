@@ -26,6 +26,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "modern-filter-checks.hpp"
 #include "part-wrapper-checks.hpp"
 #include "integration-checks.hpp"
+#include "polarity-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -57,6 +58,7 @@ void arpWrapperTests(){
 }
 int main(int argc,char**argv){try{
  if(argc==2&&std::string(argv[1])=="--integration-test"){juce::ScopedJuceInitialiser_GUI gui;integrationChecks();return 0;}
+ if(argc==2&&std::string(argv[1])=="--polarity-test"){juce::ScopedJuceInitialiser_GUI gui;polarityChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--part-test"){juce::ScopedJuceInitialiser_GUI gui;partWrapperChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--modern-filter-test"){juce::ScopedJuceInitialiser_GUI gui;modernFilterChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--vco-mix-test"){juce::ScopedJuceInitialiser_GUI gui;vcoMixChecks();return 0;}
@@ -89,6 +91,14 @@ int main(int argc,char**argv){try{
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"factory patch export folder");
   auto p=std::make_unique<MemoryLabProcessor>();
   for(int i=0;i<int(memorylab::presets::bank().size());++i){check(memorylab::presets::load(*p,i),"factory patch load");check(memorylab::patch::save(*p,folder.getChildFile(juce::String(i+1)+".mlpatch")).wasOk(),"factory patch export");}return 0;
+ }
+ if(argc==3&&std::string(argv[1])=="--polarity-previews"){
+  juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();
+  auto p=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
+  for(int source=1;source<=4;++source){const auto prefix=source==1?juce::String("lfo"):"lfo"+juce::String(source);set(*p,(prefix+"Rate").toRawUTF8(),1);set(*p,(prefix+"Unipolar").toRawUTF8(),1);
+   auto*page=dynamic_cast<juce::Button*>(find(*editor,source==1?"motionClockPage":"motion"+juce::String(source)+"ClockPage"));check(page&&bool(page->onClick),"polarity preview page");page->onClick();
+   for(int width:{1040,832}){editor->setSize(width,width==1040?740:592);juce::Timer::callPendingTimersSynchronously();auto image=editor->createComponentSnapshot(editor->getLocalBounds(),true,1);auto stream=folder.getChildFile("clock"+juce::String(source)+"-"+juce::String(width)+".png").createOutputStream();check(bool(stream),"preview stream");stream->setPosition(0);stream->truncate();juce::PNGImageFormat png;check(png.writeImageToStream(image,*stream),"polarity preview encode");}
+  }return 0;
  }
  if(argc==3&&std::string(argv[1])=="--integration-patches"){
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"integration patch folder");

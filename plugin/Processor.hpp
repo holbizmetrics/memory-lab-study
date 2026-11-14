@@ -63,6 +63,8 @@ private:
  std::array<std::array<double,parameterCount>,3> partInitial{};
  std::array<std::atomic<float>*,6> routingValues{};
  std::array<int,6> previousRouting{{0,60,0,0,0,0}};
+ std::array<std::array<std::atomic<float>*,4>,4> polarityValues{};
+ std::array<std::array<float,4>,4> polarityPrevious{};
  void updateRouting();
  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MemoryLabProcessor)
 };

@@ -1,7 +1,7 @@
 #pragma once
 #include "Patch.hpp"
 #include "PatchLocation.hpp"
-inline void stripParts(juce::XmlElement&root){for(int i=root.getNumChildElements()-1;i>=0;--i){const auto id=root.getChildElement(i)->getStringAttribute("id");if(id.startsWith("part")||id=="splitNote")root.removeChildElement(root.getChildElement(i),true);}}
+inline void stripParts(juce::XmlElement&root){for(int i=root.getNumChildElements()-1;i>=0;--i){const auto id=root.getChildElement(i)->getStringAttribute("id");if(id.endsWith("Unipolar")||id.startsWith("part")||id=="splitNote")root.removeChildElement(root.getChildElement(i),true);}}
 inline void stripModern(juce::XmlElement&root){for(int i=root.getNumChildElements()-1;i>=0;--i)if(root.getChildElement(i)->getStringAttribute("id").startsWith("modern"))root.removeChildElement(root.getChildElement(i),true);}
 
 void patchChecks(){
@@ -43,7 +43,7 @@ void patchChecks(){
    reject(outside->toString());
   }
  }
- auto root=juce::parseXML(encoded);root->setAttribute("schemaVersion",16);reject(root->toString());
+ auto root=juce::parseXML(encoded);root->setAttribute("schemaVersion",17);reject(root->toString());
  root=juce::parseXML(encoded);root->getChildElement(root->getNumChildElements()-1)->setAttribute("value","nan");reject(root->toString());
  root=juce::parseXML(encoded);root->getChildElement(root->getNumChildElements()-1)->setAttribute("value","15garbage");reject(root->toString());
  root=juce::parseXML(encoded);root->getChildElement(root->getNumChildElements()-1)->setAttribute("value",1000000);reject(root->toString());
@@ -113,5 +113,5 @@ void patchChecks(){
  check(memorylab::patch::encode(*target)==unchanged,"patch file roundtrip changed controls");
  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(target->createEditor());auto*init=dynamic_cast<juce::Button*>(find(*editor,"initPatch"));check(init&&bool(init->onClick),"INIT button missing");init->onClick();
  auto factory=std::make_unique<MemoryLabProcessor>();check(memorylab::patch::encode(*target)==memorylab::patch::encode(*factory),"INIT did not restore every factory control");
- std::cout<<"PASS patches: all 409 controls roundtrip, atomic file save/load, malformed/unsupported/incomplete/duplicate/unknown/out-of-range values rejected without partial edits.\n";
+ std::cout<<"PASS patches: all 425 controls roundtrip, atomic file save/load, malformed/unsupported/incomplete/duplicate/unknown/out-of-range values rejected without partial edits.\n";
 }

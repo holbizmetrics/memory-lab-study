@@ -23,7 +23,7 @@ inline void integrationSetup(MemoryLabProcessor&p,int scenario){
   }
  }
 }
-inline std::vector<float> integrationRender(MemoryLabProcessor&p,int sr,int block,int scenario){
+inline std::vector<float> integrationRender(MemoryLabProcessor&p,int sr,int block,int scenario,bool polarityAutomation=false){
  IntegrationPlayHead host;p.setPlayHead(&host);p.prepareToPlay(sr,block);
  struct Midi{int frame;juce::MidiMessage message;};std::vector<Midi>events;
  auto add=[&](double time,juce::MidiMessage m){events.push_back({int(time*sr),std::move(m)});};
@@ -44,6 +44,7 @@ inline std::vector<float> integrationRender(MemoryLabProcessor&p,int sr,int bloc
  for(int pos=0;pos<total;){
   if(pos==edit1){set(p,"part2__modernProfile",.9f);set(p,"part3__lfo4Pitch",24);set(p,"part4__cutoff",3200);}
   if(pos==edit2){set(p,"part2__modernBandwidth",3);set(p,"part4__voiceDrive",0);}
+  if(polarityAutomation&&(pos==edit1||pos==edit2))for(int part=0;part<4;++part)for(const char*id:{"lfoUnipolar","lfo2Unipolar","lfo3Unipolar","lfo4Unipolar"})set(p,MemoryLabProcessor::partId(part,id).toRawUTF8(),pos==edit1?0.f:1.f);
   int n=std::min(block,total-pos);if(pos<edit1)n=std::min(n,edit1-pos);if(pos<edit2)n=std::min(n,edit2-pos);if(pos<stop)n=std::min(n,stop-pos);
   audio.setSize(2,n,false,false,true);midi.clear();
   while(next<events.size()&&events[next].frame<pos+n){midi.addEvent(events[next].message,events[next].frame-pos);++next;}
