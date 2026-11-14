@@ -124,3 +124,10 @@ claims in that page must not be transferred to production hardware.
 Next evidence checks: confirm the bandwidth passage, routing/modulator passage
 and explicit MPE passage first. The proposed 0.21 LFO-polarity step remains
 supported by written manufacturer specs and need not depend on those videos.
+
+Holger subsequently supplied the Milk Audio Store video transcript
+(`NeCRJ6rGjK4`): [extracted evidence and cautions](RELIC-MILK-AUDIO-EVIDENCE.md).
+It adds explicit per-voice output-VCA hard-clipping attribution and gain anchors
+of +8 dB at setting 7 and +24 dB at setting 11. It supports four-part operation
+despite the video's bi-timbral title. It does not establish the LP bandwidth
+law; the ambiguous opening filter description must not override current specs.
