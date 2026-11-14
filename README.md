@@ -1,10 +1,17 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+0.20 is the [combined-feature integration checkpoint](plugin/INTEGRATION.md).
+It adds no sound controls: the approved default, 409 IDs/order and old patch
+compatibility remain. Thirty-four actual VST3 recordings are unchanged;
+four-rate combined tests cover parts, modulation, filters, drives and arp.
+See [prerelease notes](releases/v0.20.0-alpha.1.md) for validation limits.
+
 0.19 connects [four editable parts](plugin/PARTS.md): Single, 2-layer, 2-way
 split and 4-layer within eight voices. Existing sound pages follow part
 selection; SAVE/LOAD store all parts. The first 106 IDs/order and earlier
-sounds are preserved; 409 controls total. Technical checks pass; new part
-listening/FL recall approval is pending. [Prerelease notes](releases/v0.19.0-alpha.1.md).
+sounds are preserved; 409 controls total. Holger confirmed layers, split,
+patch/project recall, voice reservations and MIDI routing.
+[Prerelease notes](releases/v0.19.0-alpha.1.md) retain the delivery-time status.
 
 0.18 adds [complementary waveforms](plugin/VCO-MIX.md) and a
 [continuous modern filter profile with bandwidth](plugin/MODERN-FILTER.md).

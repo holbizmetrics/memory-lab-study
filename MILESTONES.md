@@ -90,4 +90,13 @@ complete patch/host state are connected. Single / 2-layer / 2-way split /
 4-layer, split note, four MIDI channels, Copy Part 1, selected-part presets and
 Dice. 409 parameters, first 106 preserved; schema 15, state 17. 17 plugin and
 9 native suites pass; 21 actual old filter captures and earlier sound fixtures
-remain byte-identical. New musical/live FL approval remains pending.
+remain byte-identical. New musical/live FL approval was pending at publication.
+
+0.19 alpha.1 listening update: Holger confirmed Round Bass + Slow Air layering,
+the MIDI-60 keyboard split, INIT/whole-patch reload and FL project reopen recall.
+Four-layer use showed 4 voices for one key and 8 for two; channel 1/2 isolation
+was confirmed in both directions. The planned listening round is complete.
+
+Next: 0.20 combined integration checks across part routing, host tempo,
+modulation, envelopes, filters, drive, state and automation. No added control
+count or hardware-equivalence claim is implied by this quality checkpoint.

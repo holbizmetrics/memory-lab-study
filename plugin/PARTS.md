@@ -56,7 +56,9 @@ filter captures match installed 0.18 alpha.3 byte-for-byte. Eight oscillator
 fixtures and five earlier default/clock/envelope/routing/saved recordings also
 match. Actual scan/load/audio/state/release/reload and original Four Wave Blend
 file loading pass. Normal/compact Parts and selected-Part-2 editor inspected.
-Complete live FL automation/undo, realtime dropout and new musical approval
+Holger confirmed the two-sound layer, keyboard split, INIT/patch reload, FL
+project recall, four-layer 4/8 voice use and MIDI-channel isolation in both
+directions. Complete live FL automation/undo and realtime dropout checks
 remain open. This implements documented architectural ideas, not measured
 Relic hardware equivalence. Local installation is recorded separately.
 

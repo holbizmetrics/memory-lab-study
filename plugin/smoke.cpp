@@ -25,6 +25,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "vco-mix-checks.hpp"
 #include "modern-filter-checks.hpp"
 #include "part-wrapper-checks.hpp"
+#include "integration-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -55,6 +56,7 @@ void arpWrapperTests(){
  std::cout<<"PASS arp wrapper: audio block parity, host BPM/internal/fallback, stop/disable cleanup, state recall and legacy bypass\n";
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::string(argv[1])=="--integration-test"){juce::ScopedJuceInitialiser_GUI gui;integrationChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--part-test"){juce::ScopedJuceInitialiser_GUI gui;partWrapperChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--modern-filter-test"){juce::ScopedJuceInitialiser_GUI gui;modernFilterChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--vco-mix-test"){juce::ScopedJuceInitialiser_GUI gui;vcoMixChecks();return 0;}
@@ -87,6 +89,10 @@ int main(int argc,char**argv){try{
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"factory patch export folder");
   auto p=std::make_unique<MemoryLabProcessor>();
   for(int i=0;i<int(memorylab::presets::bank().size());++i){check(memorylab::presets::load(*p,i),"factory patch load");check(memorylab::patch::save(*p,folder.getChildFile(juce::String(i+1)+".mlpatch")).wasOk(),"factory patch export");}return 0;
+ }
+ if(argc==3&&std::string(argv[1])=="--integration-patches"){
+  juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"integration patch folder");
+  for(int i=0;i<3;++i){auto p=std::make_unique<MemoryLabProcessor>();integrationSetup(*p,i);if(i==0)for(int part=1;part<=4;++part)set(*p,("part"+juce::String(part)+"Channel").toRawUTF8(),0);if(i==1)set(*p,"splitNote",55);check(memorylab::patch::save(*p,folder.getChildFile("context-"+juce::String(i)+".mlpatch")).wasOk(),"integration patch export");}return 0;
  }
  if(argc==3&&std::string(argv[1])=="--dice-patches"){
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"dice patch export folder");

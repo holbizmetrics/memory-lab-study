@@ -1,13 +1,18 @@
 # Memory Lab Study roadmap
 
-## Active 0.19 part checkpoint
+## Active 0.20 integration checkpoint
+
+Combined-feature tests and actual VST3 preservation captures are documented
+in [integration scope](plugin/INTEGRATION.md). No controls or DSP changes;
+live CPU/dropout, FL automation recording/undo and hardware comparisons remain.
 
 Four native sounds are now connected to host state and the Parts editor.
 Single / 2-layer / 2-way split / 4-layer use eight total voices. Sound pages,
 starter sounds, Dice and output follow part selection; arp remains global.
 Schema 15 / host state 17 store 409 controls, preserving the first 106 IDs.
 17 plugin and 9 native suites pass; actual old-sound captures remain identical.
-Holger's 0.19 listening and live FL recall are pending. See [parts scope](plugin/PARTS.md).
+Holger confirmed 0.19 layers, split, patch/project recall, voice reservations
+and MIDI routing. See [parts scope](plugin/PARTS.md).
 The 0.18 waveform/modern-filter and patch/project recall round is approved.
 
 ## Future software extra: readable sound recipes (2026-11-08)
