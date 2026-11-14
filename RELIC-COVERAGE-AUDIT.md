@@ -91,3 +91,36 @@ Hardware reference collection should run alongside these stages, not wait for
 sample rate; compressed mixed demos alone cannot identify circuit equations.
 Readable preset recipes and other conveniences remain recorded extras, behind
 the core conversion work. No new user listening test is needed for this audit.
+
+## Supplement: supplied Deep Research report (2026-11-14)
+
+Holger supplied a timestamped research report, duplicated in the chat; treat
+it as one report. The following are useful verification leads, not independently
+checked video findings. They qualify several earlier uncertainties and should
+be reviewed before their respective implementation stages.
+
+| Lead reported | Source passage | Consequence if verified |
+| --- | --- | --- |
+| Hard sync, selective glide and key/bend tracking on the eight-voice 2022 prototype | [Sonicstate 7:38–8:03](https://www.youtube.com/watch?v=CUqPG2ycv1A&t=458s); [2024 sync patch 6:46](https://www.youtube.com/watch?v=fXIGjvYH1cM&t=406s) | Sync evidence extends beyond 2017; production reset law remains unknown. Add glide/tracking to oscillator scope review. |
+| Three FM slots and two PWM slots per oscillator | [2022 walkthrough 8:38–8:56](https://www.youtube.com/watch?v=CUqPG2ycv1A&t=518s) | Independent routing warrants closer inspection; do not infer audio-rate oscillator cross-FM from slot names alone. |
+| Envelope/LFO levels can themselves be modulated; signed envelope-time example | [2022 17:10–18:40](https://www.youtube.com/watch?v=CUqPG2ycv1A&t=1030s) | Our fixed-depth routes do not cover modulation of modulators. Review as a separate bounded routing stage. |
+| Bandwidth affects low-pass behavior as well as band-pass | [2022 14:32–15:08](https://www.youtube.com/watch?v=CUqPG2ycv1A&t=872s) | Important possible fidelity gap: our modern bandwidth deliberately leaves LP2/LP3/LP4 unchanged. Do not change that approved behavior from a report alone; verify revision and seek response evidence. |
+| ENV3 assigned to filter profile | [2026 demonstration 17:33–17:53](https://www.youtube.com/watch?v=7cFAWbFDX9k&t=1053s) | Concrete source/destination example for proposed 0.23. |
+| All eight voices assigned to patch B | [2026 demonstration 6:10–6:33](https://www.youtube.com/watch?v=7cFAWbFDX9k&t=370s) | Our Single mode uses P1 only; flexible single-part assignment merits verification in allocation scope. |
+| Explicit MIDI/MPE discussion | [2026 26:15–26:31](https://www.youtube.com/watch?v=7cFAWbFDX9k&t=1575s) | Stronger lead than merely inferring MPE from finger bends. Protocol, zones and mappings still need verification/documentation. |
+| Internal arp/sequencer assertion | [2022 8:03](https://www.youtube.com/watch?v=CUqPG2ycv1A&t=483s) | Our arp is not automatically unrelated to all hardware generations; production function/timing remains unestablished. |
+
+The report also flags 2024 XF2/Normal terminology versus current XF4/Modern,
+including an older panel label. Retain a documentation-conflict note; do not
+invent a hardware revision or change current filters to resolve the names.
+The system-architecture page is reported accessible without `www` and marked
+unfinished; its dated repository statement is not a current repository search.
+
+The shortened link supplied by Holger resolves to the already-known
+[2017 Matrixsynth page](https://www.matrixsynth.com/2017/01/namm-2017-shear-electronics-relic-6-new.html).
+Tracking-query variants are the same source. Historical 40 kHz/14-bit envelope
+claims in that page must not be transferred to production hardware.
+
+Next evidence checks: confirm the bandwidth passage, routing/modulator passage
+and explicit MPE passage first. The proposed 0.21 LFO-polarity step remains
+supported by written manufacturer specs and need not depend on those videos.
