@@ -8,6 +8,7 @@ inspired by Oberheim OB-X.” He reports the upload as about four months old.
 Exact upload date, recording date and transcript-to-audio accuracy have not
 been independently verified. A relative upload age does not date the demo.
 This is one supplied transcript, not independent corroboration of every claim.
+Holger also confirms that the speaker is developer Jacob Brashears himself.
 
 ## Developer statements extracted from the supplied text
 
