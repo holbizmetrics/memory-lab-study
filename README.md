@@ -1,5 +1,8 @@
 # Drive Memory Lab — standalone PCLA-assisted audio investigation
 
+The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
+now identify confirmed gaps, approximations and unknowns after approved 0.20.
+
 0.20 is the [combined-feature integration checkpoint](plugin/INTEGRATION.md).
 It adds no sound controls: the approved default, 409 IDs/order and old patch
 compatibility remain. Thirty-four actual VST3 recordings are unchanged;

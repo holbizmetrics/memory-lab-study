@@ -1,5 +1,15 @@
 # Memory Lab Study roadmap
 
+## Next route: hardware gaps after approved 0.20
+
+The [2026-11-14 evidence audit](RELIC-COVERAGE-AUDIT.md) compares current code
+with manufacturer specs and separately qualified supplied interviews.
+Provisional sequence: 0.21 LFO polarity; 0.22 envelope character/timing;
+0.23 filter modulation; 0.24 oscillator coverage; 0.25 optional voice-path
+study; 0.26 stereo/unison; 0.27 parts/expression; 0.28 fidelity/release review.
+Stages can split; uncertain hardware features require evidence before coding.
+These numbers do not promise completion. Preserve approved sound and all IDs.
+
 ## Active 0.20 integration checkpoint
 
 Combined-feature tests and actual VST3 preservation captures are documented
@@ -12,7 +22,8 @@ Four native sounds are now connected to host state and the Parts editor.
 Single / 2-layer / 2-way split / 4-layer use eight total voices. Sound pages,
 starter sounds, Dice and output follow part selection; arp remains global.
 Schema 15 / host state 17 store 409 controls, preserving the first 106 IDs.
-17 plugin and 9 native suites pass; actual old-sound captures remain identical.
+18 plugin suites pass; native sources retain the earlier 9/9 result.
+Thirty-four actual previous captures remain byte-identical.
 Holger confirmed 0.19 layers, split, patch/project recall, voice reservations
 and MIDI routing. See [parts scope](plugin/PARTS.md).
 The 0.18 waveform/modern-filter and patch/project recall round is approved.

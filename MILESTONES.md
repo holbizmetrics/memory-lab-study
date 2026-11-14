@@ -1,23 +1,25 @@
 # Memory Lab: visible progress toward the Relic-inspired instrument
 
-Updated 2026-11-08. An implementation milestone and musical approval are separate.
+Updated 2026-11-14. An implementation milestone and musical approval are separate.
 This is an original instrument inspired by documented Relic features, not yet a
 faithful hardware emulation. There is no defensible completion percentage: one
 four-part voice architecture can be more work than several UI milestones.
 
 ## Current checkpoints
 
-| Area | Implemented here | Still missing / boundary | Holger's testing |
-| --- | --- | --- | --- |
-| Voices | Eight-voice pool, sustain, stealing, MIDI bend and channel pressure | 0.19 fixed four-part allocations implemented; custom quotas/MPE remain | Single-part played in FL; multi-part listening pending |
-| Oscillators | Two saw/pulse cores, four waveform levels, separate widths, OSC 2 tuning/PWM, phase reset, noise | Hard sync, OSC 1 PWM and full independent routing/SEM matching remain | Earlier OSC/noise confirmed; new complementary waveforms await listening |
-| Filters | Classic HP/notch/LP profile, LP4, BP4, BP4/LP2 Blend | Full documented family/profile/bandwidth behaviour and measured hardware matching remain | Family/drive listening; Profile clarified as Classic-only |
-| Envelopes | Four independent dAHDSR contours: amplitude, filter and two pitch/cutoff modulators | Pitch routes from all four contours, PWM from ENV 3/4; a general matrix remains | Existing contours played; filter velocity confirmed; ENV 3 pitch and ENV 4 cutoff, patch and full FL restart recall confirmed |
-| LFOs | Four per-voice LFOs in 0.15, each with four shapes, independent timing and pitch/PWM/cutoff depths | Extra shapes/ranges and broader destinations remain | LFO 1/2 confirmed; LFO 3 filter and LFO 4 pitch solo/combined, patch and FL restart recall confirmed |
-| Expression | Independent amp/filter-env velocity response, note-to-cutoff tracking, channel pressure | Full performance/modulation architecture and MPE remain | Three 0.12 expression controls confirmed with keyboard |
-| Drive | Per-voice clipping and original shared memory drive, independent bypass at zero | Original design; no hardware distortion match established | Purpose clarified; clean/bypass comparisons and dice bypass confirmed |
-| Patch workflow | File save/load, INIT, host state, Dice/locks/undo | Full FL recording/undo/project-reload checks remain | Save/load used; Dice, bypass and Undo confirmed |
-| Starting sounds | Eight original sounds, category browser and explicit Load/Undo | User-file library management remains outside this bank | All eight approved; Round Bass confirmed around C3 |
+| Area | Implemented and tested through 0.20 | Remaining boundary |
+| --- | --- | --- |
+| Voices/parts | Eight voices, four sounds, layers/split/channels; Holger approved routing and recall | Fixed reservations; hardware allocation policy unknown |
+| Oscillators | Four saw/pulse levels, separate static widths, OSC 2 tuning/PWM, noise | OSC 1 PWM, measured SEM behavior; current-model sync evidence incomplete |
+| Filters | Classic sweep and modern BP4/XF4/LP2/LP3/LP4 profile with bandwidth; approved | Exact hardware laws, nonlinearities and profile/resonance modulation |
+| Envelopes | Four dAHDSR contours and expanded routes; approved | Linear stages; exponential character and wider timing remain |
+| LFOs | Four sources with four bipolar shapes and pitch/PWM/cutoff/amp routes; approved | Unipolar choices and further evidenced routing |
+| Output/drive | Post-filter voice clipping, shared memory drive and bypass | Original drive; post-filter amp VCA, stereo voice pan, unison and multi-out incomplete |
+| Workflow | Whole-setup patch/project recall, INIT, Dice, starters, auto-load; approved | Full FL automation/undo and library extras |
+| Integration | 18 plugin checks, 34 exact previous VST3 captures, 0.20 live regression approved | Realtime CPU/dropout, aliasing, long playing and hardware equivalence |
+
+See the [fresh hardware audit](RELIC-COVERAGE-AUDIT.md) for evidence levels and
+the provisional 0.21–0.28 route. The older schedule below is historical.
 
 ## Proposed next checkpoints — scope can split when needed
 
