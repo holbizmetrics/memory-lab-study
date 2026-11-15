@@ -434,3 +434,13 @@ Continue incrementally toward richer oscillator, filter, modulation and allocato
 features using the hardware evidence and explicit modeling limits. Earlier
 research/implementation ordering is retained in NEXT-VOICE.md and
 VOICE-EVIDENCE.md; those documents also contain historical milestone status.
+
+## After the core work: optional skins (Holger, 2026-11-15)
+
+Revisit only after the planned synthesis, fidelity and release-readiness work
+is complete. Start with color themes sharing the existing layout, such as
+dark/mint, light and amber. Keep the current appearance as the default.
+Store theme selection as a local UI preference, separate from sound patches
+and host sound parameters. Check contrast, readable control states and resizing.
+Alternative knob artwork or layouts are optional later scope, not required
+for the first theme implementation. No version or implementation date assigned.
