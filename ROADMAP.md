@@ -26,9 +26,10 @@ patch migration; avoid a separate switch for every internal implementation fix.
 
 ## Active 0.21 polarity checkpoint
 
-Independent polarity is implemented and technically checked. See
-[polarity contract](plugin/LFO-POLARITY.md). Listen to one-sided pitch/cutoff
-movement, then verify complete patch/project recall. 0.20 regression is approved.
+Independent polarity is implemented, technically checked and approved in the
+planned listening round. See [polarity contract](plugin/LFO-POLARITY.md).
+Holger confirmed PULSE/SINE motion, patch/project recall after FL restart and
+loading a 0.17 patch. Next: design optional envelope character/timing in 0.22.
 
 ## Completed 0.20 integration checkpoint
 

@@ -114,3 +114,7 @@ waveform preview. 425 parameters with the first 409 preserved, schema 16 / state
 18 and bipolar legacy migration. 19 plugin and 9 native checks pass; 37 actual
 0.20 recordings stay exact, eight polarity fixtures differ as intended. New
 musical listening pending. AMP DEPTH retains its full attenuation cycle.
+
+0.21 listening update (2026-11-15): Holger confirmed PULSE and SINE polarity
+behavior, patch recall, project recall after FL close/reopen, and successful
+loading of a 0.17 .mlpatch. The planned listening round is complete.

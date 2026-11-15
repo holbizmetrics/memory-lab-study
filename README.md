@@ -6,7 +6,8 @@ now identify confirmed gaps, approximations and unknowns after approved 0.20.
 0.21 adds [independent LFO polarity](plugin/LFO-POLARITY.md) on CLOCK 1–4:
 each part can choose bipolar or unipolar movement. Existing 409 controls keep
 their IDs/order/ranges; 16 append, totaling 425. Older patches remain bipolar.
-Technical checks pass; Holger's new-control listening approval is pending.
+Technical checks pass; Holger confirmed PULSE/SINE polarity, patch/project
+recall after FL restart and loading an older 0.17 patch.
 [Prerelease notes](releases/v0.21.0-alpha.1.md).
 
 0.20 is the [combined-feature integration checkpoint](plugin/INTEGRATION.md).

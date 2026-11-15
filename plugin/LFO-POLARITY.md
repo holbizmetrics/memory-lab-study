@@ -40,8 +40,13 @@ the complete patch. No hardware modulation matrix or extra source added here.
 patch/host recall, copy/starter isolation, four-rate multipart held-note polarity
 edits and block parity, four independent cutoff-route effects, exact tremolo
 invariance and CLOCK page bindings. Existing native/plugin tests and actual
-VST3 preservation captures remain separate gates. Holger's musical approval
-is pending until the new version is delivered and played.
+VST3 preservation captures remain separate gates.
+
+Holger's listening/recall update (2026-11-15): PULSE polarity switching and
+SINE's smooth motion match the expected curve/range change. Patch-file reload
+and FL project reload after closing FL both restore the sound and polarity.
+A saved 0.17 .mlpatch also loads successfully. The planned 0.21 listening round
+is complete; this does not establish every possible host or hardware behavior.
 
 Manufacturer basis: [Relic specs](https://www.shearelectronics.com/relic/specs/)
 list four LFOs, with unipolar and bipolar triangle/sine/pulse/saw forms.
