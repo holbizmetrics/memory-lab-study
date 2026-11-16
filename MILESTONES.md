@@ -125,3 +125,8 @@ All 20 plugin checks pass (new UI helper ID corrected and its check rerun),
 9/9 native checks pass; 45 actual prior VST3 captures stay byte-identical.
 Eleven new module fixtures cover all four contours, short/long timing and
 combined parts. Normal/compact previews inspected. Musical/live recall pending.
+
+0.22 listening update (2026-11-16): Holger confirmed amplitude Legacy/Curved
+contours, x0.250 versus x2.000 timing, “0.22 Curved Swell” patch recall and
+FL project recall after completely closing/reopening FL. Planned round complete;
+no claim of exhaustive live approval of every envelope/routing combination.

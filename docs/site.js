@@ -1,6 +1,6 @@
 "use strict";
 const views = {
-"envelope-character": ["Optional envelope character","Four envelopes per part offer Legacy/Curved and Time Scale. Existing stage mappings remain; the plot shows effective timing. New musical approval is pending."],
+"envelope-character": ["Optional envelope character","Four envelopes per part offer Legacy/Curved and Time Scale. Existing stage mappings remain; the plot shows effective timing. Holger confirmed amplitude curves, time scaling and patch/project recall."],
 "lfo-polarity": ["One-sided or centered motion","Each CLOCK page offers independent bipolar/unipolar polarity for the selected part. Old sounds remain bipolar. Holger confirmed polarity behavior, patch/project recall and older patch loading."],
 "parts-split": ["Parts and keyboard split","Reserve four voices below the chosen MIDI note and four above it; edit independent sounds and MIDI inputs."],
 "parts-layer4": ["Four layered parts","Four sounds share eight voices, with two voices reserved per part. Selection changes which sound the editor controls."],

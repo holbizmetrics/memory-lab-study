@@ -61,3 +61,10 @@ curved multipart block partition agreement. Actual VST3 captures compare old
 sounds byte-for-byte and render each envelope in both modes, fast/long timing
 and a combined four-part case. These are separate from musical approval and
 realtime CPU/aliasing or measured hardware-fidelity claims.
+
+Holger's 2026-11-16 listening update: the amplitude Legacy/Curved comparison
+matches the displayed contours; x0.250 versus x2.000 timing is clearly audible.
+Saved “0.22 Curved Swell” restores Curved/x2 after changing back to Legacy/x1.
+FL project recall after completely closing and reopening FL also restores the
+settings and sound without manually loading the patch. The planned listening
+round is complete. This is not an exhaustive live test of all four envelopes.

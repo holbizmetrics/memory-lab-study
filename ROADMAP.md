@@ -27,12 +27,12 @@ patch migration; avoid a separate switch for every internal implementation fix.
 ## Active 0.22 envelope-character checkpoint
 
 Optional curves and time scaling are implemented and technically verified;
-new listening and live recall remain pending. See
+the planned amplitude listening and patch/project recall round is approved. See
 [envelope contract](plugin/ENVELOPE-CHARACTER.md). Preserve Legacy/x1 for old
 sounds; new stages apply on the next note. Modulation destinations remain
 on ROUTES and other existing pages. There are 457 controls, with all previous
-425 IDs/order/ranges preserved. The next round compares curve and timing,
-then checks patch/project recall.
+425 IDs/order/ranges preserved. Holger confirmed Legacy/Curved, x0.250/x2.000,
+patch reload and project recall after FL restart. Next: scope 0.23 filter modulation.
 
 ## Completed 0.21 polarity checkpoint
 
