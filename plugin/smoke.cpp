@@ -27,6 +27,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "part-wrapper-checks.hpp"
 #include "integration-checks.hpp"
 #include "polarity-checks.hpp"
+#include "envelope-character-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -57,6 +58,7 @@ void arpWrapperTests(){
  std::cout<<"PASS arp wrapper: audio block parity, host BPM/internal/fallback, stop/disable cleanup, state recall and legacy bypass\n";
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::string(argv[1])=="--envelope-character-test"){juce::ScopedJuceInitialiser_GUI gui;envelopeCharacterChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--integration-test"){juce::ScopedJuceInitialiser_GUI gui;integrationChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--polarity-test"){juce::ScopedJuceInitialiser_GUI gui;polarityChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--part-test"){juce::ScopedJuceInitialiser_GUI gui;partWrapperChecks();return 0;}
@@ -91,6 +93,14 @@ int main(int argc,char**argv){try{
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"factory patch export folder");
   auto p=std::make_unique<MemoryLabProcessor>();
   for(int i=0;i<int(memorylab::presets::bank().size());++i){check(memorylab::presets::load(*p,i),"factory patch load");check(memorylab::patch::save(*p,folder.getChildFile(juce::String(i+1)+".mlpatch")).wasOk(),"factory patch export");}return 0;
+ }
+ if(argc==3&&std::string(argv[1])=="--envelope-character-previews"){
+  juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();auto p=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
+  const char*prefixes[]{"amp","flt","env3","env4"};const char*pages[]{"ampEnvelopePage","filterEnvelopePage","env3Page","env4Page"};
+  for(int source=0;source<4;++source){const juce::String prefix(prefixes[source]);set(*p,(prefix+"Attack").toRawUTF8(),1000);set(*p,(prefix+"Curve").toRawUTF8(),1);set(*p,(prefix+"TimeScale").toRawUTF8(),.5f);
+   auto*page=dynamic_cast<juce::Button*>(find(*editor,pages[source]));check(page&&bool(page->onClick),"envelope preview page");page->onClick();
+   for(int width:{1040,832}){editor->setSize(width,width==1040?740:592);juce::Timer::callPendingTimersSynchronously();auto image=editor->createComponentSnapshot(editor->getLocalBounds(),true,1);auto stream=folder.getChildFile(prefix+"-"+juce::String(width)+".png").createOutputStream();check(bool(stream),"envelope preview stream");stream->setPosition(0);stream->truncate();juce::PNGImageFormat png;check(png.writeImageToStream(image,*stream),"envelope preview encode");}
+  }return 0;
  }
  if(argc==3&&std::string(argv[1])=="--polarity-previews"){
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();

@@ -24,7 +24,17 @@ where intentional behavior changes would otherwise alter saved sounds (notably
 envelope contours, bandwidth and voice signal path). Preserve defaults and old
 patch migration; avoid a separate switch for every internal implementation fix.
 
-## Active 0.21 polarity checkpoint
+## Active 0.22 envelope-character checkpoint
+
+Optional curves and time scaling are implemented and technically verified;
+new listening and live recall remain pending. See
+[envelope contract](plugin/ENVELOPE-CHARACTER.md). Preserve Legacy/x1 for old
+sounds; new stages apply on the next note. Modulation destinations remain
+on ROUTES and other existing pages. There are 457 controls, with all previous
+425 IDs/order/ranges preserved. The next round compares curve and timing,
+then checks patch/project recall.
+
+## Completed 0.21 polarity checkpoint
 
 Independent polarity is implemented, technically checked and approved in the
 planned listening round. See [polarity contract](plugin/LFO-POLARITY.md).

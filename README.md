@@ -3,6 +3,12 @@
 The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
 now identify confirmed gaps, approximations and unknowns after approved 0.20.
 
+0.22 adds [optional envelope character and timing](plugin/ENVELOPE-CHARACTER.md):
+CURVE and TIME SCALE on all four envelope pages, per part. Legacy/x1 preserves
+old contours; stage controls keep their mappings. 457 controls, schema 17 and
+host state 19. Technical checks pass; new musical/live recall approval pending.
+[Prerelease notes](releases/v0.22.0-alpha.1.md).
+
 0.21 adds [independent LFO polarity](plugin/LFO-POLARITY.md) on CLOCK 1–4:
 each part can choose bipolar or unipolar movement. Existing 409 controls keep
 their IDs/order/ranges; 16 append, totaling 425. Older patches remain bipolar.

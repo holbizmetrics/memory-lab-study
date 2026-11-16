@@ -17,7 +17,7 @@ public:
  const juce::String getName()const override{return "Memory Lab Study";}
  bool acceptsMidi()const override{return true;}
  bool producesMidi()const override{return false;}
- double getTailLengthSeconds()const override{return 11;}
+ double getTailLengthSeconds()const override{return 101;}
  int getNumPrograms()override{return 1;}
  int getCurrentProgram()override{return 0;}
  void setCurrentProgram(int)override{}
@@ -65,6 +65,8 @@ private:
  std::array<int,6> previousRouting{{0,60,0,0,0,0}};
  std::array<std::array<std::atomic<float>*,4>,4> polarityValues{};
  std::array<std::array<float,4>,4> polarityPrevious{};
+ std::array<std::array<std::atomic<float>*,8>,4> envelopeOptionValues{};
+ std::array<std::array<float,8>,4> envelopeOptionPrevious{};
  void updateRouting();
  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MemoryLabProcessor)
 };

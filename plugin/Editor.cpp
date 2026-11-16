@@ -114,8 +114,8 @@ const std::array<Control,8> env3Controls{{
  {"env3Decay","DECAY","ms","Envelope 3 decay; stage settings apply to the next note."},
  {"env3Sustain","SUSTAIN","","Envelope 3 sustain; stage settings apply to the next note."},
  {"env3Release","RELEASE","ms","Envelope 3 release; stage settings apply to the next note."},
- {"env3Pitch","PITCH DEPTH","cents","Envelope 3 pitch depth on both oscillators. Zero disables this route."},
- {"env3Cutoff","FILTER DEPTH","oct","Envelope 3 cutoff depth. Zero disables this route."}
+ {"env3Curve","CURVE","","LEGACY keeps existing linear stages. CURVED uses a rising-target attack and curved decay/release. Applies on the next note; not a measured hardware match."},
+ {"env3TimeScale","TIME SCALE","","Scale the displayed base stage times. Nonzero scaled stages clamp to 0.1 ms through 100 s; zero stages remain immediate. Applies on the next note. Routes remain on ROUTES; drive on DRIVE."}
 }};
 const std::array<Control,8> env4Controls{{
  {"env4Delay","DELAY","ms","Envelope 4 delay; stage settings apply to the next note."},
@@ -124,8 +124,8 @@ const std::array<Control,8> env4Controls{{
  {"env4Decay","DECAY","ms","Envelope 4 decay; stage settings apply to the next note."},
  {"env4Sustain","SUSTAIN","","Envelope 4 sustain; stage settings apply to the next note."},
  {"env4Release","RELEASE","ms","Envelope 4 release; stage settings apply to the next note."},
- {"env4Pitch","PITCH DEPTH","cents","Envelope 4 pitch depth on both oscillators. Zero disables this route."},
- {"env4Cutoff","FILTER DEPTH","oct","Envelope 4 cutoff depth. Zero disables this route."}
+ {"env4Curve","CURVE","","LEGACY keeps existing linear stages. CURVED uses a rising-target attack and curved decay/release. Applies on the next note; not a measured hardware match."},
+ {"env4TimeScale","TIME SCALE","","Scale the displayed base stage times. Nonzero scaled stages clamp to 0.1 ms through 100 s; zero stages remain immediate. Applies on the next note. Routes remain on ROUTES; drive on DRIVE."}
 }};
 const std::array<Control,8>envelopeRoutes{{
  {"ampPitch","AMP ENV PITCH","cents","Additional envelope destination. Zero disables this route; source stages are edited on its envelope page."},
@@ -144,8 +144,8 @@ const std::array<Control,8>ampControls{{
  {"ampDecay","DECAY","ms","Fall from peak to the sustain level. Applies on the next note."},
  {"ampSustain","SUSTAIN","","Level held while the key or sustain pedal remains down."},
  {"ampRelease","RELEASE","ms","Fade from the current level after key/pedal release. Applies on the next note."},
- {"drive","SHARED DRIVE","","Intentional shared saturation. Zero bypasses; separate from VOICE DRIVE."},
- {"depth","MEMORY","","Depth of the shared drive memory."}
+ {"ampCurve","CURVE","","LEGACY keeps existing linear stages. CURVED uses a rising-target attack and curved decay/release. Applies on the next note; not a measured hardware match."},
+ {"ampTimeScale","TIME SCALE","","Scale the displayed base stage times. Nonzero scaled stages clamp to 0.1 ms through 100 s; zero stages remain immediate. Applies on the next note. Routes remain on ROUTES; drive on DRIVE."}
 }};
 const std::array<Control,8>filterControls{{
  {"fltDelay","DELAY","ms","Wait after key-down before the filter envelope starts."},
@@ -154,8 +154,8 @@ const std::array<Control,8>filterControls{{
  {"fltDecay","DECAY","ms","Fall to the sustained filter modulation level."},
  {"fltSustain","SUSTAIN","","Envelope level held while the key or sustain pedal remains down."},
  {"fltRelease","RELEASE","ms","Fade filter modulation after key/pedal release, while amplitude remains audible."},
- {"filterEnv","ENV AMOUNT","oct","Envelope-to-cutoff amount, scaled by note velocity. Zero disables the route."},
- {"cutoff","BASE CUTOFF","Hz","The base frequency around which the envelope moves the filter."}
+ {"fltCurve","CURVE","","LEGACY keeps existing linear stages. CURVED uses a rising-target attack and curved decay/release. Applies on the next note; not a measured hardware match."},
+ {"fltTimeScale","TIME SCALE","","Scale the displayed base stage times. Nonzero scaled stages clamp to 0.1 ms through 100 s; zero stages remain immediate. Applies on the next note. Routes remain on ROUTES; drive on DRIVE."}
 }};
 const std::array<Control,8>arpControls{{
  {"arpOn","ARP ON","","Off plays your MIDI unchanged. On turns held notes into a repeating pattern. Re-press notes after switching."},
@@ -310,10 +310,11 @@ class MemoryLabEditor::Surface final:public juce::Component,private juce::Timer 
   const bool amp=pageIndex==2||(pageIndex==20&&selected==0);const std::string prefix=pageIndex==20?(selected==0?"amp":selected==1?"flt":(selected==2||selected==4||selected==5)?"env3":"env4"):pageIndex==18?"env3":pageIndex==19?"env4":amp?"amp":"flt";
   auto get=[&](const char*s){return double(value((prefix+s).c_str()));};
   memorylab::EnvelopeSettings shape{get("Delay")/1000.,get("Attack")/1000.,get("Hold")/1000.,get("Decay")/1000.,get("Sustain"),get("Release")/1000.};
+  shape.curve=int(get("Curve")>=.5);shape.timeScale=get("TimeScale");shape=memorylab::effectiveEnvelopeSettings(shape);
   const double releaseTime=shape.delay+shape.attack+shape.hold+shape.decay+.5,total=std::max(.1,releaseTime+shape.release);juce::Path curve;
-  for(int i=0;i<=400;++i){const double t=total*i/400.;const double level=t<releaseTime?memorylab::envelopeLevel(t,shape):shape.release>0?std::max(0.,shape.sustain*(1-(t-releaseTime)/shape.release)):0.;
+  for(int i=0;i<=400;++i){const double t=total*i/400.;const double level=t<releaseTime?memorylab::envelopeLevel(t,shape):memorylab::envelopeReleaseLevel(shape.sustain,t-releaseTime,shape);
    const float x=area.getX()+area.getWidth()*i/400.f,y=area.getBottom()-16-float(level)*(area.getHeight()-20);if(i==0)curve.startNewSubPath(x,y);else curve.lineTo(x,y);
-  }g.setColour(amber);g.strokePath(curve,juce::PathStrokeType(2));g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(11.f)));g.drawText(pageIndex==3&&value("filterEnv")==0?"ENV AMOUNT is zero / route off":"Sustain preview: 0.5 s",int(area.getX()),int(area.getBottom()-12),280,15,juce::Justification::centredLeft);g.drawText(juce::String(total,2)+" s",int(area.getRight()-100),int(area.getBottom()-12),100,15,juce::Justification::centredRight);
+  }g.setColour(amber);g.strokePath(curve,juce::PathStrokeType(2));g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(11.f)));g.drawText(pageIndex==3&&value("filterEnv")==0?"ENV AMOUNT is zero / route off":(juce::String(get("Curve")>=.5?"CURVED":"LEGACY")+" / x"+juce::String(get("TimeScale"),3)+" timing / next note"),int(area.getX()),int(area.getBottom()-12),280,15,juce::Justification::centredLeft);g.drawText(juce::String(total,2)+" s",int(area.getRight()-100),int(area.getBottom()-12),100,15,juce::Justification::centredRight);
  }
  void motionGraph(juce::Graphics&g,juce::Rectangle<float>area){
   const int source=pageIndex>=12?2+(pageIndex-12)/2:1;
@@ -405,7 +406,7 @@ public:
  }
  void paint(juce::Graphics&g)override{
   g.fillAll(ink);g.setColour(white);g.setFont(juce::Font(juce::FontOptions(27.f,juce::Font::bold)));g.drawText("MEMORY LAB",30,20,320,36,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("0.21 / PART "+juce::String(processor.editingPart.load()+1),240,29,90,20,juce::Justification::centredLeft);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("0.22 / PART "+juce::String(processor.editingPart.load()+1),240,29,90,20,juce::Justification::centredLeft);
   g.setColour(panel);g.fillRoundedRectangle(28,82,866,236,12);g.fillRoundedRectangle(912,82,100,426,12);
   g.setColour(juce::Colour(0xff090f10));g.fillRoundedRectangle(40,94,842,212,7);
   const auto&c=controls()[std::size_t(selected)];g.setColour(isMotion?amber:mint);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawText(c.name,60,110,285,26,juce::Justification::centredLeft);

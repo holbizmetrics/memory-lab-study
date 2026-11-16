@@ -1,6 +1,6 @@
 # Memory Lab: visible progress toward the Relic-inspired instrument
 
-Updated 2026-11-14. An implementation milestone and musical approval are separate.
+Updated 2026-11-16. An implementation milestone and musical approval are separate.
 This is an original instrument inspired by documented Relic features, not yet a
 faithful hardware emulation. There is no defensible completion percentage: one
 four-part voice architecture can be more work than several UI milestones.
@@ -118,3 +118,10 @@ musical listening pending. AMP DEPTH retains its full attenuation cycle.
 0.21 listening update (2026-11-15): Holger confirmed PULSE and SINE polarity
 behavior, patch recall, project recall after FL close/reopen, and successful
 loading of a 0.17 .mlpatch. The planned listening round is complete.
+
+0.22 alpha.1: optional per-envelope/per-part curved character and timing scale.
+457 controls, first 425 IDs/order/ranges preserved; schema 17 / state 19.
+All 20 plugin checks pass (new UI helper ID corrected and its check rerun),
+9/9 native checks pass; 45 actual prior VST3 captures stay byte-identical.
+Eleven new module fixtures cover all four contours, short/long timing and
+combined parts. Normal/compact previews inspected. Musical/live recall pending.

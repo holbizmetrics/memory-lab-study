@@ -23,12 +23,27 @@ inline double syncedLfoHz(double bpm,int division){
  constexpr double beats[]{1.,.5,.25,.125,1./3,1./6};
  return std::clamp(bpm,20.,400.)/(60*beats[std::clamp(division,0,5)]);
 }
-struct EnvelopeSettings {double delay=0,attack=.02,hold=0,decay=.35,sustain=.15,release=.4;};
+struct EnvelopeSettings {double delay=0,attack=.02,hold=0,decay=.35,sustain=.15,release=.4;int curve=0;double timeScale=1;};
+// Optional original contour model, not a measured CEM3310/Relic transfer law.
+inline double envelopeCurveTail(double x){
+ if(x<=0)return 1;if(x>=1)return 0;
+ constexpr double floor=.006737946999085467;return (std::exp(-5*x)-floor)/(1-floor);
+}
+inline EnvelopeSettings effectiveEnvelopeSettings(EnvelopeSettings s){
+ if(std::abs(s.timeScale-1)<1e-6)s.timeScale=1; // Canonical host-default roundtrip.
+ if(s.timeScale!=1){auto scale=[&](double t){return t==0?0:std::clamp(t*s.timeScale,.0001,100.);};
+  s.delay=scale(s.delay);s.attack=scale(s.attack);s.hold=scale(s.hold);s.decay=scale(s.decay);s.release=scale(s.release);
+ }s.timeScale=1;return s;
+}
+inline double envelopeReleaseLevel(double start,double elapsed,const EnvelopeSettings&s){
+ if(s.release<=0)return 0;
+ return s.curve?start*envelopeCurveTail(elapsed/s.release):std::max(0.,start*(1-elapsed/s.release));
+}
 inline double envelopeLevel(double elapsed,const EnvelopeSettings&s){
  const double t=elapsed-s.delay;if(t<0)return 0;
- if(s.attack>0&&t<s.attack)return t/s.attack;
+ if(s.attack>0&&t<s.attack)return s.curve?-1.3*std::expm1(-1.466337068793427*t/s.attack):t/s.attack;
  if(t<s.attack+s.hold)return 1;
- if(s.decay>0&&t<s.attack+s.hold+s.decay)return 1-(1-s.sustain)*(t-s.attack-s.hold)/s.decay;
+ if(s.decay>0&&t<s.attack+s.hold+s.decay){if(s.curve)return s.sustain+(1-s.sustain)*envelopeCurveTail((t-s.attack-s.hold)/s.decay);return 1-(1-s.sustain)*(t-s.attack-s.hold)/s.decay;}
  return s.sustain;
 }
 inline double lfoPolarity(double bipolar,double amount){return amount==0?bipolar:bipolar+(1-bipolar)*(.5*amount);}
@@ -78,7 +93,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -96,13 +111,14 @@ public:
  }
 };
 class FilterEnvelope {
- bool gate=false;double time=0,value=0,step=0;
+ bool gate=false;double time=0,value=0,step=0,releaseStart=0,releaseElapsed=0;
  EnvelopeSettings settings{};
 public:
- void noteOn(const EnvelopeSettings& next=EnvelopeSettings{}){settings=next;gate=true;time=value=step=0;}
- void noteOff(double sr){gate=false;if(settings.release==0){value=step=0;}else step=value/(sr*settings.release);}
+ void noteOn(const EnvelopeSettings& next=EnvelopeSettings{}){settings=effectiveEnvelopeSettings(next);gate=true;time=value=step=releaseStart=releaseElapsed=0;}
+ void noteOff(double sr){gate=false;releaseStart=value;releaseElapsed=0;if(settings.release==0){value=step=0;}else step=value/(sr*settings.release);}
  double tick(double sr){
   if(gate){time+=1/sr;value=envelopeLevel(time,settings);}
+  else if(settings.curve){releaseElapsed+=1/sr;value=envelopeReleaseLevel(releaseStart,releaseElapsed,settings);}
   else value=std::max(0.,value-step);
   return value;
  }
@@ -246,6 +262,14 @@ class Synth {
     case Param::Osc2Interval:target.osc2Interval=std::clamp(std::round(e.value),-24.,24.);break;
     case Param::NoiseLevel:target.noiseLevel=std::clamp(e.value,0.,1.);break;
     case Param::FilterFamily:target.filterFamily=int(std::clamp(std::round(e.value),0.,3.));break;
+    case Param::AmpCurve:target.ampEnvelope.curve=e.value>=.5?1:0;break;
+    case Param::AmpTimeScale:target.ampEnvelope.timeScale=std::clamp(e.value,.01,20.);break;
+    case Param::FilterCurve:target.filterEnvelopeShape.curve=e.value>=.5?1:0;break;
+    case Param::FilterTimeScale:target.filterEnvelopeShape.timeScale=std::clamp(e.value,.01,20.);break;
+    case Param::Env3Curve:target.env3Shape.curve=e.value>=.5?1:0;break;
+    case Param::Env3TimeScale:target.env3Shape.timeScale=std::clamp(e.value,.01,20.);break;
+    case Param::Env4Curve:target.env4Shape.curve=e.value>=.5?1:0;break;
+    case Param::Env4TimeScale:target.env4Shape.timeScale=std::clamp(e.value,.01,20.);break;
     case Param::LfoUnipolar:target.lfoUnipolar[0]=e.value>=.5?1.:0.;break;
 case Param::Lfo2Unipolar:target.lfoUnipolar[1]=e.value>=.5?1.:0.;break;
 case Param::Lfo3Unipolar:target.lfoUnipolar[2]=e.value>=.5?1.:0.;break;

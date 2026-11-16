@@ -59,7 +59,7 @@ void fourEnvelopeChecks(){
  std::vector<float>tail(48000);stolen->dispatch({0,EventKind::AllSoundOff});stolen->render(tail.data(),tail.size());
  check(std::all_of(tail.begin(),tail.end(),[](float x){return x==0;}),"modulation state leaked after all sound off");
  auto p=std::make_unique<MemoryLabProcessor>();
- check(p->getParameters().size()==425,"four envelope parameter count");
+ check(p->getParameters().size()==457,"four envelope parameter count");
  set(*p,"env3Pitch",250);set(*p,"env4Cutoff",1.25f);set(*p,"env4Attack",1250);
  const auto encoded=patch::encode(*p);auto xml=juce::parseXML(encoded);xml->setAttribute("schemaVersion",10);stripParts(*xml);stripModern(*xml);
  auto added=[](const juce::String&id){return id.startsWith("env3")||id.startsWith("env4")||id=="lfoAmp"||id=="lfo2Amp"||id=="lfo3Amp"||id=="lfo4Amp"||id=="ampPitch"||id=="fltPitch"||id=="env3Pwm"||id=="env4Pwm"||id=="osc1PulseLevel"||id=="osc2SawLevel"||id=="osc1Width";};
@@ -73,6 +73,6 @@ void fourEnvelopeChecks(){
  auto old=p->state.copyState();for(int i=old.getNumChildren()-1;i>=0;--i)if(added(old.getChild(i).getProperty("id").toString()))old.removeChild(i,nullptr);
  auto oldXml=old.createXml();juce::AudioProcessor::copyXmlToBinary(*oldXml,state);p->setStateInformation(state.getData(),int(state.getSize()));check(p->state.getRawParameterValue("env3Pitch")->load()==0,"old host retained new contour depth");
  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
- for(int source:{3,4}){auto*tab=dynamic_cast<juce::Button*>(find(*editor,"env"+juce::String(source)+"Page"));check(tab&&bool(tab->onClick),"envelope page missing");tab->onClick();for(const char*stage:{"Delay","Attack","Hold","Decay","Sustain","Release","Pitch","Cutoff"})check(find(*editor,"env"+juce::String(source)+stage),"envelope editor binding missing");}
+ for(int source:{3,4}){auto*tab=dynamic_cast<juce::Button*>(find(*editor,"env"+juce::String(source)+"Page"));check(tab&&bool(tab->onClick),"envelope page missing");tab->onClick();for(const char*stage:{"Delay","Attack","Hold","Decay","Sustain","Release","Curve","TimeScale"})check(find(*editor,"env"+juce::String(source)+stage),"envelope editor binding missing");}
  std::cout<<"PASS four envelopes: stage/early-release/zero-time boundaries, independent pitch/filter routes, combined sources, four rates, block parity, sustain/release, inactive isolation, old/new patch and host recall, editor bindings\n";
 }
