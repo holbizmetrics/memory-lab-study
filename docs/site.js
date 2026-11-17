@@ -1,5 +1,6 @@
 "use strict";
 const views = {
+"filter-modulation": ["Profile and resonance in motion","ENV 3 and LFO 1 can move filter profile and Q per voice. The plot shows the base response; all new depths default off. New musical approval is pending."],
 "envelope-character": ["Optional envelope character","Four envelopes per part offer Legacy/Curved and Time Scale. Existing stage mappings remain; the plot shows effective timing. Holger confirmed amplitude curves, time scaling and patch/project recall."],
 "lfo-polarity": ["One-sided or centered motion","Each CLOCK page offers independent bipolar/unipolar polarity for the selected part. Old sounds remain bipolar. Holger confirmed polarity behavior, patch/project recall and older patch loading."],
 "parts-split": ["Parts and keyboard split","Reserve four voices below the chosen MIDI note and four above it; edit independent sounds and MIDI inputs."],

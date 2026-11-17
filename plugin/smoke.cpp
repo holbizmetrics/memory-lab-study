@@ -28,6 +28,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "integration-checks.hpp"
 #include "polarity-checks.hpp"
 #include "envelope-character-checks.hpp"
+#include "filter-modulation-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -58,6 +59,7 @@ void arpWrapperTests(){
  std::cout<<"PASS arp wrapper: audio block parity, host BPM/internal/fallback, stop/disable cleanup, state recall and legacy bypass\n";
 }
 int main(int argc,char**argv){try{
+ if(argc==2&&std::string(argv[1])=="--filter-modulation-test"){juce::ScopedJuceInitialiser_GUI gui;filterModulationChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--envelope-character-test"){juce::ScopedJuceInitialiser_GUI gui;envelopeCharacterChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--integration-test"){juce::ScopedJuceInitialiser_GUI gui;integrationChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--polarity-test"){juce::ScopedJuceInitialiser_GUI gui;polarityChecks();return 0;}
@@ -93,6 +95,12 @@ int main(int argc,char**argv){try{
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();check(folder.isDirectory(),"factory patch export folder");
   auto p=std::make_unique<MemoryLabProcessor>();
   for(int i=0;i<int(memorylab::presets::bank().size());++i){check(memorylab::presets::load(*p,i),"factory patch load");check(memorylab::patch::save(*p,folder.getChildFile(juce::String(i+1)+".mlpatch")).wasOk(),"factory patch export");}return 0;
+ }
+ if(argc==3&&std::string(argv[1])=="--filter-modulation-previews"){
+  juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();auto p=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
+  set(*p,"filterModEnvProfile",.7f);set(*p,"filterModLfoRes",2);set(*p,"resonance",1);set(*p,"modernProfile",.3f);auto*page=dynamic_cast<juce::Button*>(find(*editor,"filterModRoutesPage"));check(page&&bool(page->onClick),"filter mod preview page");
+  for(int mode:{0,1}){set(*p,"modernEnabled",float(mode));set(*p,"filterFamily",mode==0?1.f:0.f);page->onClick();for(int width:{1040,832}){editor->setSize(width,width==1040?740:592);juce::Timer::callPendingTimersSynchronously();auto image=editor->createComponentSnapshot(editor->getLocalBounds(),true,1);auto stream=folder.getChildFile("routes-"+juce::String(mode)+"-"+juce::String(width)+".png").createOutputStream();check(bool(stream),"filter route preview stream");stream->setPosition(0);stream->truncate();juce::PNGImageFormat png;check(png.writeImageToStream(image,*stream),"filter route preview encode");}}
+  return 0;
  }
  if(argc==3&&std::string(argv[1])=="--envelope-character-previews"){
   juce::File folder(juce::String::fromUTF8(argv[2]));folder.createDirectory();auto p=std::make_unique<MemoryLabProcessor>();auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());

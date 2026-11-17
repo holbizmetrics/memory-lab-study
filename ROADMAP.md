@@ -24,7 +24,15 @@ where intentional behavior changes would otherwise alter saved sounds (notably
 envelope contours, bandwidth and voice signal path). Preserve defaults and old
 patch migration; avoid a separate switch for every internal implementation fix.
 
-## Active 0.22 envelope-character checkpoint
+## Active 0.23 filter-modulation checkpoint
+
+FILTER / MOD ROUTES now offers ENV 3 and LFO 1 profile/Q depths, with zero
+defaults and bounded outputs. See [route contract](plugin/FILTER-MODULATION.md).
+All technical checks pass; new musical listening and live recall remain pending.
+473 parameters, with all previous 457 IDs/order/ranges preserved. This is the
+first explicit two-source step, not a completed general matrix.
+
+## Completed 0.22 envelope-character checkpoint
 
 Optional curves and time scaling are implemented and technically verified;
 the planned amplitude listening and patch/project recall round is approved. See

@@ -1,22 +1,22 @@
 # Memory Lab: visible progress toward the Relic-inspired instrument
 
-Updated 2026-11-16. An implementation milestone and musical approval are separate.
+Updated 2026-11-17. An implementation milestone and musical approval are separate.
 This is an original instrument inspired by documented Relic features, not yet a
 faithful hardware emulation. There is no defensible completion percentage: one
 four-part voice architecture can be more work than several UI milestones.
 
 ## Current checkpoints
 
-| Area | Implemented and tested through 0.20 | Remaining boundary |
+| Area | Implemented and technically tested through 0.23 | Remaining boundary |
 | --- | --- | --- |
 | Voices/parts | Eight voices, four sounds, layers/split/channels; Holger approved routing and recall | Fixed reservations; hardware allocation policy unknown |
 | Oscillators | Four saw/pulse levels, separate static widths, OSC 2 tuning/PWM, noise | OSC 1 PWM, measured SEM behavior; current-model sync evidence incomplete |
-| Filters | Classic sweep and modern BP4/XF4/LP2/LP3/LP4 profile with bandwidth; approved | Exact hardware laws, nonlinearities and profile/resonance modulation |
-| Envelopes | Four dAHDSR contours and expanded routes; approved | Linear stages; exponential character and wider timing remain |
-| LFOs | Four sources with four bipolar shapes and pitch/PWM/cutoff/amp routes; approved | Unipolar choices and further evidenced routing |
+| Filters | Classic sweep and modern BP4/XF4/LP2/LP3/LP4 profile with bandwidth; approved | ENV 3/LFO 1 profile/Q routes added; new listening pending. Exact hardware laws, nonlinearities and extended LP bandwidth remain |
+| Envelopes | Four dAHDSR contours, optional curves/time scale; amplitude and recall approved | Measured hardware laws and further time modulation remain |
+| LFOs | Four sources with four shapes, bipolar/unipolar options and explicit routes; approved | Further evidenced routing, ranges and modulation of modulators |
 | Output/drive | Post-filter voice clipping, shared memory drive and bypass | Original drive; post-filter amp VCA, stereo voice pan, unison and multi-out incomplete |
 | Workflow | Whole-setup patch/project recall, INIT, Dice, starters, auto-load; approved | Full FL automation/undo and library extras |
-| Integration | 18 plugin checks, 34 exact previous VST3 captures, 0.20 live regression approved | Realtime CPU/dropout, aliasing, long playing and hardware equivalence |
+| Integration | 21 plugin checks, 56 exact prior VST3 captures; live approval through 0.22 | Realtime CPU/dropout, aliasing, long playing and hardware equivalence |
 
 See the [fresh hardware audit](RELIC-COVERAGE-AUDIT.md) for evidence levels and
 the provisional 0.21–0.28 route. The older schedule below is historical.
@@ -130,3 +130,9 @@ combined parts. Normal/compact previews inspected. Musical/live recall pending.
 contours, x0.250 versus x2.000 timing, “0.22 Curved Swell” patch recall and
 FL project recall after completely closing/reopening FL. Planned round complete;
 no claim of exhaustive live approval of every envelope/routing combination.
+
+0.23 alpha.1: FILTER / MOD ROUTES, per-part ENV 3/LFO 1 profile and Q depths.
+473 controls, first 457 preserved; schema 18 / state 20. All depths default
+inactive. 21/21 plugin and 9/9 native checks pass. 56 actual old recordings are
+byte-identical; 13 new actual VST3 examples pass. New-route musical/live recall
+approval pending. Base-response graph is explicitly static; source steps remain.

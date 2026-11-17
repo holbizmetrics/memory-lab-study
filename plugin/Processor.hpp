@@ -67,6 +67,8 @@ private:
  std::array<std::array<float,4>,4> polarityPrevious{};
  std::array<std::array<std::atomic<float>*,8>,4> envelopeOptionValues{};
  std::array<std::array<float,8>,4> envelopeOptionPrevious{};
+ std::array<std::array<std::atomic<float>*,4>,4> filterRouteValues{};
+ std::array<std::array<float,4>,4> filterRoutePrevious{};
  void updateRouting();
  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MemoryLabProcessor)
 };
