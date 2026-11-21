@@ -24,11 +24,19 @@ where intentional behavior changes would otherwise alter saved sounds (notably
 envelope contours, bandwidth and voice signal path). Preserve defaults and old
 patch migration; avoid a separate switch for every internal implementation fix.
 
-## Active 0.23 filter-modulation checkpoint
+## Active 0.24 oscillator checkpoint
+
+[Independent OSC 1 PWM](plugin/OSCILLATOR-PWM.md) adds signed LFO 1–4 and
+ENV 3–4 depths per part. Older patches start with zero depth on these routes.
+Existing PWM keeps its OSC 2 destination. Sync and cross-modulation remain
+separate investigations.
+
+## Completed 0.23 filter-modulation checkpoint
 
 FILTER / MOD ROUTES now offers ENV 3 and LFO 1 profile/Q depths, with zero
 defaults and bounded outputs. See [route contract](plugin/FILTER-MODULATION.md).
-All technical checks pass; new musical listening and live recall remain pending.
+Technical checks passed. Holger heard all four routes in FL Studio.
+A single-oscillator setup isolated the envelope sweep from oscillator beating.
 473 parameters, with all previous 457 IDs/order/ranges preserved. This is the
 first explicit two-source step, not a completed general matrix.
 
@@ -40,7 +48,7 @@ the planned amplitude listening and patch/project recall round is approved. See
 sounds; new stages apply on the next note. Modulation destinations remain
 on ROUTES and other existing pages. There are 457 controls, with all previous
 425 IDs/order/ranges preserved. Holger confirmed Legacy/Curved, x0.250/x2.000,
-patch reload and project recall after FL restart. Next: scope 0.23 filter modulation.
+patch reload and project recall after FL restart.
 
 ## Completed 0.21 polarity checkpoint
 

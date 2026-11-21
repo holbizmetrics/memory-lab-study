@@ -3,10 +3,16 @@
 The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
 now identify confirmed gaps, approximations and unknowns after approved 0.20.
 
+0.24 adds [independent OSC 1 pulse-width modulation](plugin/OSCILLATOR-PWM.md)
+under OSC / OSC 1 PWM. Each part gets six depths for LFO 1–4 and ENV 3–4.
+The 24 new controls bring the total to 497. Older sounds load with the routes
+off. See [prerelease notes](releases/v0.24.0-alpha.1.md).
+
 0.23 adds [ENV 3/LFO 1 profile and resonance routing](plugin/FILTER-MODULATION.md)
 on FILTER / MOD ROUTES, independently per part. Zero defaults preserve old
 sounds. 473 controls with the first 457 IDs/order/ranges unchanged; schema 18,
-state 20. Technical checks pass; new musical/live recall approval is pending.
+state 20. Holger heard the four new routes in FL Studio. The listening round
+tested the routes individually; full patch/project recall was checked offline.
 [Prerelease notes](releases/v0.23.0-alpha.1.md).
 
 0.22 adds [optional envelope character and timing](plugin/ENVELOPE-CHARACTER.md):

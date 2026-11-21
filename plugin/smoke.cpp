@@ -29,6 +29,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "polarity-checks.hpp"
 #include "envelope-character-checks.hpp"
 #include "filter-modulation-checks.hpp"
+#include "oscillator-pwm-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -60,6 +61,7 @@ void arpWrapperTests(){
 }
 int main(int argc,char**argv){try{
  if(argc==2&&std::string(argv[1])=="--filter-modulation-test"){juce::ScopedJuceInitialiser_GUI gui;filterModulationChecks();return 0;}
+ if(argc==2&&std::string(argv[1])=="--oscillator-pwm-test"){juce::ScopedJuceInitialiser_GUI gui;oscillatorPwmChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--envelope-character-test"){juce::ScopedJuceInitialiser_GUI gui;envelopeCharacterChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--integration-test"){juce::ScopedJuceInitialiser_GUI gui;integrationChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--polarity-test"){juce::ScopedJuceInitialiser_GUI gui;polarityChecks();return 0;}
@@ -156,6 +158,7 @@ int main(int argc,char**argv){try{
   for(int source:{3,4}){auto*b=dynamic_cast<juce::Button*>(find(*editor,"env"+juce::String(source)+"Page"));b->onClick();snapshot(("env"+std::to_string(source)+".png").c_str());editor->setSize(832,592);snapshot(("env"+std::to_string(source)+"-compact.png").c_str());editor->setSize(1040,740);}
   {auto*b=dynamic_cast<juce::Button*>(find(*editor,"envelopeRoutesPage"));b->onClick();snapshot("envelope-routes.png");editor->setSize(832,592);snapshot("envelope-routes-compact.png");editor->setSize(1040,740);}
   {auto*b=dynamic_cast<juce::Button*>(find(*editor,"oscMixPage"));b->onClick();snapshot("osc-mix.png");editor->setSize(832,592);snapshot("osc-mix-compact.png");editor->setSize(1040,740);}
+  {auto*b=dynamic_cast<juce::Button*>(find(*editor,"osc1PwmPage"));check(b&&bool(b->onClick),"OSC 1 PWM preview page");b->onClick();snapshot("osc1-pwm.png");editor->setSize(832,592);snapshot("osc1-pwm-compact.png");editor->setSize(1040,740);}
   arpPage->onClick();processor->prepareToPlay(48000,512);for(int note:{60,63,67})processor->keyboard.noteOn(1,note,.8f);
   juce::AudioBuffer<float>arpAudio(2,512);juce::MidiBuffer arpMidi;double arpEnergy=0;
   for(int block=0;block<8;++block){processor->processBlock(arpAudio,arpMidi);arpEnergy+=power(arpAudio);}

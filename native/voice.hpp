@@ -56,6 +56,7 @@ inline double filterRouteValue(double base,double envDepth,double lfoDepth,doubl
 struct Parameters {
  std::array<double,4> filterRoutes{};
  std::array<double,4> lfoUnipolar{};
+ std::array<double,6> osc1PwmDepth{};
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
@@ -100,7 +101,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1,Osc1Lfo1Pwm,Osc1Lfo2Pwm,Osc1Lfo3Pwm,Osc1Lfo4Pwm,Osc1Env3Pwm,Osc1Env4Pwm};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -273,6 +274,11 @@ class Synth {
     case Param::FilterProfileLfo1:target.filterRoutes[1]=std::clamp(e.value,-1.,1.);break;
     case Param::FilterResEnv3:target.filterRoutes[2]=std::clamp(e.value,-7.5,7.5);break;
     case Param::FilterResLfo1:target.filterRoutes[3]=std::clamp(e.value,-7.5,7.5);break;
+    case Param::Osc1Lfo1Pwm:case Param::Osc1Lfo2Pwm:case Param::Osc1Lfo3Pwm:
+    case Param::Osc1Lfo4Pwm:case Param::Osc1Env3Pwm:case Param::Osc1Env4Pwm:
+     target.osc1PwmDepth[static_cast<int>(e.parameter)-static_cast<int>(Param::Osc1Lfo1Pwm)]=
+      std::clamp(e.value,-.35,.35);
+     break;
     case Param::AmpCurve:target.ampEnvelope.curve=e.value>=.5?1:0;break;
     case Param::AmpTimeScale:target.ampEnvelope.timeScale=std::clamp(e.value,.01,20.);break;
     case Param::FilterCurve:target.filterEnvelopeShape.curve=e.value>=.5?1:0;break;
@@ -360,17 +366,17 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   const double lfo=lfoPolarity(rawLfo,current.lfoUnipolar[0]);
   v.lfoPhase+=(target.lfoSync?syncedLfoHz(target.lfoBpm,target.lfoDivision):current.lfoRate)/sr;v.lfoPhase-=std::floor(v.lfoPhase);
   const double phase2=target.lfo2Retrigger?v.lfo2Phase:freeLfo2Phase;
-  const bool active2=current.lfo2Pitch!=0||current.lfo2Pwm!=0||current.lfo2Cutoff!=0||current.lfo2Amp!=0;
+  const bool active2=current.lfo2Pitch!=0||current.lfo2Pwm!=0||current.lfo2Cutoff!=0||current.lfo2Amp!=0||current.osc1PwmDepth[1]!=0;
   const double rawLfo2=active2?lfoSample(phase2,target.lfo2Shape):0;
   const double lfo2=active2?lfoPolarity(rawLfo2,current.lfoUnipolar[1]):0;
   v.lfo2Phase+=(target.lfo2Sync?syncedLfoHz(target.lfo2Bpm,target.lfo2Division):current.lfo2Rate)/sr;v.lfo2Phase-=std::floor(v.lfo2Phase);
   const double phase3=target.lfo3Retrigger?v.lfo3Phase:freeLfo3Phase;
-  const bool active3=current.lfo3Pitch!=0||current.lfo3Pwm!=0||current.lfo3Cutoff!=0||current.lfo3Amp!=0;
+  const bool active3=current.lfo3Pitch!=0||current.lfo3Pwm!=0||current.lfo3Cutoff!=0||current.lfo3Amp!=0||current.osc1PwmDepth[2]!=0;
   const double rawLfo3=active3?lfoSample(phase3,target.lfo3Shape):0;
   const double lfo3=active3?lfoPolarity(rawLfo3,current.lfoUnipolar[2]):0;
   v.lfo3Phase+=(target.lfo3Sync?syncedLfoHz(target.lfo3Bpm,target.lfo3Division):current.lfo3Rate)/sr;v.lfo3Phase-=std::floor(v.lfo3Phase);
   const double phase4=target.lfo4Retrigger?v.lfo4Phase:freeLfo4Phase;
-  const bool active4=current.lfo4Pitch!=0||current.lfo4Pwm!=0||current.lfo4Cutoff!=0||current.lfo4Amp!=0;
+  const bool active4=current.lfo4Pitch!=0||current.lfo4Pwm!=0||current.lfo4Cutoff!=0||current.lfo4Amp!=0||current.osc1PwmDepth[3]!=0;
   const double rawLfo4=active4?lfoSample(phase4,target.lfo4Shape):0;
   const double lfo4=active4?lfoPolarity(rawLfo4,current.lfoUnipolar[3]):0;
   v.lfo4Phase+=(target.lfo4Sync?syncedLfoHz(target.lfo4Bpm,target.lfo4Division):current.lfo4Rate)/sr;v.lfo4Phase-=std::floor(v.lfo4Phase);
@@ -391,7 +397,14 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   if(current.env3Pwm!=0)width+=current.env3Pwm*env3;
   if(current.env4Pwm!=0)width+=current.env4Pwm*env4;
   double pulse=bank.pulse(v.phase2,dt2,std::clamp(width,.1,.9));
-  const double pulse1=current.osc1PulseLevel>0?bank.pulse(v.phase1,dt,current.osc1Width):0;
+  double pulse1=0;
+  if(current.osc1PulseLevel>0){
+   const std::array<double,6> sources{lfo,lfo2,lfo3,lfo4,env3,env4};
+   double width1=current.osc1Width;
+   for(std::size_t route=0;route<sources.size();++route)
+    if(current.osc1PwmDepth[route]!=0)width1+=current.osc1PwmDepth[route]*sources[route];
+   pulse1=bank.pulse(v.phase1,dt,std::clamp(width1,.1,.9));
+  }
   const double saw2=current.osc2SawLevel>0?bank.saw(v.phase2,dt2):0;
   v.phase1+=dt;v.phase1-=std::floor(v.phase1);v.phase2+=dt2;v.phase2-=std::floor(v.phase2);
   v.env=ampContour;if(!v.gate&&v.env<1e-8){v.active=false;return 0;}
@@ -570,6 +583,12 @@ public:
    if(std::abs(current.modernEnabled-target.modernEnabled)<1e-8)current.modernEnabled=target.modernEnabled;
    for(int source=0;source<4;++source)current.lfoUnipolar[source]+=(target.lfoUnipolar[source]-current.lfoUnipolar[source])*smooth;
    for(int route=0;route<4;++route){current.filterRoutes[route]+=(target.filterRoutes[route]-current.filterRoutes[route])*smooth;if(target.filterRoutes[route]==0&&std::abs(current.filterRoutes[route])<1e-8)current.filterRoutes[route]=0;}
+   for(std::size_t route=0;route<current.osc1PwmDepth.size();++route){
+    auto& depth=current.osc1PwmDepth[route];
+    const auto requested=target.osc1PwmDepth[route];
+    depth+=(requested-depth)*smooth;
+    if(requested==0&&std::abs(depth)<1e-8)depth=0;
+   }
    current.modernProfile+=(target.modernProfile-current.modernProfile)*smooth;
    current.modernBandwidth+=(target.modernBandwidth-current.modernBandwidth)*smooth;
    current.noiseLevel+=(target.noiseLevel-current.noiseLevel)*smooth;

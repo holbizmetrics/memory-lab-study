@@ -70,6 +70,10 @@ if(MSVC)
 endif()
 add_test(NAME part_synth_audio COMMAND memorylab_part_synth)
 
+add_executable(memorylab_oscillator_pwm oscillator-pwm-test.cpp)
+target_compile_features(memorylab_oscillator_pwm PRIVATE cxx_std_17)
+add_test(NAME oscillator_pwm_routes COMMAND memorylab_oscillator_pwm)
+
 add_executable(memorylab_filter_family_diagnostic filter-family-diagnostic.cpp)
 target_compile_features(memorylab_filter_family_diagnostic PRIVATE cxx_std_17)
 if(MSVC)

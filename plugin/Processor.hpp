@@ -69,6 +69,8 @@ private:
  std::array<std::array<float,8>,4> envelopeOptionPrevious{};
  std::array<std::array<std::atomic<float>*,4>,4> filterRouteValues{};
  std::array<std::array<float,4>,4> filterRoutePrevious{};
+ std::array<std::array<std::atomic<float>*,6>,4> osc1PwmValues{};
+ std::array<std::array<float,6>,4> osc1PwmPrevious{};
  void updateRouting();
  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MemoryLabProcessor)
 };

@@ -136,3 +136,14 @@ no claim of exhaustive live approval of every envelope/routing combination.
 inactive. 21/21 plugin and 9/9 native checks pass. 56 actual old recordings are
 byte-identical; 13 new actual VST3 examples pass. New-route musical/live recall
 approval pending. Base-response graph is explicitly static; source steps remain.
+
+0.23 listening update (2026-11-21): Holger heard each of the four new routes in
+FL Studio. A WAV analysis identified beating between detuned oscillators in the
+initial ENV 3 profile test. Muting OSC 2 isolated the single envelope sweep.
+This listening round covered individual routes; full live project recall was
+not repeated for 0.23.
+
+0.24 alpha.1: six independent OSC 1 PWM depths per part, 497 controls, patch
+schema 19 and host state 21. All 22 plugin checks and 10 native checks passed.
+Thirteen 0.23 VST3 recordings stayed exact and fourteen new captures passed.
+OSC 1 modulation leaves OSC 2 unchanged. FL listening is pending.
