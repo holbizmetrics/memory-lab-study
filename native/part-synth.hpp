@@ -42,9 +42,19 @@ public:
  bool prepare(double sr){
   if(!std::isfinite(sr)||sr<44100||sr>192000)return false;
   for(auto&p:parts)if(!p.prepare(sr))return false;
-  allocator.configure({{{8,0,127,-1},{},{},{}}});ready=true;return true;
+  allocator=PartAllocator{};
+  ready=true;return true;
  }
  const PartAllocator::Layout& layout()const{return allocator.layout();}
+ bool setUnisonSize(int part,int size){
+  if(part<0||part>3)return false;
+  if(allocator.requestedUnison(part)==size)return true;
+  if(!allocator.setUnisonSize(part,size))return false;
+  parts[part].dispatch({0,EventKind::AllSoundOff});
+  for(int channel=0;channel<16;++channel)
+   if(allocator.pedalDown(channel))parts[part].dispatch({0,EventKind::Sustain,0,1,channel});
+  return true;
+ }
  bool configure(const PartAllocator::Layout& next){
   const auto prior=allocator.layout();
   if(!allocator.configure(next))return false;
@@ -52,7 +62,7 @@ public:
   return true;
  }
  bool parameter(int part,Param parameter,double value){
-  if(part<0||part>3||int(parameter)<0||int(parameter)>int(Param::StereoSpread)||!std::isfinite(value))return false;
+  if(part<0||part>3||int(parameter)<0||int(parameter)>int(Param::UnisonDetune)||!std::isfinite(value))return false;
   parts[part].dispatch({0,EventKind::Parameter,0,value,0,parameter});return true;
  }
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&p:parts)n+=p.activeVoices();return n;}
@@ -67,7 +77,10 @@ public:
    if(e.note<0||e.note>127)return;
    if(e.kind==EventKind::NoteOn&&e.value>0){
     sync();const auto result=allocator.noteOn(e.note,e.channel,e.value);
-    for(int i=0;i<result.count;++i){const auto&a=result.assignments[i];parts[a.part].assignVoice(a.slot-start(a.part),e,std::uint32_t(a.part));}
+    for(int i=0;i<result.count;++i){
+     const auto&a=result.assignments[i];
+     parts[a.part].assignVoice(a.slot-start(a.part),e,std::uint32_t(a.part),a.stackSize,a.member);
+    }
     return;
    }
    allocator.noteOff(e.note,e.channel);

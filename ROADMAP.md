@@ -24,11 +24,13 @@ where intentional behavior changes would otherwise alter saved sounds (notably
 envelope contours, bandwidth and voice signal path). Preserve defaults and old
 patch migration; avoid a separate switch for every internal implementation fix.
 
-## Active 0.26 stereo checkpoint
+## Active 0.26 stereo and unison checkpoint
 
 [VOICE / EXPRESSION / STEREO SPREAD](plugin/STEREO-SPREAD.md) positions voices
-across the main stereo output per part. Existing patches remain centered.
-Unison and additional output buses are separate work.
+across the main stereo output per part. Holger heard the effect with two
+notes in FL Studio. [Unison](plugin/UNISON.md) adds one, two or four voices
+per note within each part's reservation. Additional output buses remain
+separate work.
 
 ## Completed 0.25 voice-path checkpoint
 

@@ -17,13 +17,14 @@ public:
   int part=0,note=0,channel=0;
   std::uint64_t age=0;double level=0;
  };
- struct Assignment {int slot=0,part=0,note=0,channel=0;bool replacing=false;};
- struct NoteResult {std::array<Assignment,4> assignments{};int count=0;};
+ struct Assignment {int slot=0,part=0,note=0,channel=0;bool replacing=false;int stackSize=1,member=0;};
+ struct NoteResult {std::array<Assignment,8> assignments{};int count=0;};
  using Layout=std::array<PartZone,4>;
 private:
  Layout zones{{{8,0,127,-1},{},{},{}}};
  std::array<Slot,8> slots{};
  std::array<bool,16> sustain{};
+ std::array<int,4> unisonSize{{1,1,1,1}};
  std::uint64_t clock=0;
 public:
  const Layout& layout()const{return zones;}
@@ -44,6 +45,17 @@ public:
  void level(int index,double value){if(index>=0&&index<8&&std::isfinite(value))slots[index].level=std::max(0.,value);}
  // The DSP calls finished only when the voice's amplitude release is silent.
  void finished(int index){if(index>=0&&index<8)slots[index]=Slot{};}
+ bool setUnisonSize(int part,int size){
+  if(part<0||part>=4||(size!=1&&size!=2&&size!=4))return false;
+  if(unisonSize[part]==size)return true;
+  int begin=0;
+  for(int p=0;p<part;++p)begin+=zones[p].voices;
+  for(int i=begin;i<begin+zones[part].voices;++i)slots[i]=Slot{};
+  unisonSize[part]=size;
+  return true;
+ }
+ int requestedUnison(int part)const{return unisonSize[part];}
+ bool pedalDown(int channel)const{return sustain[channel];}
  NoteResult noteOn(int note,int channel,double velocity){
   NoteResult out;
   if(note<0||note>127||channel<0||channel>15||!std::isfinite(velocity))return out;
@@ -52,14 +64,33 @@ public:
   for(int part=0;part<4;++part){
    const auto&p=zones[part];const int end=begin+p.voices;
    if(p.voices&&note>=p.low&&note<=p.high&&(p.channel<0||p.channel==channel)){
-    int chosen=-1;
-    for(int i=begin;i<end;++i)if(slots[i].active&&slots[i].note==note&&slots[i].channel==channel){chosen=i;break;}
-    if(chosen<0)for(int i=begin;i<end;++i)if(!slots[i].active){chosen=i;break;}
-    if(chosen<0)for(int i=begin;i<end;++i)if(!slots[i].gate&&(chosen<0||slots[i].level<slots[chosen].level)){chosen=i;}
-    if(chosen<0){chosen=begin;for(int i=begin+1;i<end;++i)if(slots[i].age<slots[chosen].age)chosen=i;}
-    const bool replacing=slots[chosen].active;
-    slots[chosen]={true,true,true,part,note,channel,++clock,0};
-    out.assignments[out.count++]={chosen,part,note,channel,replacing};
+    const int limit=std::min(unisonSize[part],p.voices);
+    const int size=limit>=4?4:limit>=2?2:1;
+    // A partially released stack still owns its group of slots.
+    int chosen=-1,priority=4;
+    double quietest=0;
+    std::uint64_t oldest=0;
+    for(int first=begin;first+size<=end;first+=size){
+     bool occupied=false,held=false,same=false;
+     double level=0;
+     std::uint64_t age=0;
+     for(int i=first;i<first+size;++i)if(const auto&slot=slots[i];slot.active){
+      occupied=true;held|=slot.gate;same|=slot.note==note&&slot.channel==channel;
+      level=std::max(level,slot.level);age=std::max(age,slot.age);
+     }
+     const int rank=same?0:!occupied?1:!held?2:3;
+     if(rank<priority||(rank==2&&priority==2&&level<quietest)||(rank==3&&priority==3&&age<oldest)){
+      chosen=first;priority=rank;quietest=level;oldest=age;
+      if(rank==0)break;
+     }
+    }
+    const auto age=++clock;
+    for(int member=0;member<size;++member){
+     const int i=chosen+member;
+     const bool replacing=slots[i].active;
+     slots[i]={true,true,true,part,note,channel,age,0};
+     out.assignments[out.count++]={i,part,note,channel,replacing,size,member};
+    }
    }
    begin=end;
   }

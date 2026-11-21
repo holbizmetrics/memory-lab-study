@@ -82,6 +82,10 @@ add_executable(memorylab_stereo_spread stereo-spread-test.cpp)
 target_compile_features(memorylab_stereo_spread PRIVATE cxx_std_17)
 add_test(NAME stereo_spread COMMAND memorylab_stereo_spread)
 
+add_executable(memorylab_unison unison-test.cpp)
+target_compile_features(memorylab_unison PRIVATE cxx_std_17)
+add_test(NAME unison COMMAND memorylab_unison)
+
 add_executable(memorylab_filter_family_diagnostic filter-family-diagnostic.cpp)
 target_compile_features(memorylab_filter_family_diagnostic PRIVATE cxx_std_17)
 if(MSVC)

@@ -23,7 +23,7 @@ void oscillatorPwmChecks(){
  older->setAttribute("schemaVersion",18);
  for(int i=older->getNumChildElements()-1;i>=0;--i){
   auto* child=older->getChildElement(i);
-  if((child->getStringAttribute("id").contains("osc1Pwm")||(child->getStringAttribute("id").endsWith("postFilterAmp")||child->getStringAttribute("id").endsWith("stereoSpread"))))older->removeChildElement(child,true);
+  if((child->getStringAttribute("id").contains("osc1Pwm")||(child->getStringAttribute("id").endsWith("postFilterAmp")||(child->getStringAttribute("id").endsWith("stereoSpread")||child->getStringAttribute("id").endsWith("unisonSize")||child->getStringAttribute("id").endsWith("unisonDetune")))))older->removeChildElement(child,true);
  }
  check(memorylab::patch::apply(*q,older->toString()).wasOk(),"schema18 migration");
  for(int part=0;part<4;++part)for(auto id:ids)

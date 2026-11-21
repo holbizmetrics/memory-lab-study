@@ -3,9 +3,10 @@
 The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
 now identify confirmed gaps, approximations and unknowns after approved 0.20.
 
-0.26 adds [per-part stereo spread](plugin/STEREO-SPREAD.md) under
-VOICE / EXPRESSION. Existing patches open centered. 505 total controls.
-See [prerelease notes](releases/v0.26.0-alpha.1.md).
+0.26 alpha.2 adds [per-part unison](plugin/UNISON.md) next to
+[stereo spread](plugin/STEREO-SPREAD.md) under VOICE / EXPRESSION.
+Earlier patches default to one voice per note. 513 total controls.
+See [prerelease notes](releases/v0.26.0-alpha.2.md).
 
 0.25 adds an optional [post-filter amp position](plugin/VOICE-PATH.md) on DRIVE.
 Each part can select Legacy or Post-filter for new notes. The four appended

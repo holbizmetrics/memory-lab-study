@@ -58,7 +58,7 @@ struct Parameters {
  std::array<double,4> lfoUnipolar{};
  std::array<double,6> osc1PwmDepth{};
  bool postFilterAmp=false;
- double stereoSpread=0;
+ double stereoSpread=0,unisonDetune=12;
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
@@ -103,7 +103,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1,Osc1Lfo1Pwm,Osc1Lfo2Pwm,Osc1Lfo3Pwm,Osc1Lfo4Pwm,Osc1Env3Pwm,Osc1Env4Pwm,PostFilterAmp,StereoSpread};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1,Osc1Lfo1Pwm,Osc1Lfo2Pwm,Osc1Lfo3Pwm,Osc1Lfo4Pwm,Osc1Env3Pwm,Osc1Env4Pwm,PostFilterAmp,StereoSpread,UnisonDetune};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -134,6 +134,7 @@ public:
  }
 };
 struct Voice {
+ double stackPosition=0,stackGain=1;
  std::uint32_t noiseState=1;
  bool active=false,gate=false,postFilterAmp=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
@@ -284,6 +285,7 @@ class Synth {
       std::clamp(e.value,-.35,.35);
      break;
     case Param::PostFilterAmp:target.postFilterAmp=e.value>=.5;break;
+    case Param::UnisonDetune:target.unisonDetune=std::clamp(e.value,0.,50.);break;
     case Param::StereoSpread:target.stereoSpread=std::clamp(e.value,0.,1.);break;
     case Param::AmpCurve:target.ampEnvelope.curve=e.value>=.5?1:0;break;
     case Param::AmpTimeScale:target.ampEnvelope.timeScale=std::clamp(e.value,.01,20.);break;
@@ -393,6 +395,7 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   if(current.env4Pitch!=0)pitch+=current.env4Pitch*env4;
   if(current.ampPitch!=0)pitch+=current.ampPitch*ampContour;
   if(current.fltPitch!=0)pitch+=current.fltPitch*filterEnv;
+  if(v.stackPosition!=0)pitch+=v.stackPosition*current.unisonDetune;
   const double f=440*std::exp2((v.note-69)/12.)*std::exp2(pitch/1200),dt=std::min(.45,f/sr);
 #if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
   const double dt2=std::min(.45,f*std::exp2(studyInterval/12.+current.detune/1200)/sr);
@@ -473,6 +476,7 @@ if(current.modernEnabled>0){
 #if MEMORYLAB_EXPERIMENTAL_VOICE_DRIVE
   if(studyDriveEnabled){output*=studyDriveGain;if(std::abs(output)>1)++studyClipped;output=std::clamp(output,-1.,1.);}
 #endif
+  if(v.stackGain!=1)output*=v.stackGain;
   if(v.transitionLeft>0){const double weight=double(v.transitionLeft--)/int(sr*.005);output=output*(1-weight)+v.transitionValue*weight;}
   v.lastOutput=output;return output;
  }
@@ -507,9 +511,11 @@ public:
  bool sounding(int note,int channel)const{for(const auto&v:voices)if(v.active&&v.note==note&&v.channel==channel)return true;return false;}
  // Explicit slot assignment for the separate multi-part allocator. The normal
  // single-part note-on path above retains its existing allocation decisions.
- bool assignVoice(int index,const Event&e,std::uint32_t noiseSalt=0){
+ bool assignVoice(int index,const Event&e,std::uint32_t noiseSalt=0,int stackSize=1,int member=0){
+  if((stackSize!=1&&stackSize!=2&&stackSize!=4)||member<0||member>=stackSize)return false;
   if(index<0||index>=8||e.kind!=EventKind::NoteOn||e.note<0||e.note>127||e.channel<0||e.channel>15||!std::isfinite(e.value)||e.value<=0)return false;
   auto&voice=voices[std::size_t(index)];startVoice(&voice,e);
+  if(stackSize>1){voice.stackPosition=2.*member/(stackSize-1)-1.;voice.stackGain=1./stackSize;}
   if(noiseSalt){voice.noiseState^=noiseSalt*2654435761u;if(!voice.noiseState)voice.noiseState=1;}
   return true;
  }
@@ -610,6 +616,7 @@ public:
    voiceDriveMix=std::min(1.,current.voiceDrive);
    voiceDriveGain=voiceDriveMix>0?std::pow(10.,current.voiceDrive/20.):1;
    for(int channel=0;channel<16;++channel){bend[channel]+=(bendTarget[channel]-bend[channel])*smooth;pressure[channel]+=(pressureTarget[channel]-pressure[channel])*smooth;}
+   current.unisonDetune+=(target.unisonDetune-current.unisonDetune)*smooth;
    current.stereoSpread+=(target.stereoSpread-current.stereoSpread)*smooth;
    if(target.stereoSpread==0&&current.stereoSpread<1e-8)current.stereoSpread=0;
    if(right&&current.stereoSpread>0){

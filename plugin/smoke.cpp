@@ -32,6 +32,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "oscillator-pwm-checks.hpp"
 #include "voice-path-checks.hpp"
 #include "stereo-spread-checks.hpp"
+#include "unison-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -66,6 +67,7 @@ int main(int argc,char**argv){try{
  if(argc==2&&std::string(argv[1])=="--oscillator-pwm-test"){juce::ScopedJuceInitialiser_GUI gui;oscillatorPwmChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--voice-path-test"){juce::ScopedJuceInitialiser_GUI gui;voicePathChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--stereo-spread-test"){juce::ScopedJuceInitialiser_GUI gui;stereoSpreadChecks();return 0;}
+ if(argc==2&&std::string(argv[1])=="--unison-test"){juce::ScopedJuceInitialiser_GUI gui;unisonChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--envelope-character-test"){juce::ScopedJuceInitialiser_GUI gui;envelopeCharacterChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--integration-test"){juce::ScopedJuceInitialiser_GUI gui;integrationChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--polarity-test"){juce::ScopedJuceInitialiser_GUI gui;polarityChecks();return 0;}

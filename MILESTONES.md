@@ -164,3 +164,11 @@ correctly in FL Studio. New-patch and project recall were verified offline.
 patch schema 21 and host state 23. All 24 plugin and 12 native checks passed,
 with 35 prior VST3 recordings exact in both channels and three new stereo
 fixtures. FL listening is pending; unison remains separate.
+
+0.26 alpha.1 listening update: Holger heard stereo spread with two notes in FL.
+
+0.26 alpha.2: VOICE / EXPRESSION adds per-part 1-, 2- and 4-voice unison with
+symmetric detune and the original eight-voice limit. 513 controls, patch
+schema 22 and host state 24. All 25 plugin and 13 native checks passed.
+38 earlier VST3 recordings stayed exact in both channels and four new
+stack captures passed. FL listening and project recall are pending.
