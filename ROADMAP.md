@@ -24,12 +24,19 @@ where intentional behavior changes would otherwise alter saved sounds (notably
 envelope contours, bandwidth and voice signal path). Preserve defaults and old
 patch migration; avoid a separate switch for every internal implementation fix.
 
-## Active 0.24 oscillator checkpoint
+## Active 0.25 voice-path checkpoint
+
+[DRIVE / AMP POSITION](plugin/VOICE-PATH.md) offers a choice between amp
+envelope and velocity before the filter or after it. Existing patches start in
+Legacy. The mode is selected when each note begins.
+
+## Completed 0.24 oscillator checkpoint
 
 [Independent OSC 1 PWM](plugin/OSCILLATOR-PWM.md) adds signed LFO 1–4 and
 ENV 3–4 depths per part. Older patches start with zero depth on these routes.
 Existing PWM keeps its OSC 2 destination. Sync and cross-modulation remain
-separate investigations.
+separate investigations. Holger heard the LFO 1 and ENV 3 routes, confirmed
+OSC 2 isolation, and reloaded the saved PWM patch in FL Studio.
 
 ## Completed 0.23 filter-modulation checkpoint
 

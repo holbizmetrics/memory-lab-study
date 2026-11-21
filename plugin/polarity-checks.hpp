@@ -9,13 +9,13 @@ void polarityChecks(){
  }
  auto p=std::make_unique<MemoryLabProcessor>();
  const char*ids[]{"lfoUnipolar","lfo2Unipolar","lfo3Unipolar","lfo4Unipolar"};
- check(p->getParameters().size()==497,"polarity host count");
+ check(p->getParameters().size()==501,"polarity host count");
  for(int part=0;part<4;++part)for(int i=0;i<4;++i){const auto id=MemoryLabProcessor::partId(part,ids[i]);auto*param=p->state.getParameter(id);
   check(param&&param==p->getParameters()[409+part*4+i]&&param->getDefaultValue()==0&&param->isAutomatable(),"polarity append/default/order");
   set(*p,id.toRawUTF8(),1);
  }
  const auto full=patch::encode(*p);auto old=juce::parseXML(full);old->setAttribute("schemaVersion",15);
- for(int i=old->getNumChildElements()-1;i>=0;--i)if((old->getChildElement(i)->getStringAttribute("id").contains("filterMod")||old->getChildElement(i)->getStringAttribute("id").contains("osc1Pwm"))||old->getChildElement(i)->getStringAttribute("id").endsWith("Unipolar")||old->getChildElement(i)->getStringAttribute("id").endsWith("Curve")||old->getChildElement(i)->getStringAttribute("id").endsWith("TimeScale"))old->removeChildElement(old->getChildElement(i),true);
+ for(int i=old->getNumChildElements()-1;i>=0;--i)if((old->getChildElement(i)->getStringAttribute("id").contains("filterMod")||(old->getChildElement(i)->getStringAttribute("id").contains("osc1Pwm")||old->getChildElement(i)->getStringAttribute("id").endsWith("postFilterAmp")))||old->getChildElement(i)->getStringAttribute("id").endsWith("Unipolar")||old->getChildElement(i)->getStringAttribute("id").endsWith("Curve")||old->getChildElement(i)->getStringAttribute("id").endsWith("TimeScale"))old->removeChildElement(old->getChildElement(i),true);
  check(patch::apply(*p,old->toString()).wasOk(),"schema15 polarity migration");
  for(int part=0;part<4;++part)for(const char*id:ids)check(p->state.getRawParameterValue(MemoryLabProcessor::partId(part,id))->load()==0,"old patch retained polarity");
  check(patch::apply(*p,full).wasOk(),"polarity patch restore");

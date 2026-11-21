@@ -147,3 +147,11 @@ not repeated for 0.23.
 schema 19 and host state 21. All 22 plugin checks and 10 native checks passed.
 Thirteen 0.23 VST3 recordings stayed exact and fourteen new captures passed.
 OSC 1 modulation leaves OSC 2 unchanged. FL listening is pending.
+
+0.24 listening update: Holger confirmed OSC 1 PWM from LFO 1 and ENV 3
+independently, OSC 2 isolation, and recall from a saved 0.24 patch in FL Studio.
+
+0.25 alpha.1: DRIVE / AMP POSITION for Legacy and Post-filter, latched per
+note. 501 controls, patch schema 20 and host state 22. All 23 plugin checks and
+11 native checks passed, alongside 27 exact prior and eight new VST3 captures.
+FL listening is pending.

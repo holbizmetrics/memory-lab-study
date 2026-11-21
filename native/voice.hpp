@@ -57,6 +57,7 @@ struct Parameters {
  std::array<double,4> filterRoutes{};
  std::array<double,4> lfoUnipolar{};
  std::array<double,6> osc1PwmDepth{};
+ bool postFilterAmp=false;
  double drive=5,depth=.8,recovery=250,detune=7,pulseWidth=.43,cutoff=1450,q=2.4,volume=.25,profile=1;
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
@@ -101,7 +102,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1,Osc1Lfo1Pwm,Osc1Lfo2Pwm,Osc1Lfo3Pwm,Osc1Lfo4Pwm,Osc1Env3Pwm,Osc1Env4Pwm};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1,Osc1Lfo1Pwm,Osc1Lfo2Pwm,Osc1Lfo3Pwm,Osc1Lfo4Pwm,Osc1Env3Pwm,Osc1Env4Pwm,PostFilterAmp};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -133,7 +134,7 @@ public:
 };
 struct Voice {
  std::uint32_t noiseState=1;
- bool active=false,gate=false;int note=0,channel=0;std::uint64_t age=0;
+ bool active=false,gate=false,postFilterAmp=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
  ClassicFilter filter;
  FilterFamily extendedFilter;
@@ -279,6 +280,7 @@ class Synth {
      target.osc1PwmDepth[static_cast<int>(e.parameter)-static_cast<int>(Param::Osc1Lfo1Pwm)]=
       std::clamp(e.value,-.35,.35);
      break;
+    case Param::PostFilterAmp:target.postFilterAmp=e.value>=.5;break;
     case Param::AmpCurve:target.ampEnvelope.curve=e.value>=.5?1:0;break;
     case Param::AmpTimeScale:target.ampEnvelope.timeScale=std::clamp(e.value,.01,20.);break;
     case Param::FilterCurve:target.filterEnvelopeShape.curve=e.value>=.5?1:0;break;
@@ -353,6 +355,7 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   const double phase1=chosen->phase1,phase2=chosen->phase2;
   const bool replacing=chosen->active;const double oldOutput=chosen->lastOutput;
   *chosen=Voice{};chosen->active=chosen->gate=true;chosen->note=e.note;chosen->channel=e.channel;
+  chosen->postFilterAmp=target.postFilterAmp;
   chosen->velocity=std::clamp(e.value,0.,1.);chosen->age=++clock;
   chosen->noiseState=std::uint32_t(chosen->age)*747796405u+std::uint32_t(e.note+128*e.channel+1)*2891336453u;
   if(!chosen->noiseState)chosen->noiseState=1;
@@ -410,13 +413,15 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   v.env=ampContour;if(!v.gate&&v.env<1e-8){v.active=false;return 0;}
   const double ampVelocity=current.ampVelocity==1?v.velocity:1-current.ampVelocity+current.ampVelocity*v.velocity;
   const double filterVelocity=current.filterVelocity==1?v.velocity:1-current.filterVelocity+current.filterVelocity*v.velocity;
+  const double sourceEnvelope=v.postFilterAmp?1.:v.env;
+  const double sourceVelocity=v.postFilterAmp?1.:ampVelocity;
 #if MEMORYLAB_EXPERIMENTAL_OSCILLATOR_MIX
-  double x=(studySawLevel*saw+studyPulseLevel*pulse)*v.env*ampVelocity;
+  double x=(studySawLevel*saw+studyPulseLevel*pulse)*sourceEnvelope*sourceVelocity;
 #else
-  double x=(current.sawLevel*saw+current.pulseLevel*pulse)*v.env*ampVelocity;
+  double x=(current.sawLevel*saw+current.pulseLevel*pulse)*sourceEnvelope*sourceVelocity;
 #endif
-  if(current.osc1PulseLevel>0)x+=current.osc1PulseLevel*pulse1*v.env*ampVelocity;
-  if(current.osc2SawLevel>0)x+=current.osc2SawLevel*saw2*v.env*ampVelocity;
+  if(current.osc1PulseLevel>0)x+=current.osc1PulseLevel*pulse1*sourceEnvelope*sourceVelocity;
+  if(current.osc2SawLevel>0)x+=current.osc2SawLevel*saw2*sourceEnvelope*sourceVelocity;
 #if MEMORYLAB_EXPERIMENTAL_NOISE
   const double noiseLevel=studyNoiseLevel;if(studyNoiseSolo)x=0;
 #else
@@ -424,7 +429,7 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
 #endif
   if(noiseLevel>0){auto&state=v.noiseState;state^=state<<13;state^=state>>17;state^=state<<5;
    const double noise=double(state)/2147483648.-1.;
-   x+=noiseLevel*noise*v.env*ampVelocity;
+   x+=noiseLevel*noise*sourceEnvelope*sourceVelocity;
   }
   double cutoffExponent=current.cutoffLfo*lfo+current.filterEnvelope*filterEnv*filterVelocity+current.pressureDepth*pressure[v.channel];
   if(current.lfo2Cutoff!=0)cutoffExponent+=current.lfo2Cutoff*lfo2;
@@ -451,6 +456,8 @@ if(current.modernEnabled>0){
 #if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
   if(studyFilterMode)output=v.studyFilter.tick(x,sr,cutoff,routedQ,studyFilterMode);
 #endif
+  // A post-filter VCA shapes the filtered signal before the existing clip stage.
+  if(v.postFilterAmp)output=output*v.env*ampVelocity;
   auto tremolo=[](double depth,double wave){return 1-std::abs(depth)*(.5+.5*(depth<0?-wave:wave));};
   if(current.lfoAmp!=0)output*=tremolo(current.lfoAmp,rawLfo);
   if(current.lfo2Amp!=0)output*=tremolo(current.lfo2Amp,rawLfo2);

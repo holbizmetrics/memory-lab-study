@@ -3,10 +3,15 @@
 The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
 now identify confirmed gaps, approximations and unknowns after approved 0.20.
 
+0.25 adds an optional [post-filter amp position](plugin/VOICE-PATH.md) on DRIVE.
+Each part can select Legacy or Post-filter for new notes. The four appended
+controls bring the total to 501. See [prerelease notes](releases/v0.25.0-alpha.1.md).
+
 0.24 adds [independent OSC 1 pulse-width modulation](plugin/OSCILLATOR-PWM.md)
 under OSC / OSC 1 PWM. Each part gets six depths for LFO 1–4 and ENV 3–4.
 The 24 new controls bring the total to 497. Older sounds load with the routes
-off. See [prerelease notes](releases/v0.24.0-alpha.1.md).
+off. Holger confirmed OSC 1 motion, OSC 2 isolation and patch recall in FL.
+See [prerelease notes](releases/v0.24.0-alpha.1.md).
 
 0.23 adds [ENV 3/LFO 1 profile and resonance routing](plugin/FILTER-MODULATION.md)
 on FILTER / MOD ROUTES, independently per part. Zero defaults preserve old

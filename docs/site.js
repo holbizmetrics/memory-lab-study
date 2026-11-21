@@ -1,5 +1,6 @@
 "use strict";
 const views = {
+"voice-path": ["Two amp positions","On DRIVE, choose where the amp envelope and velocity shape a voice. Start a fresh note to hear the selected path. Existing patches start in Legacy."],
 "osc1-pwm": ["Independent oscillator 1 PWM","Six signed depths let each part route its four LFOs and envelopes 3 and 4 into oscillator 1 pulse width. The earlier PWM controls continue to address oscillator 2."],
 "filter-modulation": ["Profile and resonance in motion","ENV 3 and LFO 1 can move filter profile and Q per voice. The plot shows the base response; all new depths default off. Holger confirmed the four individual routes by ear."],
 "envelope-character": ["Optional envelope character","Four envelopes per part offer Legacy/Curved and Time Scale. Existing stage mappings remain; the plot shows effective timing. Holger confirmed amplitude curves, time scaling and patch/project recall."],
