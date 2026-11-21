@@ -155,3 +155,12 @@ independently, OSC 2 isolation, and recall from a saved 0.24 patch in FL Studio.
 note. 501 controls, patch schema 20 and host state 22. All 23 plugin checks and
 11 native checks passed, alongside 27 exact prior and eight new VST3 captures.
 FL listening is pending.
+
+0.25 listening update: Holger heard the Legacy/Post-filter difference
+with both clean and driven sounds, and confirmed an older 0.24 patch loaded
+correctly in FL Studio. New-patch and project recall were verified offline.
+
+0.26 alpha.1: VOICE / EXPRESSION / STEREO SPREAD per part. 505 controls,
+patch schema 21 and host state 23. All 24 plugin and 12 native checks passed,
+with 35 prior VST3 recordings exact in both channels and three new stereo
+fixtures. FL listening is pending; unison remains separate.

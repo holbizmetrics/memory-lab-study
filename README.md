@@ -3,9 +3,15 @@
 The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
 now identify confirmed gaps, approximations and unknowns after approved 0.20.
 
+0.26 adds [per-part stereo spread](plugin/STEREO-SPREAD.md) under
+VOICE / EXPRESSION. Existing patches open centered. 505 total controls.
+See [prerelease notes](releases/v0.26.0-alpha.1.md).
+
 0.25 adds an optional [post-filter amp position](plugin/VOICE-PATH.md) on DRIVE.
 Each part can select Legacy or Post-filter for new notes. The four appended
-controls bring the total to 501. See [prerelease notes](releases/v0.25.0-alpha.1.md).
+controls bring the total to 501. Holger heard the difference with both clean
+and driven sounds and checked older patch loading in FL.
+See [prerelease notes](releases/v0.25.0-alpha.1.md).
 
 0.24 adds [independent OSC 1 pulse-width modulation](plugin/OSCILLATOR-PWM.md)
 under OSC / OSC 1 PWM. Each part gets six depths for LFO 1–4 and ENV 3–4.

@@ -78,6 +78,10 @@ add_executable(memorylab_voice_path voice-path-test.cpp)
 target_compile_features(memorylab_voice_path PRIVATE cxx_std_17)
 add_test(NAME post_filter_voice_path COMMAND memorylab_voice_path)
 
+add_executable(memorylab_stereo_spread stereo-spread-test.cpp)
+target_compile_features(memorylab_stereo_spread PRIVATE cxx_std_17)
+add_test(NAME stereo_spread COMMAND memorylab_stereo_spread)
+
 add_executable(memorylab_filter_family_diagnostic filter-family-diagnostic.cpp)
 target_compile_features(memorylab_filter_family_diagnostic PRIVATE cxx_std_17)
 if(MSVC)

@@ -5,8 +5,7 @@
 #include <algorithm>
 
 namespace memorylab {
-// Native integration study, not wired into the VST3. Four independent sound
-// engines, but only eight globally reserved voice slots can be active.
+// Four independent sound engines share eight reserved voice slots.
 class PartSynth {
  std::array<Synth,4> parts{};
  PartAllocator allocator;
@@ -19,19 +18,22 @@ class PartSynth {
    if(status.active)allocator.level(global,status.level);else allocator.finished(global);
   }
  }
- bool range(float*out,std::size_t frames){
+ bool range(float*out,std::size_t frames,float*right){
   int only=-1,enabled=0;
   for(int p=0;p<4;++p)if(allocator.layout()[p].voices){only=p;++enabled;}
   // No arithmetic or extra latency in the one-part route.
-  if(enabled==1){const bool ok=parts[only].render(out,frames);sync();return ok;}
+  if(enabled==1){const bool ok=parts[only].render(out,frames,nullptr,0,right);sync();return ok;}
   std::fill_n(out,frames,0.f);
+  if(right)std::fill_n(right,frames,0.f);
   if(enabled==0)return true;
   std::array<float,256> scratch{};
+  std::array<float,256> scratchRight{};
   for(std::size_t offset=0;offset<frames;offset+=scratch.size()){
    const auto n=std::min(scratch.size(),frames-offset);
    for(int p=0;p<4;++p)if(allocator.layout()[p].voices){
-    if(!parts[p].render(scratch.data(),n))return false;
+    if(!parts[p].render(scratch.data(),n,nullptr,0,right?scratchRight.data():nullptr))return false;
     for(std::size_t i=0;i<n;++i)out[offset+i]+=scratch[i];
+    if(right)for(std::size_t i=0;i<n;++i)right[offset+i]+=scratchRight[i];
    }
   }
   sync();return true;
@@ -50,7 +52,7 @@ public:
   return true;
  }
  bool parameter(int part,Param parameter,double value){
-  if(part<0||part>3||int(parameter)<0||int(parameter)>int(Param::PostFilterAmp)||!std::isfinite(value))return false;
+  if(part<0||part>3||int(parameter)<0||int(parameter)>int(Param::StereoSpread)||!std::isfinite(value))return false;
   parts[part].dispatch({0,EventKind::Parameter,0,value,0,parameter});return true;
  }
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&p:parts)n+=p.activeVoices();return n;}
@@ -77,16 +79,17 @@ public:
  // Same offset contract as Synth: validate the whole block before edits.
  // EventKind::Parameter targets part 1 for legacy compatibility; other parts
  // can be set explicitly between render ranges with parameter().
- bool render(float*out,std::size_t frames,const Event*events=nullptr,std::size_t count=0){
+ bool render(float*out,std::size_t frames,const Event*events=nullptr,std::size_t count=0,float*right=nullptr){
   if(!out)return false;
-  if(!ready||(count&&!events)){std::fill_n(out,frames,0.f);return false;}
-  for(std::size_t i=0;i<count;++i)if(events[i].offset>=frames||(i&&events[i].offset<events[i-1].offset)){std::fill_n(out,frames,0.f);return false;}
+  auto silence=[&]{std::fill_n(out,frames,0.f);if(right)std::fill_n(right,frames,0.f);};
+  if(!ready||(count&&!events)){silence();return false;}
+  for(std::size_t i=0;i<count;++i)if(events[i].offset>=frames||(i&&events[i].offset<events[i-1].offset)){silence();return false;}
   std::size_t cursor=0;
   for(std::size_t i=0;i<count;++i){
-   if(events[i].offset>cursor&&!range(out+cursor,events[i].offset-cursor))return false;
+   if(events[i].offset>cursor&&!range(out+cursor,events[i].offset-cursor,right?right+cursor:nullptr))return false;
    cursor=events[i].offset;dispatch(events[i]);
   }
-  if(cursor<frames)return range(out+cursor,frames-cursor);
+  if(cursor<frames)return range(out+cursor,frames-cursor,right?right+cursor:nullptr);
   return true;
  }
 };

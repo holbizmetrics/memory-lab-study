@@ -51,7 +51,7 @@ private:
  std::array<std::atomic<float>*,7> arpValues{};
  bool arpEnabled=false,wasPlaying=false;
  void arpEmit(memorylab::EventKind,int,double,int);
- void render(float*,int);
+ void render(float*,float*,int);
  double clockBpm=130;
  double renderSampleRate=48000;
  bool ready=false;
@@ -73,6 +73,8 @@ private:
  std::array<std::array<float,6>,4> osc1PwmPrevious{};
  std::array<std::atomic<float>*,4> postFilterAmpValues{};
  std::array<int,4> previousPostFilterAmp{{-1,-1,-1,-1}};
+ std::array<std::atomic<float>*,4> stereoSpreadValues{};
+ std::array<float,4> previousStereoSpread{{-1,-1,-1,-1}};
  void updateRouting();
  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MemoryLabProcessor)
 };

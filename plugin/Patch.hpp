@@ -11,7 +11,7 @@ inline void initialise(MemoryLabProcessor& processor){
  processor.updateHostDisplay();
 }
 inline juce::String encode(MemoryLabProcessor& processor){
- juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",20);
+ juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",21);
  for(auto* base:processor.getParameters())if(auto* p=dynamic_cast<juce::RangedAudioParameter*>(base)){
   auto* entry=root.createNewChildElement("PARAM");entry->setAttribute("id",p->paramID);
   entry->setAttribute("value",double(p->convertFrom0to1(p->getValue())));
@@ -23,12 +23,13 @@ inline juce::String encode(MemoryLabProcessor& processor){
 // message-thread action; it is deliberately separate from host state migration.
 inline juce::Result apply(MemoryLabProcessor& processor,const juce::String& text){
  auto root=juce::parseXML(text);
- if(!root||!root->hasTagName("MemoryLabPatch")||(root->getStringAttribute("schemaVersion")!="1"&&root->getStringAttribute("schemaVersion")!="2"&&root->getStringAttribute("schemaVersion")!="3"&&root->getStringAttribute("schemaVersion")!="4"&&root->getStringAttribute("schemaVersion")!="5"&&root->getStringAttribute("schemaVersion")!="6"&&root->getStringAttribute("schemaVersion")!="7"&&root->getStringAttribute("schemaVersion")!="8"&&root->getStringAttribute("schemaVersion")!="9"&&root->getStringAttribute("schemaVersion")!="10"&&root->getStringAttribute("schemaVersion")!="11"&&root->getStringAttribute("schemaVersion")!="12"&&root->getStringAttribute("schemaVersion")!="13"&&root->getStringAttribute("schemaVersion")!="14"&&root->getStringAttribute("schemaVersion")!="15"&&root->getStringAttribute("schemaVersion")!="16"&&root->getStringAttribute("schemaVersion")!="17"&&root->getStringAttribute("schemaVersion")!="18"&&root->getStringAttribute("schemaVersion")!="19"&&root->getStringAttribute("schemaVersion")!="20"))
+ if(!root||!root->hasTagName("MemoryLabPatch")||(root->getStringAttribute("schemaVersion")!="1"&&root->getStringAttribute("schemaVersion")!="2"&&root->getStringAttribute("schemaVersion")!="3"&&root->getStringAttribute("schemaVersion")!="4"&&root->getStringAttribute("schemaVersion")!="5"&&root->getStringAttribute("schemaVersion")!="6"&&root->getStringAttribute("schemaVersion")!="7"&&root->getStringAttribute("schemaVersion")!="8"&&root->getStringAttribute("schemaVersion")!="9"&&root->getStringAttribute("schemaVersion")!="10"&&root->getStringAttribute("schemaVersion")!="11"&&root->getStringAttribute("schemaVersion")!="12"&&root->getStringAttribute("schemaVersion")!="13"&&root->getStringAttribute("schemaVersion")!="14"&&root->getStringAttribute("schemaVersion")!="15"&&root->getStringAttribute("schemaVersion")!="16"&&root->getStringAttribute("schemaVersion")!="17"&&root->getStringAttribute("schemaVersion")!="18"&&root->getStringAttribute("schemaVersion")!="19"&&root->getStringAttribute("schemaVersion")!="20"&&root->getStringAttribute("schemaVersion")!="21"))
   return juce::Result::fail("This is not a supported Memory Lab patch.");
  const bool legacy=root->getStringAttribute("schemaVersion")=="1";
  const bool oldOscillators=legacy||root->getStringAttribute("schemaVersion")=="2";
  const bool oldNoise=oldOscillators||root->getStringAttribute("schemaVersion")=="3";
- const bool oldVoicePath=root->getStringAttribute("schemaVersion")!="20";
+ const bool oldStereo=root->getStringAttribute("schemaVersion")!="21";
+ const bool oldVoicePath=oldStereo&&root->getStringAttribute("schemaVersion")!="20";
  const bool oldOsc1Pwm=oldVoicePath&&root->getStringAttribute("schemaVersion")!="19";
  const bool oldFilterMod=oldOsc1Pwm&&root->getStringAttribute("schemaVersion")!="18";
  const bool oldEnvelopeOptions=oldFilterMod&&root->getStringAttribute("schemaVersion")!="17";
@@ -48,7 +49,7 @@ inline juce::Result apply(MemoryLabProcessor& processor,const juce::String& text
  std::vector<std::pair<juce::RangedAudioParameter*,float>> values;
  for(auto* entry:root->getChildIterator()){
   const auto id=entry->getStringAttribute("id");auto* p=processor.state.getParameter(id);
-  if(!entry->hasTagName("PARAM")||!p||(oldVoicePath&&id.endsWith("postFilterAmp"))||(oldOsc1Pwm&&id.contains("osc1Pwm"))||(oldFilterMod&&id.contains("filterMod"))||(oldEnvelopeOptions&&(id.endsWith("Curve")||id.endsWith("TimeScale")))||(oldPolarity&&id.endsWith("Unipolar"))||(oldParts&&(id.startsWith("part")||id=="splitNote"))||(oldModern&&(id=="modernEnabled"||id=="modernProfile"||id=="modernBandwidth"))||(oldVcos&&(id=="osc1PulseLevel"||id=="osc2SawLevel"||id=="osc1Width"))||(oldRoutes&&(id=="lfoAmp"||id=="lfo2Amp"||id=="lfo3Amp"||id=="lfo4Amp"||id=="ampPitch"||id=="fltPitch"||id=="env3Pwm"||id=="env4Pwm"))||(oldEnvelopes&&(id.startsWith("env3")||id.startsWith("env4")))||(oldMore&&(id.startsWith("lfo3")||id.startsWith("lfo4")))||(oldSecond&&id.startsWith("lfo2"))||(legacy&&id=="voiceDrive")||(oldOscillators&&(id=="sawLevel"||id=="pulseLevel"||id=="osc2Interval"))||(oldNoise&&id=="noiseLevel")||(oldExpression&&(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity"))||(oldClock&&(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm"))||(oldShape&&id=="lfoShape")||(oldFamily&&id=="filterFamily")||!seen.insert(id).second)
+  if(!entry->hasTagName("PARAM")||!p||(oldStereo&&id.endsWith("stereoSpread"))||(oldVoicePath&&id.endsWith("postFilterAmp"))||(oldOsc1Pwm&&id.contains("osc1Pwm"))||(oldFilterMod&&id.contains("filterMod"))||(oldEnvelopeOptions&&(id.endsWith("Curve")||id.endsWith("TimeScale")))||(oldPolarity&&id.endsWith("Unipolar"))||(oldParts&&(id.startsWith("part")||id=="splitNote"))||(oldModern&&(id=="modernEnabled"||id=="modernProfile"||id=="modernBandwidth"))||(oldVcos&&(id=="osc1PulseLevel"||id=="osc2SawLevel"||id=="osc1Width"))||(oldRoutes&&(id=="lfoAmp"||id=="lfo2Amp"||id=="lfo3Amp"||id=="lfo4Amp"||id=="ampPitch"||id=="fltPitch"||id=="env3Pwm"||id=="env4Pwm"))||(oldEnvelopes&&(id.startsWith("env3")||id.startsWith("env4")))||(oldMore&&(id.startsWith("lfo3")||id.startsWith("lfo4")))||(oldSecond&&id.startsWith("lfo2"))||(legacy&&id=="voiceDrive")||(oldOscillators&&(id=="sawLevel"||id=="pulseLevel"||id=="osc2Interval"))||(oldNoise&&id=="noiseLevel")||(oldExpression&&(id=="keyTrack"||id=="ampVelocity"||id=="filterVelocity"))||(oldClock&&(id=="lfoSync"||id=="lfoDivision"||id=="lfoRetrigger"||id=="lfoBpm"))||(oldShape&&id=="lfoShape")||(oldFamily&&id=="filterFamily")||!seen.insert(id).second)
    return juce::Result::fail("The patch contains an unknown or repeated control.");
   const auto raw=entry->getStringAttribute("value").trim();const auto* start=raw.toRawUTF8();char* end=nullptr;
   const double value=std::strtod(start,&end);
@@ -61,6 +62,7 @@ inline juce::Result apply(MemoryLabProcessor& processor,const juce::String& text
    return juce::Result::fail("The patch contains an invalid value for "+id+".");
   values.emplace_back(p,p->convertTo0to1(float(juce::jlimit(minimum,maximum,value))));
  }
+ if(oldStereo)for(auto*base:processor.getParameters())if(auto*p=dynamic_cast<juce::RangedAudioParameter*>(base))if(p->paramID.endsWith("stereoSpread")&&!(oldParts&&p->paramID.startsWith("part")))values.emplace_back(p,p->getDefaultValue());
  if(oldVoicePath)for(auto*base:processor.getParameters())if(auto*p=dynamic_cast<juce::RangedAudioParameter*>(base))if(p->paramID.endsWith("postFilterAmp")&&!(oldParts&&p->paramID.startsWith("part")))values.emplace_back(p,p->getDefaultValue());
  if(oldOsc1Pwm)for(auto*base:processor.getParameters())if(auto*p=dynamic_cast<juce::RangedAudioParameter*>(base))if(p->paramID.contains("osc1Pwm")&&!(oldParts&&p->paramID.startsWith("part")))values.emplace_back(p,p->getDefaultValue());
  if(oldFilterMod)for(auto*base:processor.getParameters())if(auto*p=dynamic_cast<juce::RangedAudioParameter*>(base))if(p->paramID.contains("filterMod")&&!(oldParts&&p->paramID.startsWith("part")))values.emplace_back(p,p->getDefaultValue());

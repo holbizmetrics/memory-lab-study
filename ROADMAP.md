@@ -24,11 +24,18 @@ where intentional behavior changes would otherwise alter saved sounds (notably
 envelope contours, bandwidth and voice signal path). Preserve defaults and old
 patch migration; avoid a separate switch for every internal implementation fix.
 
-## Active 0.25 voice-path checkpoint
+## Active 0.26 stereo checkpoint
+
+[VOICE / EXPRESSION / STEREO SPREAD](plugin/STEREO-SPREAD.md) positions voices
+across the main stereo output per part. Existing patches remain centered.
+Unison and additional output buses are separate work.
+
+## Completed 0.25 voice-path checkpoint
 
 [DRIVE / AMP POSITION](plugin/VOICE-PATH.md) offers a choice between amp
 envelope and velocity before the filter or after it. Existing patches start in
-Legacy. The mode is selected when each note begins.
+Legacy. The mode is selected when each note begins. Holger heard the clean
+and driven differences and confirmed an older patch loaded correctly in FL.
 
 ## Completed 0.24 oscillator checkpoint
 

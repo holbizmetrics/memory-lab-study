@@ -20,7 +20,7 @@ void voicePathChecks(){
  older->setAttribute("schemaVersion",19);
  for(int i=older->getNumChildElements()-1;i>=0;--i){
   auto* child=older->getChildElement(i);
-  if(child->getStringAttribute("id").endsWith("postFilterAmp"))older->removeChildElement(child,true);
+  if((child->getStringAttribute("id").endsWith("postFilterAmp")||child->getStringAttribute("id").endsWith("stereoSpread")))older->removeChildElement(child,true);
  }
  check(memorylab::patch::apply(*q,older->toString()).wasOk(),"schema19 migration");
  for(int part=0;part<4;++part)
