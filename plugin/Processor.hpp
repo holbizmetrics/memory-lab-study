@@ -5,6 +5,7 @@
 #include "RandomizerSession.hpp"
 #include "PresetSession.hpp"
 #include <array>
+#include <bitset>
 #include <limits>
 
 class MemoryLabProcessor final:public juce::AudioProcessor {
@@ -50,6 +51,12 @@ private:
  memorylab::Arpeggiator arp;
  std::array<std::atomic<float>*,7> arpValues{};
  bool arpEnabled=false,wasPlaying=false;
+ bool mpePitch=false;
+ std::atomic<float>* mpePitchValue=nullptr;
+ std::array<std::bitset<128>,16> memberNotes{};
+ std::bitset<16> pendingMemberBend;
+ void trackMemberMessage(int kind,int channel,const juce::uint8* data,int length);
+ bool managerControl(int controller,int value);
  void arpEmit(memorylab::EventKind,int,double,int);
  void render(float*,float*,int);
  double clockBpm=130;

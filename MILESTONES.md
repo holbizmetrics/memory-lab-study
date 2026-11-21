@@ -172,3 +172,13 @@ symmetric detune and the original eight-voice limit. 513 controls, patch
 schema 22 and host state 24. All 25 plugin and 13 native checks passed.
 38 earlier VST3 recordings stayed exact in both channels and four new
 stack captures passed. FL listening and project recall are pending.
+
+0.26 alpha.2 listening update: Holger confirmed the width and tone of the
+two- and four-voice stacks, and recalled four-voice unison after reopening
+the FL Studio project.
+
+0.27 alpha.1: PARTS / MPE PITCH adds opt-in lower-zone member pitch and
+manager bend, sustain and panic. 514 controls, patch schema 23 and host
+state 25. All 26 plug-in and 13 native checks passed, including measured
+pitch checks through the built VST3. 42 prior captures and Two Lanterns
+matched both channels exactly. FL routing, listening and recall are pending.

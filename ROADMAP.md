@@ -24,13 +24,20 @@ where intentional behavior changes would otherwise alter saved sounds (notably
 envelope contours, bandwidth and voice signal path). Preserve defaults and old
 patch migration; avoid a separate switch for every internal implementation fix.
 
-## Active 0.26 stereo and unison checkpoint
+## Active 0.27 lower-zone pitch checkpoint
+
+[MPE PITCH](plugin/MPE-PITCH.md) adds independent member-channel bends
+and a zone-wide manager bend. Existing projects use the earlier MIDI
+behavior by default. Dedicated pressure and timbre routing remain ahead.
+
+## Completed 0.26 stereo and unison checkpoint
 
 [VOICE / EXPRESSION / STEREO SPREAD](plugin/STEREO-SPREAD.md) positions voices
 across the main stereo output per part. Holger heard the effect with two
 notes in FL Studio. [Unison](plugin/UNISON.md) adds one, two or four voices
 per note within each part's reservation. Additional output buses remain
 separate work.
+Holger confirmed unison by ear and recalled the four-voice setting in FL.
 
 ## Completed 0.25 voice-path checkpoint
 

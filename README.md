@@ -3,6 +3,11 @@
 The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
 now identify confirmed gaps, approximations and unknowns after approved 0.20.
 
+0.27 alpha.1 adds opt-in [lower-zone pitch expression](plugin/MPE-PITCH.md)
+on PARTS. Bend one note or its full unison stack independently, or use the
+manager wheel to bend the zone. The first 513 host controls keep their order.
+See [prerelease notes](releases/v0.27.0-alpha.1.md).
+
 0.26 alpha.2 adds [per-part unison](plugin/UNISON.md) next to
 [stereo spread](plugin/STEREO-SPREAD.md) under VOICE / EXPRESSION.
 Earlier patches default to one voice per note. 513 total controls.

@@ -217,9 +217,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout()
   result.add(std::make_unique<juce::AudioParameterFloat>(
    juce::ParameterID{partId(part,"unisonDetune"),1},name+"detune (cents)",juce::NormalisableRange<float>{0,50,.1f},12.f));
  }
+ result.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID{"mpePitch",1},"MPE lower-zone pitch",false));
  return result;
 }
 MemoryLabProcessor::MemoryLabProcessor():AudioProcessor(BusesProperties().withOutput("Output",juce::AudioChannelSet::stereo(),true)),state(*this,nullptr,"MemoryLabState",layout()){
+ mpePitchValue=state.getRawParameterValue("mpePitch");
  for(int part=0;part<4;++part){
   unisonSizeValues[part]=state.getRawParameterValue(partId(part,"unisonSize"));
   unisonDetuneValues[part]=state.getRawParameterValue(partId(part,"unisonDetune"));
@@ -276,9 +278,13 @@ void MemoryLabProcessor::updateRouting(){
  else if(next[0]==1||next[0]==2){layout[0].voices=layout[1].voices=4;if(next[0]==2){layout[0].high=next[1]-1;layout[1].low=next[1];}}
  else for(auto&p:layout)p.voices=2;
  for(int p=0;p<4;++p)layout[p].channel=next[p+2]-1;
- if(synth.configure(layout)){previousRouting=next;arp.reset();}
+ if(synth.configure(layout)){
+  previousRouting=next;
+  arp.reset();
+  if(mpePitch){synth.setMpePitch(true);memberNotes={};pendingMemberBend.reset();}
+ }
 }
-void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);if(ready)renderSampleRate=rate;arp.reset();arpEnabled=false;wasPlaying=false;keyboard.reset();outputPeak=0;voiceCount=0;arpStep=0;previousStereoSpread.fill(-1);previousUnisonSize.fill(-1);previousUnisonDetune.fill(-1);previousPostFilterAmp.fill(-1);for(auto&row:osc1PwmPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:filterRoutePrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:envelopeOptionPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:polarityPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previousRouting={0,60,0,0,0,0};setLatencySamples(0);}
+void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);if(ready)renderSampleRate=rate;arp.reset();arpEnabled=false;wasPlaying=false;mpePitch=false;memberNotes={};pendingMemberBend.reset();keyboard.reset();outputPeak=0;voiceCount=0;arpStep=0;previousStereoSpread.fill(-1);previousUnisonSize.fill(-1);previousUnisonDetune.fill(-1);previousPostFilterAmp.fill(-1);for(auto&row:osc1PwmPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:filterRoutePrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:envelopeOptionPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:polarityPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previousRouting={0,60,0,0,0,0};setLatencySamples(0);}
 void MemoryLabProcessor::arpEmit(memorylab::EventKind kind,int note,double velocity,int channel){synth.dispatch({0,kind,note,velocity,channel});}
 void MemoryLabProcessor::render(float*left,float*right,int count){
  if(!arpEnabled){synth.render(left,std::size_t(count),nullptr,0,right);return;}
@@ -287,8 +293,50 @@ void MemoryLabProcessor::render(float*left,float*right,int count){
   [this,left,right](int offset,int length){synth.render(left+offset,std::size_t(length),nullptr,0,right?right+offset:nullptr);});
 }
 juce::AudioProcessorEditor* MemoryLabProcessor::createEditor(){return new MemoryLabEditor(*this);}
+void MemoryLabProcessor::trackMemberMessage(int kind,int channel,const juce::uint8* data,int length){
+ if(channel==0||length<3||data[1]>=128||data[2]>=128)return;
+ auto& notes=memberNotes[channel];
+ if(kind==0xe0){
+  if(notes.none())pendingMemberBend.set(channel);
+ }else if(kind==0x90&&data[2]!=0){
+  if(notes.none()&&!pendingMemberBend[channel])synth.dispatch({0,memorylab::EventKind::PitchBend,0,0,channel});
+  notes.set(data[1]);
+  pendingMemberBend.reset(channel);
+ }else if(kind==0x80||kind==0x90){
+  notes.reset(data[1]);
+ }else if(kind==0xb0&&(data[1]==120||data[1]==123)){
+  notes.reset();
+  pendingMemberBend.reset(channel);
+ }
+}
+bool MemoryLabProcessor::managerControl(int controller,int value){
+ using memorylab::EventKind;
+ if(controller!=64&&controller!=120&&controller!=121&&controller!=123)return false;
+ auto emit=[this](auto kind,int note,double velocity,int channel){arpEmit(kind,note,velocity,channel);};
+ for(int channel=0;channel<16;++channel){
+  if(controller==64){
+   if(arpEnabled)arp.sustain(channel,value>=64,emit);
+   else synth.dispatch({0,EventKind::Sustain,0,value>=64?1.:0.,channel});
+  }else if(controller==121){
+   if(arpEnabled)arp.sustain(channel,false,emit);
+   synth.dispatch({0,EventKind::Sustain,0,0,channel});
+   synth.dispatch({0,EventKind::PitchBend,0,0,channel});
+   synth.dispatch({0,EventKind::ChannelPressure,0,0,channel});
+  }else if(arpEnabled)arp.clearChannel(channel,emit);
+ }
+ if(controller==120||controller==123){
+  synth.dispatch({0,controller==120?EventKind::AllSoundOff:EventKind::AllOff});
+  memberNotes={};
+ }
+ if(controller!=64)pendingMemberBend.reset();
+ return true;
+}
 void MemoryLabProcessor::midi(const juce::uint8*data,int length){
  if(length<1)return;const int kind=data[0]&0xf0,channel=data[0]&0xf;using namespace memorylab;
+ if(mpePitch){
+  if(channel==0&&kind==0xb0&&length>=3&&data[1]<128&&data[2]<128&&managerControl(data[1],data[2]))return;
+  trackMemberMessage(kind,channel,data,length);
+ }
  auto dispatch=[&](EventKind k,int note,double value){synth.dispatch({0,k,note,value,channel});};
  auto emit=[this](auto k,int note,double value,int c){arpEmit(k,note,value,c);};
  if(arpEnabled){
@@ -359,6 +407,14 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
    previousUnisonDetune[part]=detune;
   }
  }
+ const bool lowerZone=mpePitchValue->load()>=.5f;
+ if(lowerZone!=mpePitch){
+  mpePitch=lowerZone;
+  synth.setMpePitch(mpePitch);
+  memberNotes={};
+  pendingMemberBend.reset();
+  arp.reset();
+ }
  updateRouting();
  const int count=audio.getNumSamples();
  auto* left=audio.getWritePointer(0);
@@ -401,7 +457,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",24,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",25,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,

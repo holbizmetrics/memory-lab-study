@@ -45,6 +45,10 @@ public:
   allocator=PartAllocator{};
   ready=true;return true;
  }
+ void setMpePitch(bool enabled){
+  dispatch({0,EventKind::AllSoundOff});
+  for(auto& part:parts)part.setMpePitch(enabled);
+ }
  const PartAllocator::Layout& layout()const{return allocator.layout();}
  bool setUnisonSize(int part,int size){
   if(part<0||part>3)return false;

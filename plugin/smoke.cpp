@@ -33,6 +33,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "voice-path-checks.hpp"
 #include "stereo-spread-checks.hpp"
 #include "unison-checks.hpp"
+#include "mpe-pitch-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -68,6 +69,34 @@ int main(int argc,char**argv){try{
  if(argc==2&&std::string(argv[1])=="--voice-path-test"){juce::ScopedJuceInitialiser_GUI gui;voicePathChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--stereo-spread-test"){juce::ScopedJuceInitialiser_GUI gui;stereoSpreadChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--unison-test"){juce::ScopedJuceInitialiser_GUI gui;unisonChecks();return 0;}
+ if(argc==2&&std::string(argv[1])=="--mpe-pitch-test"){
+  juce::ScopedJuceInitialiser_GUI gui;
+  auto processor=std::make_unique<MemoryLabProcessor>();
+  auto* mode=processor->state.getParameter("mpePitch");
+  check(mode==processor->getParameters()[513]&&mode->getDefaultValue()==0,"MPE mode append/default");
+  mpePitchAudioChecks(*processor);
+  const auto patch=memorylab::patch::encode(*processor);
+  auto older=juce::parseXML(patch);
+  older->setAttribute("schemaVersion",22);
+  auto* option=older->getChildByAttribute("id","mpePitch");
+  check(option!=nullptr,"MPE patch mode");
+  older->removeChildElement(option,true);
+  check(memorylab::patch::apply(*processor,older->toString()).wasOk()&&mode->getValue()==0,"MPE legacy patch migration");
+  check(memorylab::patch::apply(*processor,patch).wasOk()&&mode->getValue()==1,"MPE patch recall");
+  juce::MemoryBlock host;
+  processor->getStateInformation(host);
+  mode->setValueNotifyingHost(0);
+  processor->setStateInformation(host.getData(),int(host.getSize()));
+  check(mode->getValue()==1,"MPE host recall");
+  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(processor->createEditor());
+  auto* parts=dynamic_cast<juce::Button*>(find(*editor,"partsPage"));
+  check(parts&&parts->onClick,"MPE Parts navigation");
+  parts->onClick();
+  auto* toggle=dynamic_cast<juce::ToggleButton*>(find(*editor,"mpePitch"));
+  check(toggle&&toggle->isVisible()&&toggle->getToggleState(),"MPE Parts toggle");
+  std::cout<<"PASS MPE pitch, chord/stack isolation, manager sustain and pitch, channel reuse, panic and recall\n";
+  return 0;
+ }
  if(argc==2&&std::string(argv[1])=="--envelope-character-test"){juce::ScopedJuceInitialiser_GUI gui;envelopeCharacterChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--integration-test"){juce::ScopedJuceInitialiser_GUI gui;integrationChecks();return 0;}
  if(argc==2&&std::string(argv[1])=="--polarity-test"){juce::ScopedJuceInitialiser_GUI gui;polarityChecks();return 0;}

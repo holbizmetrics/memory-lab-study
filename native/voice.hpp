@@ -134,7 +134,7 @@ public:
  }
 };
 struct Voice {
- double stackPosition=0,stackGain=1;
+ double stackPosition=0,stackGain=1,releasedMemberBend=0;
  std::uint32_t noiseState=1;
  bool active=false,gate=false,postFilterAmp=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
@@ -205,6 +205,7 @@ class Synth {
  double voiceDriveGain=1,voiceDriveMix=0;
  std::array<double,3> filterWeights{};
  std::array<bool,16> sustain{};
+ bool mpePitch=false;
  std::array<double,16> bend{},bendTarget{},pressure{},pressureTarget{};
  void release(Voice& v){v.gate=false;v.ampEnv.noteOff(sr);v.filterEnv.noteOff(sr);v.env3.noteOff(sr);v.env4.noteOff(sr);}
  void apply(const Event& e){
@@ -336,10 +337,10 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
     case Param::Lfo4Bpm:target.lfo4Bpm=std::clamp(e.value,20.,400.);break;
    }return;
   }
-  if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){v.keyDown=false;release(v);}return;}
+  if(e.kind==EventKind::AllOff){sustain.fill(false);for(auto& v:voices)if(v.active){liftKey(v);release(v);}return;}
   if(e.kind==EventKind::AllSoundOff){voices={};sustain.fill(false);clearMix();return;}
   if(e.channel<0||e.channel>15||!std::isfinite(e.value))return;
-  if(e.kind==EventKind::ChannelAllOff){sustain[e.channel]=false;for(auto&v:voices)if(v.active&&v.channel==e.channel){v.keyDown=false;release(v);}return;}
+  if(e.kind==EventKind::ChannelAllOff){sustain[e.channel]=false;for(auto&v:voices)if(v.active&&v.channel==e.channel){liftKey(v);release(v);}return;}
   if(e.kind==EventKind::ChannelAllSoundOff){sustain[e.channel]=false;bool any=false;for(auto&v:voices){if(v.channel==e.channel)v=Voice{};any|=v.active;}if(!any)clearMix();return;}
   if(e.kind==EventKind::Sustain){const bool down=e.value>=.5;sustain[e.channel]=down;
    if(!down)for(auto&v:voices)if(v.active&&v.channel==e.channel&&!v.keyDown&&v.gate)release(v);return;}
@@ -348,7 +349,7 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   if(e.kind!=EventKind::NoteOn&&e.kind!=EventKind::NoteOff)return;
   if(e.note<0||e.note>127||e.channel<0||e.channel>15||!std::isfinite(e.value))return;
   if(e.kind==EventKind::NoteOff||(e.kind==EventKind::NoteOn&&e.value<=0)){
-   for(auto& v:voices)if(v.active&&v.note==e.note&&v.channel==e.channel&&v.keyDown){v.keyDown=false;if(!sustain[e.channel])release(v);}return;
+   for(auto& v:voices)if(v.active&&v.note==e.note&&v.channel==e.channel&&v.keyDown){liftKey(v);if(!sustain[e.channel])release(v);}return;
   }
   Voice* chosen=nullptr;
   for(auto& v:voices)if(v.active&&v.note==e.note&&v.channel==e.channel){chosen=&v;break;}
@@ -357,7 +358,12 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   if(!chosen)chosen=&*std::min_element(voices.begin(),voices.end(),[](const Voice&a,const Voice&b){return a.age<b.age;});
   startVoice(chosen,e);
  }
+ void liftKey(Voice& voice){
+  if(mpePitch&&voice.keyDown)voice.releasedMemberBend=bend[voice.channel];
+  voice.keyDown=false;
+ }
  void startVoice(Voice* chosen,const Event&e){
+  if(mpePitch&&e.channel!=0&&heldVoices(e.channel)==0)bend[e.channel]=bendTarget[e.channel];
   const double phase1=chosen->phase1,phase2=chosen->phase2;
   const bool replacing=chosen->active;const double oldOutput=chosen->lastOutput;
   *chosen=Voice{};chosen->active=chosen->gate=true;chosen->note=e.note;chosen->channel=e.channel;
@@ -390,7 +396,12 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   const double lfo4=active4?lfoPolarity(rawLfo4,current.lfoUnipolar[3]):0;
   v.lfo4Phase+=(target.lfo4Sync?syncedLfoHz(target.lfo4Bpm,target.lfo4Division):current.lfo4Rate)/sr;v.lfo4Phase-=std::floor(v.lfo4Phase);
   const double env3=v.env3.tick(sr),env4=v.env4.tick(sr),ampContour=v.ampEnv.tick(sr);
-  double pitch=current.pitchLfo*lfo+200*bend[v.channel];if(current.lfo2Pitch!=0)pitch+=current.lfo2Pitch*lfo2;if(current.lfo3Pitch!=0)pitch+=current.lfo3Pitch*lfo3;if(current.lfo4Pitch!=0)pitch+=current.lfo4Pitch*lfo4;
+  double pitch=current.pitchLfo*lfo+200*bend[v.channel];
+  if(mpePitch&&v.channel!=0){
+   const double memberBend=v.keyDown?bend[v.channel]:v.releasedMemberBend;
+   pitch=current.pitchLfo*lfo+200*bend[0]+4800*memberBend;
+  }
+  if(current.lfo2Pitch!=0)pitch+=current.lfo2Pitch*lfo2;if(current.lfo3Pitch!=0)pitch+=current.lfo3Pitch*lfo3;if(current.lfo4Pitch!=0)pitch+=current.lfo4Pitch*lfo4;
   if(current.env3Pitch!=0)pitch+=current.env3Pitch*env3;
   if(current.env4Pitch!=0)pitch+=current.env4Pitch*env4;
   if(current.ampPitch!=0)pitch+=current.ampPitch*ampContour;
@@ -504,7 +515,8 @@ public:
  std::uint64_t studyClippedVoiceSamples()const{return studyClipped;}
 #endif
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
- void reset(){voices={};clock=0;freeLfoPhase=freeLfo2Phase=freeLfo3Phase=freeLfo4Phase=0;target=current=Parameters{};voiceDriveGain=1;voiceDriveMix=0;filterWeights={};memory.prepare(sr);wideRunning=false;sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
+ void setMpePitch(bool enabled){mpePitch=enabled;bend={};bendTarget={};}
+ void reset(){mpePitch=false;voices={};clock=0;freeLfoPhase=freeLfo2Phase=freeLfo3Phase=freeLfo4Phase=0;target=current=Parameters{};voiceDriveGain=1;voiceDriveMix=0;filterWeights={};memory.prepare(sr);wideRunning=false;sustain.fill(false);bend={};bendTarget={};pressure={};pressureTarget={};}
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
  void primeParameters(){current=target;memory.prime(target);wideRunning=false;for(int i=0;i<3;++i)filterWeights[i]=target.filterFamily==i+1?1.:0.;}
  std::size_t heldVoices(int channel=-1)const{std::size_t n=0;for(const auto&v:voices)if(v.active&&v.keyDown&&(channel<0||v.channel==channel))++n;return n;}

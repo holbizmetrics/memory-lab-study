@@ -5,6 +5,8 @@ class PartPanel final:public juce::Component {
  MemoryLabProcessor&processor;
  juce::ComboBox mode;
  juce::Slider split;
+ juce::ToggleButton mpePitch{"MPE PITCH"};
+ std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> mpePitchAttachment;
  std::array<juce::ComboBox,4>channels;
  std::array<juce::TextButton,4>edit,copy;
  std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>modeAttachment;
@@ -21,6 +23,9 @@ public:
   addAndMakeVisible(split);split.setComponentID("splitNote");split.setSliderStyle(juce::Slider::LinearHorizontal);split.setTextBoxStyle(juce::Slider::TextBoxRight,false,55,26);
   split.setTooltip("2-way split: Part 1 below this MIDI note number; Part 2 from this note upward. Routing edits clear held notes.");
   splitAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(p.state,"splitNote",split);
+  addAndMakeVisible(mpePitch);mpePitch.setComponentID("mpePitch");
+  mpePitch.setTooltip("Lower-zone pitch: channel 1 bends the zone; channels 2 to 16 bend individual notes. Set MIDI INPUT to OMNI for the part.");
+  mpePitchAttachment=std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(p.state,"mpePitch",mpePitch);
   for(int part=0;part<4;++part){
    addAndMakeVisible(edit[part]);edit[part].setComponentID("editPart"+juce::String(part+1));edit[part].setButtonText("EDIT PART "+juce::String(part+1));
    edit[part].onClick=[this,part]{processor.editingPart=part;if(onSelect)onSelect();};
@@ -35,7 +40,7 @@ public:
  }
  void refresh(){split.setEnabled(allocation()==2);split.setAlpha(allocation()==2?1.f:.35f);for(int p=0;p<4;++p)edit[p].setToggleState(processor.editingPart.load()==p,juce::dontSendNotification);repaint();}
  void resized()override{
-  mode.setBounds(32,72,260,32);split.setBounds(335,72,330,32);
+  mode.setBounds(32,72,260,32);split.setBounds(335,72,330,32);mpePitch.setBounds(690,72,145,32);
   for(int p=0;p<4;++p){const int y=150+p*44;edit[p].setBounds(32,y,165,32);copy[p].setBounds(222,y,135,32);channels[p].setBounds(390,y,165,32);}
  }
  void paint(juce::Graphics&g)override{
