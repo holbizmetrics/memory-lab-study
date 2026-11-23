@@ -234,7 +234,7 @@ const std::array<Control,8>filterModControls{{
  {"filterModLfoRes","LFO 1 RES","Q","LFO 1 adds to base resonance. Final Q clamps to 0.5..8. Source polarity follows CLOCK 1."},
  {"profile","CLASSIC BASE","","Base HP/notch/LP profile. Used with Modern OFF and Family CLASSIC. The graph shows base values, not per-voice modulation."},
  {"modernProfile","MODERN BASE","","Base modern profile when Modern is ON. Enable Modern on FILTER / MODERN. Graph shows base values."},
- {"resonance","BASE RES","Q","Base resonance before the new ENV 3 / LFO 1 routes."},
+ {"mpeTimbreDepth","MPE TIMBRE","oct","Member-channel CC 74 to cutoff. Requires MPE PITCH on PARTS. CC 74 at 64 is neutral."},
  {"cutoff","BASE CUTOFF","Hz","Base cutoff; existing cutoff modulation remains independent."}
 }};
 class PanelLook final:public juce::LookAndFeel_V4 {
@@ -426,7 +426,7 @@ public:
  }
  void paint(juce::Graphics&g)override{
   g.fillAll(ink);g.setColour(white);g.setFont(juce::Font(juce::FontOptions(27.f,juce::Font::bold)));g.drawText("MEMORY LAB",30,20,320,36,juce::Justification::centredLeft);
-  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("0.27a2 / PART "+juce::String(processor.editingPart.load()+1),240,29,90,20,juce::Justification::centredLeft);
+  g.setColour(muted);g.setFont(juce::Font(juce::FontOptions(12.f)));g.drawText("0.27a3 / PART "+juce::String(processor.editingPart.load()+1),240,29,90,20,juce::Justification::centredLeft);
   g.setColour(panel);g.fillRoundedRectangle(28,82,866,236,12);g.fillRoundedRectangle(912,82,100,426,12);
   g.setColour(juce::Colour(0xff090f10));g.fillRoundedRectangle(40,94,842,212,7);
   const auto&c=controls()[std::size_t(selected)];g.setColour(isMotion?amber:mint);g.setFont(juce::Font(juce::FontOptions(14.f)));g.drawText(c.name,60,110,285,26,juce::Justification::centredLeft);

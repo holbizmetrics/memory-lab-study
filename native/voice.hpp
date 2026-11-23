@@ -63,7 +63,7 @@ struct Parameters {
  bool retrigger=true;
  double lfoRate=4.5,pitchLfo=0,pwmLfo=0,cutoffLfo=0,filterEnvelope=0;
  double keyTrack=0,ampVelocity=1,filterVelocity=1;
- double pressureDepth=0,mpePressureDepth=0,voiceDrive=0,sawLevel=.42,pulseLevel=.28,osc2Interval=0,noiseLevel=0;
+ double pressureDepth=0,mpePressureDepth=0,mpeTimbreDepth=0,voiceDrive=0,sawLevel=.42,pulseLevel=.28,osc2Interval=0,noiseLevel=0;
  int filterFamily=0,lfoShape=0,lfoDivision=2;
  bool lfoSync=false,lfoRetrigger=true;double lfoBpm=130;
  double lfo2Rate=.7,lfo2Pitch=0,lfo2Pwm=0,lfo2Cutoff=0,lfo2Bpm=130;
@@ -102,8 +102,8 @@ public:
   return y;
  }
 };
-enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff,ResetMemberPressure};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1,Osc1Lfo1Pwm,Osc1Lfo2Pwm,Osc1Lfo3Pwm,Osc1Lfo4Pwm,Osc1Env3Pwm,Osc1Env4Pwm,PostFilterAmp,StereoSpread,UnisonDetune,MpePressureDepth};
+enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff,ResetMemberPressure,MemberTimbre};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1,Osc1Lfo1Pwm,Osc1Lfo2Pwm,Osc1Lfo3Pwm,Osc1Lfo4Pwm,Osc1Env3Pwm,Osc1Env4Pwm,PostFilterAmp,StereoSpread,UnisonDetune,MpePressureDepth,MpeTimbreDepth};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -134,7 +134,7 @@ public:
  }
 };
 struct Voice {
- double stackPosition=0,stackGain=1,releasedMemberBend=0,releasedMemberPressure=0;
+ double stackPosition=0,stackGain=1,releasedMemberBend=0,releasedMemberPressure=0,releasedMemberTimbre=0;
  std::uint32_t noiseState=1;
  bool active=false,gate=false,postFilterAmp=false;int note=0,channel=0;std::uint64_t age=0;
  double phase1=0,phase2=.17,env=0,velocity=0,elapsed=0,releaseStep=0;
@@ -207,7 +207,7 @@ class Synth {
  std::array<bool,16> sustain{};
  bool mpePitch=false;
  std::array<double,16> bend{},bendTarget{},pressure{},pressureTarget{};
- std::array<double,16> memberPressure{},memberPressureTarget{};
+ std::array<double,16> memberPressure{},memberPressureTarget{},memberTimbre{},memberTimbreTarget{};
  void release(Voice& v){v.gate=false;v.ampEnv.noteOff(sr);v.filterEnv.noteOff(sr);v.env3.noteOff(sr);v.env4.noteOff(sr);}
  void apply(const Event& e){
   if(e.kind==EventKind::Parameter){
@@ -228,6 +228,7 @@ class Synth {
     case Param::PwmLfo:target.pwmLfo=std::clamp(e.value,-.35,.35);break;
     case Param::CutoffLfo:target.cutoffLfo=std::clamp(e.value,-2.,2.);break;
     case Param::FilterEnvelope:target.filterEnvelope=std::clamp(e.value,-4.,4.);break;
+    case Param::MpeTimbreDepth:target.mpeTimbreDepth=std::clamp(e.value,-2.,2.);break;
     case Param::MpePressureDepth:target.mpePressureDepth=std::clamp(e.value,-2.,2.);break;
     case Param::PressureDepth:target.pressureDepth=std::clamp(e.value,-2.,2.);break;
     case Param::Osc1PulseLevel:target.osc1PulseLevel=std::clamp(e.value,0.0,1.0);break;
@@ -347,6 +348,10 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   if(e.kind==EventKind::Sustain){const bool down=e.value>=.5;sustain[e.channel]=down;
    if(!down)for(auto&v:voices)if(v.active&&v.channel==e.channel&&!v.keyDown&&v.gate)release(v);return;}
   if(e.kind==EventKind::PitchBend){bendTarget[e.channel]=std::clamp(e.value,-1.,1.);return;}
+  if(e.kind==EventKind::MemberTimbre){
+   if(mpePitch&&e.channel!=0)memberTimbreTarget[e.channel]=std::clamp(e.value,-1.,1.);
+   return;
+  }
   if(e.kind==EventKind::ResetMemberPressure){memberPressureTarget[e.channel]=0;return;}
   if(e.kind==EventKind::ChannelPressure){
    pressureTarget[e.channel]=std::clamp(e.value,0.,1.);
@@ -369,6 +374,7 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   if(mpePitch&&voice.keyDown){
    voice.releasedMemberBend=bend[voice.channel];
    voice.releasedMemberPressure=memberPressure[voice.channel];
+   voice.releasedMemberTimbre=memberTimbre[voice.channel];
   }
   voice.keyDown=false;
  }
@@ -376,6 +382,7 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   if(mpePitch&&e.channel!=0&&heldVoices(e.channel)==0){
    bend[e.channel]=bendTarget[e.channel];
    memberPressure[e.channel]=memberPressureTarget[e.channel];
+   memberTimbre[e.channel]=memberTimbreTarget[e.channel];
   }
   const double phase1=chosen->phase1,phase2=chosen->phase2;
   const bool replacing=chosen->active;const double oldOutput=chosen->lastOutput;
@@ -467,6 +474,10 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
    const double amount=v.keyDown?memberPressure[v.channel]:v.releasedMemberPressure;
    cutoffExponent+=current.mpePressureDepth*amount;
   }
+  if(mpePitch&&v.channel!=0&&current.mpeTimbreDepth!=0){
+   const double amount=v.keyDown?memberTimbre[v.channel]:v.releasedMemberTimbre;
+   cutoffExponent+=current.mpeTimbreDepth*amount;
+  }
   if(current.lfo2Cutoff!=0)cutoffExponent+=current.lfo2Cutoff*lfo2;
   if(current.lfo3Cutoff!=0)cutoffExponent+=current.lfo3Cutoff*lfo3;
   if(current.lfo4Cutoff!=0)cutoffExponent+=current.lfo4Cutoff*lfo4;
@@ -532,7 +543,7 @@ public:
  std::uint64_t studyClippedVoiceSamples()const{return studyClipped;}
 #endif
  bool prepare(double rate){if(!std::isfinite(rate)||rate<44100||rate>192000)return false;sr=rate;bank.prepare();reset();return true;}
- void setMpePitch(bool enabled){mpePitch=enabled;bend={};bendTarget={};memberPressure={};memberPressureTarget={};}
+ void setMpePitch(bool enabled){mpePitch=enabled;bend={};bendTarget={};memberPressure={};memberPressureTarget={};memberTimbre={};memberTimbreTarget={};}
  void reset(){setMpePitch(false);voices={};clock=0;freeLfoPhase=freeLfo2Phase=freeLfo3Phase=freeLfo4Phase=0;target=current=Parameters{};voiceDriveGain=1;voiceDriveMix=0;filterWeights={};memory.prepare(sr);wideRunning=false;sustain.fill(false);pressure={};pressureTarget={};}
  std::size_t activeVoices()const{std::size_t n=0;for(const auto&v:voices)n+=v.active;return n;}
  void primeParameters(){current=target;memory.prime(target);wideRunning=false;for(int i=0;i<3;++i)filterWeights[i]=target.filterFamily==i+1?1.:0.;}
@@ -615,6 +626,7 @@ public:
    current.env4Pwm+=(target.env4Pwm-current.env4Pwm)*smooth;
    if(target.env4Pwm==0&&std::abs(current.env4Pwm)<1e-8)current.env4Pwm=0;
    current.filterEnvelope+=(target.filterEnvelope-current.filterEnvelope)*smooth;
+   current.mpeTimbreDepth+=(target.mpeTimbreDepth-current.mpeTimbreDepth)*smooth;
    current.mpePressureDepth+=(target.mpePressureDepth-current.mpePressureDepth)*smooth;
    current.pressureDepth+=(target.pressureDepth-current.pressureDepth)*smooth;
    current.keyTrack+=(target.keyTrack-current.keyTrack)*smooth;
@@ -645,8 +657,10 @@ public:
    if(target.voiceDrive==0&&current.voiceDrive<1e-6)current.voiceDrive=0;
    voiceDriveMix=std::min(1.,current.voiceDrive);
    voiceDriveGain=voiceDriveMix>0?std::pow(10.,current.voiceDrive/20.):1;
-   if(mpePitch)for(int channel=1;channel<16;++channel)
+   if(mpePitch)for(int channel=1;channel<16;++channel){
     memberPressure[channel]+=(memberPressureTarget[channel]-memberPressure[channel])*smooth;
+    memberTimbre[channel]+=(memberTimbreTarget[channel]-memberTimbre[channel])*smooth;
+   }
    for(int channel=0;channel<16;++channel){bend[channel]+=(bendTarget[channel]-bend[channel])*smooth;pressure[channel]+=(pressureTarget[channel]-pressure[channel])*smooth;}
    current.unisonDetune+=(target.unisonDetune-current.unisonDetune)*smooth;
    current.stereoSpread+=(target.stereoSpread-current.stereoSpread)*smooth;

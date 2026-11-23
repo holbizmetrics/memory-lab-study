@@ -193,3 +193,14 @@ state 26. 27 plug-in and 13 native checks passed. The built VST3 passed
 pitch and pressure checks, and 42 prior captures plus Two Lanterns matched
 in both channels. Holger confirmed the existing PRESSURE route using the
 FL MIDI Out AFT knob. Dedicated MPE pressure listening and recall are pending.
+
+0.27 alpha.2 listening update: Holger heard positive pressure depth and
+confirmed that at −2.00 with the original PRESSURE depth at zero, channel 2
+darkened while channel 3 stayed steady. He repeated the sweep successfully
+after reopening the FL project. Internal port 20 worked with loopMIDI closed.
+
+0.27 alpha.3: FILTER / MOD ROUTES / MPE TIMBRE adds bipolar CC 74
+to cutoff per part. 522 controls, schema 25 and host state 27. 28 plug-in
+and 13 native checks passed. Pitch, pressure and timbre passed in the built
+VST3. 42 existing captures and Two Lanterns stayed exact in both channels.
+FL timbre listening and project recall are pending.

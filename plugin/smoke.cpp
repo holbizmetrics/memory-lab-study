@@ -34,7 +34,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "stereo-spread-checks.hpp"
 #include "unison-checks.hpp"
 #include "mpe-pitch-checks.hpp"
-#include "mpe-pressure-checks.hpp"
+#include "mpe-cutoff-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -84,7 +84,7 @@ int main(int argc,char**argv){try{
   older->removeChildElement(option,true);
   for(int i=older->getNumChildElements()-1;i>=0;--i){
    auto* child=older->getChildElement(i);
-   if(child->getStringAttribute("id").endsWith("mpePressureDepth"))older->removeChildElement(child,true);
+   if(child->getStringAttribute("id").endsWith("mpePressureDepth")||child->getStringAttribute("id").endsWith("mpeTimbreDepth"))older->removeChildElement(child,true);
   }
   check(memorylab::patch::apply(*processor,older->toString()).wasOk()&&mode->getValue()==0,"MPE legacy patch migration");
   check(memorylab::patch::apply(*processor,patch).wasOk()&&mode->getValue()==1,"MPE patch recall");
@@ -110,7 +110,7 @@ int main(int argc,char**argv){try{
    auto* parameter=p->state.getParameter(id);
    check(parameter&&parameter==p->getParameters()[514+part]&&parameter->getDefaultValue()==.5f,"MPE pressure append/default");
   }
-  mpePressureAudioChecks(*p);
+  mpeCutoffAudioChecks(*p,false);
   set(*p,"part2__mpePressureDepth",-1);
   set(*p,"mpePressureDepth",1.5f);
   const auto patch=memorylab::patch::encode(*p);
@@ -118,7 +118,7 @@ int main(int argc,char**argv){try{
   old->setAttribute("schemaVersion",23);
   for(int i=old->getNumChildElements()-1;i>=0;--i){
    auto* entry=old->getChildElement(i);
-   if(entry->getStringAttribute("id").endsWith("mpePressureDepth"))old->removeChildElement(entry,true);
+   if(entry->getStringAttribute("id").endsWith("mpePressureDepth")||entry->getStringAttribute("id").endsWith("mpeTimbreDepth"))old->removeChildElement(entry,true);
   }
   check(memorylab::patch::apply(*p,old->toString()).wasOk()&&p->state.getRawParameterValue("mpePressureDepth")->load()==0&&p->state.getRawParameterValue("mpePitch")->load()==1,"MPE pressure schema 23 migration");
   check(memorylab::patch::apply(*p,patch).wasOk()&&memorylab::patch::encode(*p)==patch,"MPE pressure patch recall");
@@ -134,6 +134,44 @@ int main(int argc,char**argv){try{
   expression->onClick();
   check(find(*editor,"part2__mpePressureDepth")!=nullptr,"MPE pressure selected-part editor control");
   std::cout<<"PASS MPE pressure polarity, isolation, smoothing, sustain, reuse and recall\n";
+  return 0;
+ }
+ if(argc==2&&std::string(argv[1])=="--mpe-timbre-test"){
+  juce::ScopedJuceInitialiser_GUI gui;
+  auto p=std::make_unique<MemoryLabProcessor>();
+  for(int part=0;part<4;++part){
+   const auto id=MemoryLabProcessor::partId(part,"mpeTimbreDepth");
+   auto* parameter=p->state.getParameter(id);
+   check(parameter&&parameter==p->getParameters()[518+part]&&parameter->getDefaultValue()==.5f,"MPE timbre append/default");
+  }
+  mpeCutoffAudioChecks(*p,true);
+  set(*p,"mpePressureDepth",1);
+  set(*p,"mpeTimbreDepth",1.5f);
+  set(*p,"part2__mpeTimbreDepth",-1);
+  const auto patch=memorylab::patch::encode(*p);
+  auto old=juce::parseXML(patch);
+  old->setAttribute("schemaVersion",24);
+  for(int i=old->getNumChildElements()-1;i>=0;--i){
+   auto* entry=old->getChildElement(i);
+   if(entry->getStringAttribute("id").endsWith("mpeTimbreDepth"))old->removeChildElement(entry,true);
+  }
+  check(memorylab::patch::apply(*p,old->toString()).wasOk()&&p->state.getRawParameterValue("mpeTimbreDepth")->load()==0&&p->state.getRawParameterValue("mpePressureDepth")->load()==1,"MPE timbre schema 24 migration");
+  check(memorylab::patch::apply(*p,patch).wasOk()&&memorylab::patch::encode(*p)==patch,"MPE timbre patch recall");
+  juce::MemoryBlock host;
+  p->getStateInformation(host);
+  set(*p,"mpeTimbreDepth",0);
+  p->setStateInformation(host.getData(),int(host.getSize()));
+  check(memorylab::patch::encode(*p)==patch,"MPE timbre host recall");
+  p->editingPart=1;
+  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
+  auto* filter=dynamic_cast<juce::Button*>(find(*editor,"familyPage"));
+  check(filter&&filter->onClick,"MPE timbre filter navigation");
+  filter->onClick();
+  auto* routes=dynamic_cast<juce::Button*>(find(*editor,"filterModRoutesPage"));
+  check(routes&&routes->onClick,"MPE timbre routes navigation");
+  routes->onClick();
+  check(find(*editor,"part2__mpeTimbreDepth")!=nullptr,"MPE timbre selected-part editor control");
+  std::cout<<"PASS CC 74 polarity, isolation, sustain, reuse and recall\n";
   return 0;
  }
  if(argc==2&&std::string(argv[1])=="--envelope-character-test"){juce::ScopedJuceInitialiser_GUI gui;envelopeCharacterChecks();return 0;}

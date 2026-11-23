@@ -3,6 +3,9 @@
 The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
 now identify confirmed gaps, approximations and unknowns after approved 0.20.
 
+0.27 alpha.3 adds [per-note MPE timbre from CC 74](plugin/MPE-TIMBRE.md).
+See [alpha.3 notes](releases/v0.27.0-alpha.3.md).
+
 0.27 alpha.2 adds [per-note MPE pressure to filter cutoff](plugin/MPE-PRESSURE.md).
 The new depth starts at zero in earlier patches. See [alpha.2 notes](releases/v0.27.0-alpha.2.md).
 

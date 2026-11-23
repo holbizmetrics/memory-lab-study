@@ -31,7 +31,9 @@ and a zone-wide manager bend. Existing projects use the earlier MIDI
 behavior by default. Holger confirmed independent bends and project recall
 in FL Studio with MIDI Out channels 2 and 3. Alpha.2 adds
 [MPE PRESSURE](plugin/MPE-PRESSURE.md) for member-channel cutoff modulation.
-The dedicated pressure route awaits FL listening and recall. Timbre is next.
+Holger confirmed the dedicated pressure route and project recall in FL Studio.
+Alpha.3 adds [per-note timbre from CC 74](plugin/MPE-TIMBRE.md). FL timbre
+listening and recall are the remaining 0.27 checks.
 
 ## Completed 0.26 stereo and unison checkpoint
 
