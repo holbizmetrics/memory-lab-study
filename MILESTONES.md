@@ -182,3 +182,14 @@ manager bend, sustain and panic. 514 controls, patch schema 23 and host
 state 25. All 26 plug-in and 13 native checks passed, including measured
 pitch checks through the built VST3. 42 prior captures and Two Lanterns
 matched both channels exactly. FL routing, listening and recall are pending.
+
+0.27 alpha.1 listening update: Holger used two FL Studio MIDI Out channels
+on internal port 20 and heard channel 2 bend while channel 3 stayed steady.
+He confirmed MPE PITCH and the bend routing survived reopening the project.
+
+0.27 alpha.2: VOICE / EXPRESSION / MPE PRESSURE routes member aftertouch
+to cutoff. Four controls append for 518 total, patch schema 24 and host
+state 26. 27 plug-in and 13 native checks passed. The built VST3 passed
+pitch and pressure checks, and 42 prior captures plus Two Lanterns matched
+in both channels. Holger confirmed the existing PRESSURE route using the
+FL MIDI Out AFT knob. Dedicated MPE pressure listening and recall are pending.

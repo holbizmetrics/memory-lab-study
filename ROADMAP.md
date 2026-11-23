@@ -24,11 +24,14 @@ where intentional behavior changes would otherwise alter saved sounds (notably
 envelope contours, bandwidth and voice signal path). Preserve defaults and old
 patch migration; avoid a separate switch for every internal implementation fix.
 
-## Active 0.27 lower-zone pitch checkpoint
+## Active 0.27 parts and expression checkpoint
 
 [MPE PITCH](plugin/MPE-PITCH.md) adds independent member-channel bends
 and a zone-wide manager bend. Existing projects use the earlier MIDI
-behavior by default. Dedicated pressure and timbre routing remain ahead.
+behavior by default. Holger confirmed independent bends and project recall
+in FL Studio with MIDI Out channels 2 and 3. Alpha.2 adds
+[MPE PRESSURE](plugin/MPE-PRESSURE.md) for member-channel cutoff modulation.
+The dedicated pressure route awaits FL listening and recall. Timbre is next.
 
 ## Completed 0.26 stereo and unison checkpoint
 

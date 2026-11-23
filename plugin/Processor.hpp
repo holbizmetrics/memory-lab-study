@@ -54,7 +54,8 @@ private:
  bool mpePitch=false;
  std::atomic<float>* mpePitchValue=nullptr;
  std::array<std::bitset<128>,16> memberNotes{};
- std::bitset<16> pendingMemberBend;
+ std::bitset<16> pendingMemberBend,pendingMemberPressure;
+ void resetMemberInput();
  void trackMemberMessage(int kind,int channel,const juce::uint8* data,int length);
  bool managerControl(int controller,int value);
  void arpEmit(memorylab::EventKind,int,double,int);
@@ -80,6 +81,8 @@ private:
  std::array<std::array<float,6>,4> osc1PwmPrevious{};
  std::array<std::atomic<float>*,4> postFilterAmpValues{};
  std::array<int,4> previousPostFilterAmp{{-1,-1,-1,-1}};
+ std::array<std::atomic<float>*,4> mpePressureValues{};
+ std::array<float,4> previousMpePressure{};
  std::array<std::atomic<float>*,4> unisonSizeValues{},unisonDetuneValues{};
  std::array<float,4> previousUnisonSize{},previousUnisonDetune{};
  std::array<std::atomic<float>*,4> stereoSpreadValues{};

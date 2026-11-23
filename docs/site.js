@@ -6,7 +6,7 @@ const views = {
 "filter-modulation": ["Profile and resonance in motion","ENV 3 and LFO 1 can move filter profile and Q per voice. The plot shows the base response; all new depths default off. Holger confirmed the four individual routes by ear."],
 "envelope-character": ["Optional envelope character","Four envelopes per part offer Legacy/Curved and Time Scale. Existing stage mappings remain; the plot shows effective timing. Holger confirmed amplitude curves, time scaling and patch/project recall."],
 "lfo-polarity": ["One-sided or centered motion","Each CLOCK page offers independent bipolar/unipolar polarity for the selected part. Old sounds remain bipolar. Holger confirmed polarity behavior, patch/project recall and older patch loading."],
-"parts-split": ["Parts and keyboard split","Reserve four voices below the chosen MIDI note and four above it; edit independent sounds and MIDI inputs. Enable MPE PITCH for lower-zone pitch expression."],
+"parts-split": ["Parts and keyboard split","Reserve four voices below the chosen MIDI note and four above it; edit independent sounds and MIDI inputs. Enable MPE PITCH for lower-zone pitch and the dedicated pressure route."],
 "parts-layer4": ["Four layered parts","Four sounds share eight voices, with two voices reserved per part. Selection changes which sound the editor controls."],
 "osc-mix": ["Two-core oscillator mixer","Mix saw and pulse from each core, with separate base widths. Added sources default off; existing PWM affects oscillator 2."],
 "env3": ["Envelope 3 editor","Independent dAHDSR stages with pitch and filter depths."],

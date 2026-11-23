@@ -3,6 +3,9 @@
 The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
 now identify confirmed gaps, approximations and unknowns after approved 0.20.
 
+0.27 alpha.2 adds [per-note MPE pressure to filter cutoff](plugin/MPE-PRESSURE.md).
+The new depth starts at zero in earlier patches. See [alpha.2 notes](releases/v0.27.0-alpha.2.md).
+
 0.27 alpha.1 adds opt-in [lower-zone pitch expression](plugin/MPE-PITCH.md)
 on PARTS. Bend one note or its full unison stack independently, or use the
 manager wheel to bend the zone. The first 513 host controls keep their order.
