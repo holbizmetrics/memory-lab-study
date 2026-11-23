@@ -6,7 +6,8 @@ The [2026-11-14 evidence audit](RELIC-COVERAGE-AUDIT.md) compares current code
 with manufacturer specs and separately qualified supplied interviews.
 Provisional sequence: 0.21 LFO polarity; 0.22 envelope character/timing;
 0.23 filter modulation; 0.24 oscillator coverage; 0.25 optional voice-path
-study; 0.26 stereo/unison; 0.27 parts/expression; 0.28 fidelity/release review.
+study; 0.26 stereo/unison; 0.27 parts/expression; 0.28 envelope-controlled
+LFO depth and fidelity/release review.
 Stages can split; uncertain hardware features require evidence before coding.
 These numbers do not promise completion. Preserve approved sound and all IDs.
 
@@ -24,7 +25,13 @@ where intentional behavior changes would otherwise alter saved sounds (notably
 envelope contours, bandwidth and voice signal path). Preserve defaults and old
 patch migration; avoid a separate switch for every internal implementation fix.
 
-## Active 0.27 parts and expression checkpoint
+## Active 0.28 modulation checkpoint
+
+[ENV 3 FADE](plugin/LFO-FADE.md) shapes LFO 1 depth per note. It starts
+at zero in older patches. The FL listening and recall checks are next,
+with the extended low-pass bandwidth experiment and fidelity review still ahead.
+
+## Completed 0.27 parts and expression checkpoint
 
 [MPE PITCH](plugin/MPE-PITCH.md) adds independent member-channel bends
 and a zone-wide manager bend. Existing projects use the earlier MIDI
@@ -32,8 +39,8 @@ behavior by default. Holger confirmed independent bends and project recall
 in FL Studio with MIDI Out channels 2 and 3. Alpha.2 adds
 [MPE PRESSURE](plugin/MPE-PRESSURE.md) for member-channel cutoff modulation.
 Holger confirmed the dedicated pressure route and project recall in FL Studio.
-Alpha.3 adds [per-note timbre from CC 74](plugin/MPE-TIMBRE.md). FL timbre
-listening and recall are the remaining 0.27 checks.
+Alpha.3 adds [per-note timbre from CC 74](plugin/MPE-TIMBRE.md). Holger
+confirmed timbre isolation and project recall in FL Studio.
 
 ## Completed 0.26 stereo and unison checkpoint
 

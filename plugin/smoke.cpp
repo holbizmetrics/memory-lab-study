@@ -35,6 +35,7 @@ juce::Component* find(juce::Component&root,const juce::String&id){if(root.getCom
 #include "unison-checks.hpp"
 #include "mpe-pitch-checks.hpp"
 #include "mpe-cutoff-checks.hpp"
+#include "lfo-fade-checks.hpp"
 struct TestPlayHead:juce::AudioPlayHead{
  double bpm=137.3;bool playing=true,tempo=true;
  juce::Optional<PositionInfo> getPosition()const override{PositionInfo p;p.setIsPlaying(playing);if(tempo)p.setBpm(bpm);return p;}
@@ -84,7 +85,7 @@ int main(int argc,char**argv){try{
   older->removeChildElement(option,true);
   for(int i=older->getNumChildElements()-1;i>=0;--i){
    auto* child=older->getChildElement(i);
-   if(child->getStringAttribute("id").endsWith("mpePressureDepth")||child->getStringAttribute("id").endsWith("mpeTimbreDepth"))older->removeChildElement(child,true);
+   if(child->getStringAttribute("id").endsWith("mpePressureDepth")||child->getStringAttribute("id").endsWith("mpeTimbreDepth")||child->getStringAttribute("id").endsWith("env3Lfo1Depth"))older->removeChildElement(child,true);
   }
   check(memorylab::patch::apply(*processor,older->toString()).wasOk()&&mode->getValue()==0,"MPE legacy patch migration");
   check(memorylab::patch::apply(*processor,patch).wasOk()&&mode->getValue()==1,"MPE patch recall");
@@ -100,6 +101,40 @@ int main(int argc,char**argv){try{
   auto* toggle=dynamic_cast<juce::ToggleButton*>(find(*editor,"mpePitch"));
   check(toggle&&toggle->isVisible()&&toggle->getToggleState(),"MPE Parts toggle");
   std::cout<<"PASS MPE pitch, chord/stack isolation, manager sustain and pitch, channel reuse, panic and recall\n";
+  return 0;
+ }
+ if(argc==2&&std::string(argv[1])=="--lfo-fade-test"){
+  juce::ScopedJuceInitialiser_GUI gui;
+  auto p=std::make_unique<MemoryLabProcessor>();
+  for(int part=0;part<4;++part){
+   const auto id=MemoryLabProcessor::partId(part,"env3Lfo1Depth");
+   auto* parameter=p->state.getParameter(id);
+   check(parameter&&parameter==p->getParameters()[522+part]&&parameter->getDefaultValue()==0,"ENV 3 fade append/default");
+  }
+  lfoFadeAudioChecks(*p);
+  set(*p,"env3Lfo1Depth",1);
+  set(*p,"part2__env3Lfo1Depth",.55f);
+  const auto patch=memorylab::patch::encode(*p);
+  auto old=juce::parseXML(patch);
+  old->setAttribute("schemaVersion",25);
+  for(int i=old->getNumChildElements()-1;i>=0;--i){
+   auto* entry=old->getChildElement(i);
+   if(entry->getStringAttribute("id").endsWith("env3Lfo1Depth"))old->removeChildElement(entry,true);
+  }
+  check(memorylab::patch::apply(*p,old->toString()).wasOk()&&p->state.getRawParameterValue("env3Lfo1Depth")->load()==0,"ENV 3 fade schema 25 migration");
+  check(memorylab::patch::apply(*p,patch).wasOk()&&memorylab::patch::encode(*p)==patch,"ENV 3 fade patch recall");
+  juce::MemoryBlock host;
+  p->getStateInformation(host);
+  set(*p,"env3Lfo1Depth",0);
+  p->setStateInformation(host.getData(),int(host.getSize()));
+  check(memorylab::patch::encode(*p)==patch,"ENV 3 fade host recall");
+  p->editingPart=1;
+  auto editor=std::unique_ptr<juce::AudioProcessorEditor>(p->createEditor());
+  auto* motion=dynamic_cast<juce::Button*>(find(*editor,"motionPage"));
+  check(motion&&motion->onClick,"ENV 3 fade motion navigation");
+  motion->onClick();
+  check(find(*editor,"part2__env3Lfo1Depth")!=nullptr,"ENV 3 fade selected-part control");
+  std::cout<<"PASS ENV 3 fade endpoints, intermediate depth, tremolo, vibrato, isolation and recall\n";
   return 0;
  }
  if(argc==2&&std::string(argv[1])=="--mpe-pressure-test"){
@@ -118,7 +153,7 @@ int main(int argc,char**argv){try{
   old->setAttribute("schemaVersion",23);
   for(int i=old->getNumChildElements()-1;i>=0;--i){
    auto* entry=old->getChildElement(i);
-   if(entry->getStringAttribute("id").endsWith("mpePressureDepth")||entry->getStringAttribute("id").endsWith("mpeTimbreDepth"))old->removeChildElement(entry,true);
+   if(entry->getStringAttribute("id").endsWith("mpePressureDepth")||entry->getStringAttribute("id").endsWith("mpeTimbreDepth")||entry->getStringAttribute("id").endsWith("env3Lfo1Depth"))old->removeChildElement(entry,true);
   }
   check(memorylab::patch::apply(*p,old->toString()).wasOk()&&p->state.getRawParameterValue("mpePressureDepth")->load()==0&&p->state.getRawParameterValue("mpePitch")->load()==1,"MPE pressure schema 23 migration");
   check(memorylab::patch::apply(*p,patch).wasOk()&&memorylab::patch::encode(*p)==patch,"MPE pressure patch recall");
@@ -153,7 +188,7 @@ int main(int argc,char**argv){try{
   old->setAttribute("schemaVersion",24);
   for(int i=old->getNumChildElements()-1;i>=0;--i){
    auto* entry=old->getChildElement(i);
-   if(entry->getStringAttribute("id").endsWith("mpeTimbreDepth"))old->removeChildElement(entry,true);
+   if(entry->getStringAttribute("id").endsWith("mpeTimbreDepth")||entry->getStringAttribute("id").endsWith("env3Lfo1Depth"))old->removeChildElement(entry,true);
   }
   check(memorylab::patch::apply(*p,old->toString()).wasOk()&&p->state.getRawParameterValue("mpeTimbreDepth")->load()==0&&p->state.getRawParameterValue("mpePressureDepth")->load()==1,"MPE timbre schema 24 migration");
   check(memorylab::patch::apply(*p,patch).wasOk()&&memorylab::patch::encode(*p)==patch,"MPE timbre patch recall");

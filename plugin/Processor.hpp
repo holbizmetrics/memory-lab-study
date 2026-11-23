@@ -81,8 +81,8 @@ private:
  std::array<std::array<float,6>,4> osc1PwmPrevious{};
  std::array<std::atomic<float>*,4> postFilterAmpValues{};
  std::array<int,4> previousPostFilterAmp{{-1,-1,-1,-1}};
- std::array<std::atomic<float>*,4> mpePressureValues{},mpeTimbreValues{};
- std::array<float,4> previousMpePressure{},previousMpeTimbre{};
+ std::array<std::atomic<float>*,4> mpePressureValues{},mpeTimbreValues{},env3Lfo1Values{};
+ std::array<float,4> previousMpePressure{},previousMpeTimbre{},previousEnv3Lfo1{};
  std::array<std::atomic<float>*,4> unisonSizeValues{},unisonDetuneValues{};
  std::array<float,4> previousUnisonSize{},previousUnisonDetune{};
  std::array<std::atomic<float>*,4> stereoSpreadValues{};

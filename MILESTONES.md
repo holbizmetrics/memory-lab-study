@@ -204,3 +204,14 @@ to cutoff per part. 522 controls, schema 25 and host state 27. 28 plug-in
 and 13 native checks passed. Pitch, pressure and timbre passed in the built
 VST3. 42 existing captures and Two Lanterns stayed exact in both channels.
 FL timbre listening and project recall are pending.
+
+0.27 alpha.3 listening update: Holger confirmed that CC 74 on MIDI Out
+channel 2 changed C4's tone while G4 on channel 3 stayed steady. He confirmed
+that MPE TIMBRE at +2.00 and the routing worked after reopening the FL project.
+
+0.28 alpha.1: MOTION / LFO 1 / ENV 3 FADE shapes LFO 1 depth per part and
+per note. 526 controls, schema 26 and host state 28. All 29 plug-in and
+13 native checks passed, including fade endpoints, partial depth, tremolo
+and vibrato. LFO 2 isolation, patch migration and host recall passed.
+42 previous VST3 captures and Two Lanterns stayed exact. FL listening and
+project recall are pending.

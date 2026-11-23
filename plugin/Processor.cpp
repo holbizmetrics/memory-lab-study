@@ -228,11 +228,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout MemoryLabProcessor::layout()
    juce::ParameterID{partId(part,"mpeTimbreDepth"),1},
    "Part "+juce::String(part+1)+" MPE timbre to cutoff (octaves)",
    juce::NormalisableRange<float>{-2,2,.01f},0.f));
+ for(int part=0;part<4;++part)
+  result.add(std::make_unique<juce::AudioParameterFloat>(
+   juce::ParameterID{partId(part,"env3Lfo1Depth"),1},
+   "Part "+juce::String(part+1)+" ENV 3 to LFO 1 depth",
+   juce::NormalisableRange<float>{0,1,.01f},0.f,stereoText));
  return result;
 }
 MemoryLabProcessor::MemoryLabProcessor():AudioProcessor(BusesProperties().withOutput("Output",juce::AudioChannelSet::stereo(),true)),state(*this,nullptr,"MemoryLabState",layout()){
  mpePitchValue=state.getRawParameterValue("mpePitch");
  for(int part=0;part<4;++part){
+  env3Lfo1Values[part]=state.getRawParameterValue(partId(part,"env3Lfo1Depth"));
   mpeTimbreValues[part]=state.getRawParameterValue(partId(part,"mpeTimbreDepth"));
   mpePressureValues[part]=state.getRawParameterValue(partId(part,"mpePressureDepth"));
   unisonSizeValues[part]=state.getRawParameterValue(partId(part,"unisonSize"));
@@ -273,7 +279,7 @@ void MemoryLabProcessor::copyPart(int from,int to){
   destination->setValueNotifyingHost(source->getValue());
   destination->endChangeGesture();
  }
- for(const char* id:{"postFilterAmp","stereoSpread","unisonSize","unisonDetune","mpePressureDepth","mpeTimbreDepth"}){
+ for(const char* id:{"postFilterAmp","stereoSpread","unisonSize","unisonDetune","mpePressureDepth","mpeTimbreDepth","env3Lfo1Depth"}){
   auto* source=state.getParameter(partId(from,id));
   auto* destination=state.getParameter(partId(to,id));
   destination->beginChangeGesture();
@@ -296,7 +302,7 @@ void MemoryLabProcessor::updateRouting(){
   if(mpePitch){synth.setMpePitch(true);resetMemberInput();}
  }
 }
-void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);if(ready)renderSampleRate=rate;arp.reset();arpEnabled=false;wasPlaying=false;mpePitch=false;resetMemberInput();keyboard.reset();outputPeak=0;voiceCount=0;arpStep=0;previousMpePressure.fill(std::numeric_limits<float>::quiet_NaN());previousMpeTimbre.fill(std::numeric_limits<float>::quiet_NaN());previousStereoSpread.fill(-1);previousUnisonSize.fill(-1);previousUnisonDetune.fill(-1);previousPostFilterAmp.fill(-1);for(auto&row:osc1PwmPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:filterRoutePrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:envelopeOptionPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:polarityPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previousRouting={0,60,0,0,0,0};setLatencySamples(0);}
+void MemoryLabProcessor::prepareToPlay(double rate,int){ready=synth.prepare(rate);if(ready)renderSampleRate=rate;arp.reset();arpEnabled=false;wasPlaying=false;mpePitch=false;resetMemberInput();keyboard.reset();outputPeak=0;voiceCount=0;arpStep=0;previousMpePressure.fill(std::numeric_limits<float>::quiet_NaN());previousMpeTimbre.fill(std::numeric_limits<float>::quiet_NaN());previousEnv3Lfo1.fill(-1);previousStereoSpread.fill(-1);previousUnisonSize.fill(-1);previousUnisonDetune.fill(-1);previousPostFilterAmp.fill(-1);for(auto&row:osc1PwmPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:filterRoutePrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:envelopeOptionPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:polarityPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previous.fill(std::numeric_limits<float>::quiet_NaN());for(auto&row:partPrevious)row.fill(std::numeric_limits<float>::quiet_NaN());previousRouting={0,60,0,0,0,0};setLatencySamples(0);}
 void MemoryLabProcessor::arpEmit(memorylab::EventKind kind,int note,double velocity,int channel){synth.dispatch({0,kind,note,velocity,channel});}
 void MemoryLabProcessor::render(float*left,float*right,int count){
  if(!arpEnabled){synth.render(left,std::size_t(count),nullptr,0,right);return;}
@@ -448,6 +454,11 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
   }
  }
  for(int part=0;part<4;++part){
+  const auto fade=env3Lfo1Values[part]->load();
+  if(fade!=previousEnv3Lfo1[part]){
+   synth.parameter(part,memorylab::Param::Env3Lfo1Depth,fade);
+   previousEnv3Lfo1[part]=fade;
+  }
   const auto timbre=mpeTimbreValues[part]->load();
   if(timbre!=previousMpeTimbre[part]){
    synth.parameter(part,memorylab::Param::MpeTimbreDepth,std::abs(timbre)<1e-6?0.:double(timbre));
@@ -507,7 +518,7 @@ void MemoryLabProcessor::processBlock(juce::AudioBuffer<float>& audio,juce::Midi
  outputPeak.store(count>0?audio.getMagnitude(0,count):0);voiceCount.store(int(synth.activeVoices()));
  events.clear();
 }
-void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",27,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
+void MemoryLabProcessor::getStateInformation(juce::MemoryBlock& dest){auto copy=state.copyState();copy.setProperty("version",28,nullptr);if(auto xml=copy.createXml())copyXmlToBinary(*xml,dest);}
 void MemoryLabProcessor::setStateInformation(const void*data,int size){if(size<=0||size>1024*1024)return;if(auto xml=getXmlFromBinary(data,size))if(xml->hasTagName(state.state.getType())){
  auto incoming=juce::ValueTree::fromXml(*xml);
  // A missing new control in a legacy preset must take its original default,
