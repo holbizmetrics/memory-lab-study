@@ -37,12 +37,31 @@ void tests(){
    const auto a=response(sr,fc,q,bw,fc);
    require(std::abs(a[4])<=q*.708,"LP4 unexpectedly squares resonance gain");
   }
+  // Compare the extended model against the same independent transfer
+  // function with a rescaled LP section and the original BP section.
+  for(double bw:{.25,4.}){
+   constexpr double fc=1800,q=1.5;
+   const auto original=response(sr,fc,q,bw,fc);
+   const auto adjusted=response(sr,fc,q/std::sqrt(bw),bw,fc);
+   const std::array<C,5> expected{original[0],.5*(original[0]+adjusted[2]),adjusted[2],adjusted[3],adjusted[4]};
+   memorylab::ModernFilter filter;
+   std::array<C,5> measured{};
+   for(int n=0;n<32768;++n){
+    const auto sample=filter.tickAll(n==0?1.:0.,sr,fc,q,bw,1.);
+    const auto phase=std::polar(1.,-2*pi*fc*n/sr);
+    for(std::size_t k=0;k<measured.size();++k)measured[k]+=sample[k]*phase;
+   }
+   for(std::size_t k=0;k<measured.size();++k){
+    require(std::abs(measured[k]-expected[k])<1e-8,"extended bandwidth impulse mismatch");
+    require(std::abs(memorylab::ModernFilter::response(sr,fc,q,bw,k*.25,fc,1.)-expected[k])<1e-10,"extended bandwidth display mismatch");
+   }
+  }
   // Rapid live changes, including cutoff limits and noise-like excitation.
   memorylab::ModernFilter whole;
   for(int n=0;n<1000000;++n){
    const double x=std::sin(n*1.2345)*.2,fc=(n/137)%2?30.:std::min(18000.,sr*.4);
    const double q=(n/71)%2?8.:.5,bw=(n/97)%2?4.:.25,p=(n%1000)/999.;
-   const double a=whole.tick(x,sr,fc,q,bw,p);
+   const double a=whole.tick(x,sr,fc,q,bw,p,(n%2000)/1999.);
    require(std::isfinite(a)&&std::abs(a)<100,"unstable automated filter");
   }
   whole.reset();

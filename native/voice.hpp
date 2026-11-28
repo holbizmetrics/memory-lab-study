@@ -72,7 +72,7 @@ struct Parameters {
  int lfo3Shape=0,lfo3Division=2;bool lfo3Sync=false,lfo3Retrigger=true;
  double lfo4Rate=1.1,lfo4Pitch=0,lfo4Pwm=0,lfo4Cutoff=0,lfo4Bpm=130;
  int lfo4Shape=0,lfo4Division=2;bool lfo4Sync=false,lfo4Retrigger=true;
- double modernEnabled=0,modernProfile=.5,modernBandwidth=1;
+ double modernEnabled=0,modernProfile=.5,modernBandwidth=1,extendedLowPass=0;
  double osc1PulseLevel=0,osc2SawLevel=0,osc1Width=.5;
  double lfoAmp=0,lfo2Amp=0,lfo3Amp=0,lfo4Amp=0,ampPitch=0,fltPitch=0,env3Pwm=0,env4Pwm=0;
  EnvelopeSettings env3Shape{0,.5,0,.35,.5,.5},env4Shape{0,.5,0,.35,.5,.5};
@@ -103,7 +103,7 @@ public:
  }
 };
 enum class EventKind {NoteOn,NoteOff,AllOff,Parameter,Sustain,PitchBend,ChannelPressure,AllSoundOff,ChannelAllOff,ChannelAllSoundOff,ResetMemberPressure,MemberTimbre};
-enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1,Osc1Lfo1Pwm,Osc1Lfo2Pwm,Osc1Lfo3Pwm,Osc1Lfo4Pwm,Osc1Env3Pwm,Osc1Env4Pwm,PostFilterAmp,StereoSpread,UnisonDetune,MpePressureDepth,MpeTimbreDepth,Env3Lfo1Depth};
+enum class Param {Drive,Depth,Recovery,Detune,PulseWidth,Cutoff,Q,Volume,Retrigger,Profile,LfoRate,PitchLfo,PwmLfo,CutoffLfo,FilterEnvelope,PressureDepth,AmpDelay,AmpAttack,AmpHold,AmpDecay,AmpSustain,AmpRelease,FilterDelay,FilterAttack,FilterHold,FilterDecay,FilterSustain,FilterRelease,VoiceDrive,SawLevel,PulseLevel,Osc2Interval,NoiseLevel,FilterFamily,LfoShape,LfoSync,LfoDivision,LfoRetrigger,LfoBpm,KeyTrack,AmpVelocity,FilterVelocity,Lfo2Rate,Lfo2Pitch,Lfo2Pwm,Lfo2Cutoff,Lfo2Shape,Lfo2Sync,Lfo2Division,Lfo2Retrigger,Lfo2Bpm,Lfo3Rate,Lfo3Pitch,Lfo3Pwm,Lfo3Cutoff,Lfo3Shape,Lfo3Sync,Lfo3Division,Lfo3Retrigger,Lfo3Bpm,Lfo4Rate,Lfo4Pitch,Lfo4Pwm,Lfo4Cutoff,Lfo4Shape,Lfo4Sync,Lfo4Division,Lfo4Retrigger,Lfo4Bpm,Env3Delay,Env3Attack,Env3Hold,Env3Decay,Env3Sustain,Env3Release,Env3Pitch,Env3Cutoff,Env4Delay,Env4Attack,Env4Hold,Env4Decay,Env4Sustain,Env4Release,Env4Pitch,Env4Cutoff,LfoAmp,Lfo2Amp,Lfo3Amp,Lfo4Amp,AmpPitch,FltPitch,Env3Pwm,Env4Pwm,Osc1PulseLevel,Osc2SawLevel,Osc1Width,ModernEnabled,ModernProfile,ModernBandwidth,LfoUnipolar,Lfo2Unipolar,Lfo3Unipolar,Lfo4Unipolar,AmpCurve,AmpTimeScale,FilterCurve,FilterTimeScale,Env3Curve,Env3TimeScale,Env4Curve,Env4TimeScale,FilterProfileEnv3,FilterProfileLfo1,FilterResEnv3,FilterResLfo1,Osc1Lfo1Pwm,Osc1Lfo2Pwm,Osc1Lfo3Pwm,Osc1Lfo4Pwm,Osc1Env3Pwm,Osc1Env4Pwm,PostFilterAmp,StereoSpread,UnisonDetune,MpePressureDepth,MpeTimbreDepth,Env3Lfo1Depth,ExtendedLowPass};
 struct Event {std::size_t offset=0;EventKind kind=EventKind::AllOff;int note=60;double value=0;int channel=0;Param parameter=Param::Drive;};
 class ClassicFilter {
  double ic1=0,ic2=0;
@@ -237,6 +237,7 @@ class Synth {
     case Param::ModernEnabled:target.modernEnabled=e.value>=.5?1.:0.;break;
     case Param::ModernProfile:target.modernProfile=std::clamp(e.value,0.,1.);break;
     case Param::ModernBandwidth:target.modernBandwidth=std::clamp(e.value,.25,4.);break;
+    case Param::ExtendedLowPass:target.extendedLowPass=e.value>=.5?1.:0.;break;
     case Param::Osc1Width:target.osc1Width=std::clamp(e.value,0.1,0.9);break;
     case Param::LfoAmp:target.lfoAmp=std::clamp(e.value,-1.,1.);break;
     case Param::Lfo2Amp:target.lfo2Amp=std::clamp(e.value,-1.,1.);break;
@@ -499,7 +500,7 @@ case Param::Lfo4Unipolar:target.lfoUnipolar[3]=e.value>=.5?1.:0.;break;
   if(modern>0)output=output*std::max(0.,1-modern)+extended[0]*filterWeights[0]+extended[1]*filterWeights[1]+extended[2]*filterWeights[2];
 if(current.modernEnabled>0){
    if(!v.modernRunning){v.modernFilter.reset();v.modernRunning=true;}
-   const double swept=v.modernFilter.tick(x,sr,cutoff,routedQ,current.modernBandwidth,modernProfile);
+   const double swept=v.modernFilter.tick(x,sr,cutoff,routedQ,current.modernBandwidth,modernProfile,current.extendedLowPass);
    output+=(swept-output)*current.modernEnabled;
   }else v.modernRunning=false;
 #if MEMORYLAB_EXPERIMENTAL_FILTER_FAMILY
@@ -655,6 +656,7 @@ public:
    }
    current.modernProfile+=(target.modernProfile-current.modernProfile)*smooth;
    current.modernBandwidth+=(target.modernBandwidth-current.modernBandwidth)*smooth;
+   current.extendedLowPass+=(target.extendedLowPass-current.extendedLowPass)*smooth;
    current.noiseLevel+=(target.noiseLevel-current.noiseLevel)*smooth;
    for(int mode=0;mode<3;++mode){const double destination=target.filterFamily==mode+1?1.:0.;filterWeights[mode]+=(destination-filterWeights[mode])*smooth;if(destination==0&&filterWeights[mode]<1e-8)filterWeights[mode]=0;}
    if(target.noiseLevel==0&&current.noiseLevel<1e-8)current.noiseLevel=0;

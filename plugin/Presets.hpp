@@ -23,7 +23,7 @@ inline const std::vector<Entry>& bank(){
 // preset starts from factory defaults, not the previously selected sound.
 inline juce::String encode(MemoryLabProcessor&p,int index){
  if(index<0||index>=int(bank().size()))return {};
- juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",26);
+ juce::XmlElement root("MemoryLabPatch");root.setAttribute("schemaVersion",patch::schemaVersion);
  for(auto*base:p.getParameters())if(auto*parameter=dynamic_cast<juce::RangedAudioParameter*>(base)){
   const auto&id=parameter->paramID;const int part=p.editingPart.load();
   const auto prefix=part==0?juce::String{}:"part"+juce::String(part+1)+"__";

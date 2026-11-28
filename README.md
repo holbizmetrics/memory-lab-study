@@ -3,8 +3,8 @@
 The [hardware coverage audit](RELIC-COVERAGE-AUDIT.md) and [clickable next route](roadmap/index.html)
 now identify confirmed gaps, approximations and unknowns after approved 0.20.
 
-0.28 alpha.1 adds [envelope-controlled LFO 1 depth](plugin/LFO-FADE.md).
-See [alpha.1 notes](releases/v0.28.0-alpha.1.md).
+0.29 alpha.1 adds [optional low-pass bandwidth shaping](plugin/EXTENDED-LOW-PASS.md).
+See [alpha.1 notes](releases/v0.29.0-alpha.1.md).
 
 0.27 alpha.3 adds [per-note MPE timbre from CC 74](plugin/MPE-TIMBRE.md).
 See [alpha.3 notes](releases/v0.27.0-alpha.3.md).

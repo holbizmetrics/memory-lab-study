@@ -85,7 +85,7 @@ int main(int argc,char**argv){try{
   older->removeChildElement(option,true);
   for(int i=older->getNumChildElements()-1;i>=0;--i){
    auto* child=older->getChildElement(i);
-   if(child->getStringAttribute("id").endsWith("mpePressureDepth")||child->getStringAttribute("id").endsWith("mpeTimbreDepth")||child->getStringAttribute("id").endsWith("env3Lfo1Depth"))older->removeChildElement(child,true);
+   if(child->getStringAttribute("id").endsWith("mpePressureDepth")||child->getStringAttribute("id").endsWith("mpeTimbreDepth")||(child->getStringAttribute("id").endsWith("env3Lfo1Depth")||child->getStringAttribute("id").endsWith("extendedLowPass")))older->removeChildElement(child,true);
   }
   check(memorylab::patch::apply(*processor,older->toString()).wasOk()&&mode->getValue()==0,"MPE legacy patch migration");
   check(memorylab::patch::apply(*processor,patch).wasOk()&&mode->getValue()==1,"MPE patch recall");
@@ -119,7 +119,7 @@ int main(int argc,char**argv){try{
   old->setAttribute("schemaVersion",25);
   for(int i=old->getNumChildElements()-1;i>=0;--i){
    auto* entry=old->getChildElement(i);
-   if(entry->getStringAttribute("id").endsWith("env3Lfo1Depth"))old->removeChildElement(entry,true);
+   if((entry->getStringAttribute("id").endsWith("env3Lfo1Depth")||entry->getStringAttribute("id").endsWith("extendedLowPass")))old->removeChildElement(entry,true);
   }
   check(memorylab::patch::apply(*p,old->toString()).wasOk()&&p->state.getRawParameterValue("env3Lfo1Depth")->load()==0,"ENV 3 fade schema 25 migration");
   check(memorylab::patch::apply(*p,patch).wasOk()&&memorylab::patch::encode(*p)==patch,"ENV 3 fade patch recall");
@@ -153,7 +153,7 @@ int main(int argc,char**argv){try{
   old->setAttribute("schemaVersion",23);
   for(int i=old->getNumChildElements()-1;i>=0;--i){
    auto* entry=old->getChildElement(i);
-   if(entry->getStringAttribute("id").endsWith("mpePressureDepth")||entry->getStringAttribute("id").endsWith("mpeTimbreDepth")||entry->getStringAttribute("id").endsWith("env3Lfo1Depth"))old->removeChildElement(entry,true);
+   if(entry->getStringAttribute("id").endsWith("mpePressureDepth")||entry->getStringAttribute("id").endsWith("mpeTimbreDepth")||(entry->getStringAttribute("id").endsWith("env3Lfo1Depth")||entry->getStringAttribute("id").endsWith("extendedLowPass")))old->removeChildElement(entry,true);
   }
   check(memorylab::patch::apply(*p,old->toString()).wasOk()&&p->state.getRawParameterValue("mpePressureDepth")->load()==0&&p->state.getRawParameterValue("mpePitch")->load()==1,"MPE pressure schema 23 migration");
   check(memorylab::patch::apply(*p,patch).wasOk()&&memorylab::patch::encode(*p)==patch,"MPE pressure patch recall");
@@ -188,7 +188,7 @@ int main(int argc,char**argv){try{
   old->setAttribute("schemaVersion",24);
   for(int i=old->getNumChildElements()-1;i>=0;--i){
    auto* entry=old->getChildElement(i);
-   if(entry->getStringAttribute("id").endsWith("mpeTimbreDepth")||entry->getStringAttribute("id").endsWith("env3Lfo1Depth"))old->removeChildElement(entry,true);
+   if(entry->getStringAttribute("id").endsWith("mpeTimbreDepth")||(entry->getStringAttribute("id").endsWith("env3Lfo1Depth")||entry->getStringAttribute("id").endsWith("extendedLowPass")))old->removeChildElement(entry,true);
   }
   check(memorylab::patch::apply(*p,old->toString()).wasOk()&&p->state.getRawParameterValue("mpeTimbreDepth")->load()==0&&p->state.getRawParameterValue("mpePressureDepth")->load()==1,"MPE timbre schema 24 migration");
   check(memorylab::patch::apply(*p,patch).wasOk()&&memorylab::patch::encode(*p)==patch,"MPE timbre patch recall");

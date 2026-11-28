@@ -11,7 +11,7 @@ four-part voice architecture can be more work than several UI milestones.
 | --- | --- | --- |
 | Voices/parts | Eight voices, four sounds, layers/split/channels; Holger approved routing and recall | Fixed reservations; hardware allocation policy unknown |
 | Oscillators | Four saw/pulse levels, separate static widths, OSC 2 tuning/PWM, noise | OSC 1 PWM, measured SEM behavior; current-model sync evidence incomplete |
-| Filters | Classic sweep and modern BP4/XF4/LP2/LP3/LP4 profile with bandwidth; approved | ENV 3/LFO 1 profile/Q routes added; new listening pending. Exact hardware laws, nonlinearities and extended LP bandwidth remain |
+| Filters | Classic sweep and modern BP4/XF4/LP2/LP3/LP4 profile with bandwidth; approved | Optional extended LP bandwidth added in 0.29. Listening and project recall pending. Exact hardware laws and nonlinearities remain unknown |
 | Envelopes | Four dAHDSR contours, optional curves/time scale; amplitude and recall approved | Measured hardware laws and further time modulation remain |
 | LFOs | Four sources with four shapes, bipolar/unipolar options and explicit routes; approved | Further evidenced routing, ranges and modulation of modulators |
 | Output/drive | Post-filter voice clipping, shared memory drive and bypass | Original drive; post-filter amp VCA, stereo voice pan, unison and multi-out incomplete |
@@ -213,5 +213,14 @@ that MPE TIMBRE at +2.00 and the routing worked after reopening the FL project.
 per note. 526 controls, schema 26 and host state 28. All 29 plug-in and
 13 native checks passed, including fade endpoints, partial depth, tremolo
 and vibrato. LFO 2 isolation, patch migration and host recall passed.
-42 previous VST3 captures and Two Lanterns stayed exact. FL listening and
-project recall are pending.
+42 previous VST3 captures and Two Lanterns stayed exact.
+
+0.28 alpha.1 listening update: Holger approved the vibrato fade in FL Studio.
+After reopening the saved project, he confirmed that ENV 3 FADE recalled at
+100% and the held note sounded the same.
+
+0.29 alpha.1: FILTER / MODERN / EXTENDED LP BW scales low-pass damping
+per part. 530 controls, patch schema 27 and host state 29. Legacy is the
+default for older sounds. The VST3 passed the three low-pass profile
+comparisons. The native reference phrase, 42 earlier VST3 captures, and
+Two Lanterns stayed exact. FL Studio listening and project recall are pending.

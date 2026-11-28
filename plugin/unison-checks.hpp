@@ -3,7 +3,7 @@
 void unisonChecks(){
  auto p=std::make_unique<MemoryLabProcessor>();
  auto q=std::make_unique<MemoryLabProcessor>();
- check(p->getParameters().size()==526,"unison count");
+ check(p->getParameters().size()==530,"unison count");
  for(int part=0;part<4;++part){
   const auto modeId=MemoryLabProcessor::partId(part,"unisonSize");
   const auto detuneId=MemoryLabProcessor::partId(part,"unisonDetune");
@@ -28,7 +28,7 @@ void unisonChecks(){
  for(int i=older->getNumChildElements()-1;i>=0;--i){
   auto* entry=older->getChildElement(i);
   const auto id=entry->getStringAttribute("id");
-  if(id.endsWith("unisonSize")||(id.endsWith("unisonDetune")||(id=="mpePitch"||(id.endsWith("mpePressureDepth")||(id.endsWith("mpeTimbreDepth")||id.endsWith("env3Lfo1Depth"))))))older->removeChildElement(entry,true);
+  if(id.endsWith("unisonSize")||(id.endsWith("unisonDetune")||(id=="mpePitch"||(id.endsWith("mpePressureDepth")||(id.endsWith("mpeTimbreDepth")||(id.endsWith("env3Lfo1Depth")||id.endsWith("extendedLowPass")))))))older->removeChildElement(entry,true);
  }
  check(memorylab::patch::apply(*q,older->toString()).wasOk(),"schema21 migration");
  for(int part=0;part<4;++part){

@@ -1,5 +1,8 @@
 # Continuous modern filter — 0.18 alpha.3
 
+From 0.29, [EXTENDED LP BW](EXTENDED-LOW-PASS.md) lets bandwidth shape
+the low-pass response per part. This page describes the Legacy setting.
+
 FILTER has FAMILIES and MODERN pages. The original four choices retain their
 parameter range, processing and stored values. MODERN ON replaces that path
 with the new filter. Off restores it; navigation never changes the active mode.

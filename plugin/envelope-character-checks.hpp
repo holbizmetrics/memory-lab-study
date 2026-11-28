@@ -29,18 +29,18 @@ void envelopeCharacterChecks(){
   }
  }
  const char*ids[]{"ampCurve","ampTimeScale","fltCurve","fltTimeScale","env3Curve","env3TimeScale","env4Curve","env4TimeScale"};
- auto p=std::make_unique<MemoryLabProcessor>();check(p->getParameters().size()==526&&p->getTailLengthSeconds()>=100,"envelope count/tail");
+ auto p=std::make_unique<MemoryLabProcessor>();check(p->getParameters().size()==530&&p->getTailLengthSeconds()>=100,"envelope count/tail");
  for(int part=0;part<4;++part)for(int i=0;i<8;++i){const auto id=MemoryLabProcessor::partId(part,ids[i]);auto*param=p->state.getParameter(id);check(param&&param==p->getParameters()[425+part*8+i]&&param->isAutomatable(),"envelope append order");
   check(std::abs(param->convertFrom0to1(param->getDefaultValue())-(i%2?1.f:0.f))<1e-6,"envelope default");set(*p,id.toRawUTF8(),i%2?2.f:1.f);
  }
  set(*p,"lfoUnipolar",1);
  const auto full=patch::encode(*p);juce::MemoryBlock host;p->getStateInformation(host);auto q=std::make_unique<MemoryLabProcessor>();q->setStateInformation(host.getData(),int(host.getSize()));check(patch::encode(*q)==full,"envelope host recall");
- auto old=juce::parseXML(full);old->setAttribute("schemaVersion",16);for(int i=old->getNumChildElements()-1;i>=0;--i){const auto id=old->getChildElement(i)->getStringAttribute("id");if((id.contains("filterMod")||(id.contains("osc1Pwm")||(id.endsWith("postFilterAmp")||(id.endsWith("stereoSpread")||id.endsWith("unisonSize")||(id.endsWith("unisonDetune")||(id=="mpePitch"||(id.endsWith("mpePressureDepth")||(id.endsWith("mpeTimbreDepth")||id.endsWith("env3Lfo1Depth")))))))))||id.endsWith("Curve")||id.endsWith("TimeScale"))old->removeChildElement(old->getChildElement(i),true);}
+ auto old=juce::parseXML(full);old->setAttribute("schemaVersion",16);for(int i=old->getNumChildElements()-1;i>=0;--i){const auto id=old->getChildElement(i)->getStringAttribute("id");if((id.contains("filterMod")||(id.contains("osc1Pwm")||(id.endsWith("postFilterAmp")||(id.endsWith("stereoSpread")||id.endsWith("unisonSize")||(id.endsWith("unisonDetune")||(id=="mpePitch"||(id.endsWith("mpePressureDepth")||(id.endsWith("mpeTimbreDepth")||(id.endsWith("env3Lfo1Depth")||id.endsWith("extendedLowPass"))))))))))||id.endsWith("Curve")||id.endsWith("TimeScale"))old->removeChildElement(old->getChildElement(i),true);}
  check(patch::apply(*p,old->toString()).wasOk(),"schema16 migration");
  check(p->state.getRawParameterValue("lfoUnipolar")->load()==1,"schema16 lost polarity");
  for(int part=0;part<4;++part)for(int i=0;i<8;++i)check(std::abs(p->state.getRawParameterValue(MemoryLabProcessor::partId(part,ids[i]))->load()-(i%2?1.f:0.f))<1e-6,"legacy envelope retained option");
  check(patch::apply(*p,full).wasOk(),"envelope full patch restore");
- auto oldHost=q->state.copyState();for(int i=oldHost.getNumChildren()-1;i>=0;--i){const auto id=oldHost.getChild(i).getProperty("id").toString();if((id.contains("filterMod")||(id.contains("osc1Pwm")||(id.endsWith("postFilterAmp")||(id.endsWith("stereoSpread")||id.endsWith("unisonSize")||(id.endsWith("unisonDetune")||(id=="mpePitch"||(id.endsWith("mpePressureDepth")||(id.endsWith("mpeTimbreDepth")||id.endsWith("env3Lfo1Depth")))))))))||id.endsWith("Curve")||id.endsWith("TimeScale"))oldHost.removeChild(i,nullptr);}
+ auto oldHost=q->state.copyState();for(int i=oldHost.getNumChildren()-1;i>=0;--i){const auto id=oldHost.getChild(i).getProperty("id").toString();if((id.contains("filterMod")||(id.contains("osc1Pwm")||(id.endsWith("postFilterAmp")||(id.endsWith("stereoSpread")||id.endsWith("unisonSize")||(id.endsWith("unisonDetune")||(id=="mpePitch"||(id.endsWith("mpePressureDepth")||(id.endsWith("mpeTimbreDepth")||(id.endsWith("env3Lfo1Depth")||id.endsWith("extendedLowPass"))))))))))||id.endsWith("Curve")||id.endsWith("TimeScale"))oldHost.removeChild(i,nullptr);}
  oldHost.setProperty("version",18,nullptr);auto oldXml=oldHost.createXml();juce::AudioProcessor::copyXmlToBinary(*oldXml,host);q->setStateInformation(host.getData(),int(host.getSize()));
  check(q->state.getRawParameterValue("ampCurve")->load()==0&&std::abs(q->state.getRawParameterValue("ampTimeScale")->load()-1)<1e-6&&q->state.getRawParameterValue("lfoUnipolar")->load()==1,"old host migration");
  p->copyPart(0,3);check(p->state.getRawParameterValue("part4__ampCurve")->load()==1,"copy envelope character");
